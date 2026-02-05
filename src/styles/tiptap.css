@@ -1,0 +1,200 @@
+/* ───────────────────────────────
+   GENERAL TABLE LAYOUT
+   ─────────────────────────────── */
+.tiptap .ProseMirror,
+.tiptap .ProseMirror-focused {
+  outline: none;
+  padding: 7px;
+}
+
+/* ───────────────────────────────
+   GENERAL TABLE LAYOUT
+   ─────────────────────────────── */
+.tiptap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;          /* optional: a tad smaller than body */
+}
+
+/* add a subtle outer frame */
+.tiptap-table,
+.tiptap-table > thead > tr > th,
+.tiptap-table > tbody > tr > td {
+  border: 1px solid #c4c4c4;   /* grid lines */
+}
+
+/* ensure padding is consistent */
+.tiptap-table th,
+.tiptap-table td {
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+}
+
+/* ───────────────────────────────
+   HEADER ROW
+   ─────────────────────────────── */
+.tiptap-table thead th {
+  background: #f5f7fa;         /* light grey */
+  font-weight: 600;
+  text-align: left;
+}
+
+/* centre headers if you like
+.tiptap-table thead th { text-align: center; }
+*/
+
+/* ───────────────────────────────
+   ZEBRA STRIPES (body only)
+   ─────────────────────────────── */
+.tiptap-table tbody tr:nth-child(odd) {
+  background: #fafafa;
+}
+
+/* ───────────────────────────────
+   SELECTION FEEDBACK
+   (TipTap adds `selectedCell` class)
+   ─────────────────────────────── */
+.tiptap-table .selectedCell {
+  outline: 2px solid #1e88e5;  /* brand-blue highlight */
+  outline-offset: -2px;        /* keep outline within cell */
+  background: rgba(30,136,229,0.05);
+}
+
+/* ───────────────────────────────
+   RESIZABLE HANDLES (ImageResize ext)
+   (OPTIONAL: show a thicker grab line)
+   ─────────────────────────────── */
+/* TipTap itself injects inline styles for column widths,
+   but the resize handle is just a few extra pixels on the <th|td>::after pseudo.
+   If you use @tiptap/extension-table-resizable (community) you can style its handle here. */
+
+/* Fallback for tables that don’t have class="tiptap-table" yet */
+.tiptap .tableWrapper table,
+.tiptap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+/* cell borders + padding */
+.tiptap .tableWrapper td,
+.tiptap .tableWrapper th,
+.tiptap table td,
+.tiptap table th {
+  border: 1px solid #c4c4c4;
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+}
+/* tiptap.css */
+question { display: block; }
+
+/* header row, zebra stripes, selection -- use the same rules you already wrote,
+   just copy the selectors to include `.tableWrapper` and bare `table` */
+/* Basic editor tweak */
+.tiptap > :first-child { margin-top: 0; }
+
+/* Mathematics wrapper */
+.tiptap .tiptap-mathematics-render {
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* “Editable” hover state (class the ext adds when editor is editable) */
+.tiptap .tiptap-mathematics-render--editable {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.tiptap .tiptap-mathematics-render--editable:hover {
+  background: #eee;
+}
+
+/* Inline vs block layout */
+.tiptap .tiptap-mathematics-render[data-type="inline-math"] {
+  display: inline-block;
+}
+.tiptap .tiptap-mathematics-render[data-type="block-math"] {
+  display: block;
+  margin: 1rem 0;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Error styling (with fallbacks if CSS vars aren’t set) */
+.tiptap .inline-math-error,
+.tiptap .block-math-error {
+  background: var(--red-light, #ffeaea);
+  color: var(--red, #c62828);
+  border: 1px solid var(--red-dark, #8e0000);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* Fallback in case the --editable class isn’t present for any reason */
+.tiptap[contenteditable="true"] .tiptap-mathematics-render:hover { background: #eee; }
+
+/* Inline MathLive wrapper: ensure hover highlights full height */
+.tiptap .tiptap-inline-math-wrapper {
+  display: inline-block;
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  vertical-align: middle;
+}
+.tiptap .tiptap-inline-math-wrapper .tiptap-mathematics-render {
+  padding: 0;
+}
+.tiptap[contenteditable="true"] .tiptap-inline-math-wrapper:hover {
+  background: #eee;
+}
+
+
+
+
+
+
+/* Wrapper + image (unchanged) */
+.tiptap .image-resizer {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+.tiptap .image-resizer > img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  user-select: none;
+}
+
+/* Make handles circular */
+.tiptap .image-resizer .resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(0,0,0,.35);
+  background: rgba(255,255,255,.95);
+  border-radius: 50%;         /* ⬅️ circles */
+  box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+/* Show handles on hover/drag */
+.tiptap .image-resizer:hover .resize-handle,
+.tiptap .image-resizer[data-dragging="true"] .resize-handle {
+  opacity: 1;
+}
+
+/* Corner positions + cursors */
+.tiptap .image-resizer .handle-nw { left: -9px;  top: -9px;    cursor: nwse-resize; }
+.tiptap .image-resizer .handle-ne { right: -9px; top: -9px;    cursor: nesw-resize; }
+.tiptap .image-resizer .handle-sw { left: -9px;  bottom: -9px; cursor: nesw-resize; }
+.tiptap .image-resizer .handle-se { right: -9px; bottom: -9px; cursor: nwse-resize; }
+
+/* Dashed outline around the image on hover / drag / selection */
+.tiptap .image-resizer:hover > img,
+.tiptap .image-resizer[data-dragging="true"] > img,
+.tiptap .ProseMirror-selectednode.image-resizer > img {
+  outline: 2px dashed rgba(0,0,0,.45);
+  outline-offset: 3px;         /* keeps layout stable */
+  border-radius: 6px;          /* slightly rounds outline corners */
+}

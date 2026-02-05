@@ -1,0 +1,152 @@
+/* src/styles/tiptap.css */
+.tiptap .ProseMirror,
+.tiptap .ProseMirror-focused {
+  outline: none;
+  padding: 7px;
+}
+.tiptap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+.tiptap-table,
+.tiptap-table > thead > tr > th,
+.tiptap-table > tbody > tr > td {
+  border: 1px solid #c4c4c4;
+}
+.tiptap-table th,
+.tiptap-table td {
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+}
+.tiptap-table thead th {
+  background: #f5f7fa;
+  font-weight: 600;
+  text-align: left;
+}
+.tiptap-table tbody tr:nth-child(odd) {
+  background: #fafafa;
+}
+.tiptap-table .selectedCell {
+  outline: 2px solid #1e88e5;
+  outline-offset: -2px;
+  background: rgba(30, 136, 229, 0.05);
+}
+.tiptap .tableWrapper table,
+.tiptap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+.tiptap .tableWrapper td,
+.tiptap .tableWrapper th,
+.tiptap table td,
+.tiptap table th {
+  border: 1px solid #c4c4c4;
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+}
+question {
+  display: block;
+}
+.tiptap > :first-child {
+  margin-top: 0;
+}
+.tiptap .tiptap-mathematics-render {
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}
+.tiptap .tiptap-mathematics-render--editable {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.tiptap .tiptap-mathematics-render--editable:hover {
+  background: #eee;
+}
+.tiptap .tiptap-mathematics-render[data-type=inline-math] {
+  display: inline-block;
+}
+.tiptap .tiptap-mathematics-render[data-type=block-math] {
+  display: block;
+  margin: 1rem 0;
+  padding: 1rem;
+  text-align: center;
+}
+.tiptap .inline-math-error,
+.tiptap .block-math-error {
+  background: var(--red-light, #ffeaea);
+  color: var(--red, #c62828);
+  border: 1px solid var(--red-dark, #8e0000);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+.tiptap[contenteditable=true] .tiptap-mathematics-render:hover {
+  background: #eee;
+}
+.tiptap .tiptap-inline-math-wrapper {
+  display: inline-block;
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  vertical-align: middle;
+}
+.tiptap .tiptap-inline-math-wrapper .tiptap-mathematics-render {
+  padding: 0;
+}
+.tiptap[contenteditable=true] .tiptap-inline-math-wrapper:hover {
+  background: #eee;
+}
+.tiptap .image-resizer {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+.tiptap .image-resizer > img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  user-select: none;
+}
+.tiptap .image-resizer .resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(0, 0, 0, .35);
+  background: rgba(255, 255, 255, .95);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .9) inset;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.tiptap .image-resizer:hover .resize-handle,
+.tiptap .image-resizer[data-dragging=true] .resize-handle {
+  opacity: 1;
+}
+.tiptap .image-resizer .handle-nw {
+  left: -9px;
+  top: -9px;
+  cursor: nwse-resize;
+}
+.tiptap .image-resizer .handle-ne {
+  right: -9px;
+  top: -9px;
+  cursor: nesw-resize;
+}
+.tiptap .image-resizer .handle-sw {
+  left: -9px;
+  bottom: -9px;
+  cursor: nesw-resize;
+}
+.tiptap .image-resizer .handle-se {
+  right: -9px;
+  bottom: -9px;
+  cursor: nwse-resize;
+}
+.tiptap .image-resizer:hover > img,
+.tiptap .image-resizer[data-dragging=true] > img,
+.tiptap .ProseMirror-selectednode.image-resizer > img {
+  outline: 2px dashed rgba(0, 0, 0, .45);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/*# sourceMappingURL=index.css.map */
