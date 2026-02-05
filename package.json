@@ -1,6 +1,6 @@
 {
     "name": "@huoncroll/math-editors",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "MathLiveEditor, ExplanationEditor, and TiptapEditor with inline math - shared across Huons repos",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
