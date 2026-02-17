@@ -201,16 +201,6 @@ export const InlineMathWithMathLive = InlineMath.extend({
           } catch (_) {}
         };
 
-        const updateInlineMathNode = (latex: string) => {
-          if (typeof editModePos !== 'number') return;
-          const nodeAtPos = editor.state.doc.nodeAt(editModePos);
-          if (!nodeAtPos || nodeAtPos.type.name !== 'inlineMath') return;
-          const from = editModePos;
-          const to = from + nodeAtPos.nodeSize;
-          const tr = editor.state.tr.replaceWith(from, to, nodeAtPos.type.create({ latex }));
-          editor.view.dispatch(tr);
-        };
-
         const btnStyle = `
           min-width: 44px;
           height: 28px;
@@ -399,109 +389,6 @@ export const InlineMathWithMathLive = InlineMath.extend({
         panel.appendChild(plusBar);
         panel.appendChild(expandable);
 
-        const latexPanel = document.createElement('div');
-        latexPanel.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
-
-        const viewLatexBtn = document.createElement('button');
-        viewLatexBtn.textContent = 'View LaTeX code';
-        viewLatexBtn.type = 'button';
-        viewLatexBtn.style.cssText = `
-          width: 100%;
-          height: 28px;
-          font-size: 12px;
-          border: 1px solid #1976d2;
-          border-radius: 6px;
-          background: #e3f2fd;
-          color: #1976d2;
-          cursor: pointer;
-        `;
-
-        const latexEditor = document.createElement('div');
-        latexEditor.style.cssText = 'display: none; flex-direction: column; gap: 6px;';
-
-        const latexTextarea = document.createElement('textarea');
-        latexTextarea.rows = 3;
-        latexTextarea.style.cssText = `
-          width: 100%;
-          resize: vertical;
-          font-size: 12px;
-          padding: 6px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        `;
-
-        const latexActions = document.createElement('div');
-        latexActions.style.cssText = 'display: flex; gap: 6px; justify-content: flex-end;';
-
-        const applyLatexBtn = document.createElement('button');
-        applyLatexBtn.textContent = 'Apply';
-        applyLatexBtn.type = 'button';
-        applyLatexBtn.style.cssText = `
-          padding: 4px 10px;
-          font-size: 12px;
-          border: 1px solid #1976d2;
-          border-radius: 4px;
-          background: #1976d2;
-          color: #fff;
-          cursor: pointer;
-        `;
-
-        const closeLatexBtn = document.createElement('button');
-        closeLatexBtn.textContent = 'Close';
-        closeLatexBtn.type = 'button';
-        closeLatexBtn.style.cssText = `
-          padding: 4px 10px;
-          font-size: 12px;
-          border: 1px solid #999;
-          border-radius: 4px;
-          background: #f5f5f5;
-          color: #333;
-          cursor: pointer;
-        `;
-
-        const stopBlur = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          suppressBlur = true;
-          setTimeout(() => {
-            suppressBlur = false;
-          }, 0);
-        };
-
-        viewLatexBtn.addEventListener('mousedown', stopBlur);
-        applyLatexBtn.addEventListener('mousedown', stopBlur);
-        closeLatexBtn.addEventListener('mousedown', stopBlur);
-        latexTextarea.addEventListener('mousedown', stopBlur);
-
-        viewLatexBtn.addEventListener('click', () => {
-          latexTextarea.value = ((mf as any).value as string) || '';
-          const open = latexEditor.style.display === 'flex';
-          latexEditor.style.display = open ? 'none' : 'flex';
-        });
-
-        applyLatexBtn.addEventListener('click', () => {
-          const nextLatex = latexTextarea.value || '';
-          try {
-            (mf as any).value = nextLatex;
-          } catch (_) {}
-          updateInlineMathNode(nextLatex);
-          (mf as any).focus?.();
-        });
-
-        closeLatexBtn.addEventListener('click', () => {
-          latexEditor.style.display = 'none';
-          (mf as any).focus?.();
-        });
-
-        latexActions.appendChild(closeLatexBtn);
-        latexActions.appendChild(applyLatexBtn);
-        latexEditor.appendChild(latexTextarea);
-        latexEditor.appendChild(latexActions);
-
-        latexPanel.appendChild(viewLatexBtn);
-        latexPanel.appendChild(latexEditor);
-        panel.appendChild(latexPanel);
-
         const editRow = document.createElement('div');
         editRow.style.cssText = 'display: inline;';
         editRow.appendChild(mf);
@@ -579,7 +466,7 @@ export const InlineMathWithMathLive = InlineMath.extend({
 
       return {
         dom: wrapper,
-        stopEvent(event: Event) {
+        stopEvent() {
           return isEditing; // When MathLive is focused, don't let ProseMirror handle any events
         },
         ignoreMutation() {

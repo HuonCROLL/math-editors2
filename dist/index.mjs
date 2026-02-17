@@ -1,7 +1,7 @@
 // src/editors/MathLiveEditor.tsx
 import { useEffect as useEffect2, useRef, useState as useState2 } from "react";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import "mathlive";
-import { IconButton, Tooltip, Box } from "@mui/material";
 
 // src/components/EquationInsertPanel.tsx
 import { useEffect, useState } from "react";
@@ -290,12 +290,19 @@ import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
 var MathLiveEditor = ({ value, onChange }) => {
   const mathFieldRef = useRef(null);
   const containerRef = useRef(null);
+  const panelWrapperRef = useRef(null);
+  const sigmaButtonRef = useRef(null);
   const [panelOpen, setPanelOpen] = useState2(false);
+  const [panelPlacement, setPanelPlacement] = useState2("right");
+  const [panelTopOffset, setPanelTopOffset] = useState2(0);
+  const [panelBottomTopOffset, setPanelBottomTopOffset] = useState2(0);
+  const [panelBottomRightOffset, setPanelBottomRightOffset] = useState2(0);
+  const [mathFieldWidth, setMathFieldWidth] = useState2(null);
   useEffect2(() => {
-    if (!panelOpen) return;
-    const handleClickOutside = (e) => {
-      const el = containerRef.current;
-      if (el && !el.contains(e.target)) {
+    if (!panelOpen) return void 0;
+    const handleClickOutside = (event) => {
+      const container = containerRef.current;
+      if (container && !container.contains(event.target)) {
         setPanelOpen(false);
       }
     };
@@ -303,31 +310,107 @@ var MathLiveEditor = ({ value, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [panelOpen]);
   useEffect2(() => {
-    const el = mathFieldRef.current;
-    if (!el) return;
-    const nextVal = value ?? "";
-    if (el.value !== nextVal) {
-      el.value = nextVal;
+    const container = containerRef.current;
+    if (!container) return void 0;
+    const updateEditorWidth = () => {
+      const sigmaButton = sigmaButtonRef.current;
+      const containerWidth = container.clientWidth;
+      const sigmaWidth = sigmaButton?.offsetWidth ?? 32;
+      const gap = 8;
+      const minEditorWidth = 220;
+      const available = Math.max(minEditorWidth, containerWidth - sigmaWidth - gap);
+      setMathFieldWidth(available);
+    };
+    updateEditorWidth();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateEditorWidth);
+      return () => window.removeEventListener("resize", updateEditorWidth);
     }
-    const handleInput = () => {
-      onChange(el.value ?? "");
+    const resizeObserver = new ResizeObserver(() => updateEditorWidth());
+    resizeObserver.observe(container);
+    if (sigmaButtonRef.current) {
+      resizeObserver.observe(sigmaButtonRef.current);
+    }
+    return () => resizeObserver.disconnect();
+  }, []);
+  useEffect2(() => {
+    if (!panelOpen) return void 0;
+    const updatePlacement = () => {
+      const container = containerRef.current;
+      const sigmaButton = sigmaButtonRef.current;
+      const panelWrapper = panelWrapperRef.current;
+      if (!container || !sigmaButton) return;
+      const viewportPadding = 8;
+      const gap = 8;
+      const panelWidth = panelWrapper?.getBoundingClientRect().width ?? 280;
+      const sigmaRect = sigmaButton.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const rightEdge = sigmaRect.right + gap + panelWidth;
+      const hitsParentRightEdge = rightEdge >= containerRect.right - viewportPadding;
+      const fitsRightInViewport = rightEdge <= window.innerWidth - viewportPadding;
+      if (!hitsParentRightEdge && fitsRightInViewport) {
+        setPanelPlacement("right");
+      } else if (hitsParentRightEdge) {
+        setPanelPlacement("bottom");
+      } else {
+        setPanelPlacement("left");
+      }
+      setPanelTopOffset(containerRect.top - sigmaRect.top);
+      setPanelBottomTopOffset(containerRect.bottom - sigmaRect.top + gap);
+      setPanelBottomRightOffset(containerRect.right - sigmaRect.left - panelWidth);
     };
-    el.addEventListener("input", handleInput);
+    let raf1 = 0;
+    let raf2 = 0;
+    updatePlacement();
+    raf1 = window.requestAnimationFrame(() => {
+      updatePlacement();
+      raf2 = window.requestAnimationFrame(updatePlacement);
+    });
+    window.addEventListener("resize", updatePlacement);
+    let resizeObserver;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => updatePlacement());
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
+      if (sigmaButtonRef.current) resizeObserver.observe(sigmaButtonRef.current);
+      if (panelWrapperRef.current) resizeObserver.observe(panelWrapperRef.current);
+    }
     return () => {
-      el.removeEventListener("input", handleInput);
+      window.removeEventListener("resize", updatePlacement);
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
+      resizeObserver?.disconnect();
     };
-  }, [value, onChange]);
+  }, [panelOpen, value, mathFieldWidth]);
+  useEffect2(() => {
+    const mathField = mathFieldRef.current;
+    if (!mathField) return;
+    const nextVal = value ?? "";
+    if (mathField.value !== nextVal) {
+      mathField.value = nextVal;
+    }
+  }, [value]);
+  useEffect2(() => {
+    const mathField = mathFieldRef.current;
+    if (!mathField) return void 0;
+    const handleInput = () => {
+      onChange(mathField.value ?? "");
+    };
+    mathField.addEventListener("input", handleInput);
+    return () => {
+      mathField.removeEventListener("input", handleInput);
+    };
+  }, [onChange]);
   return /* @__PURE__ */ jsxs2(
     Box,
     {
       ref: containerRef,
       sx: {
+        position: "relative",
         display: "flex",
-        alignItems: "flex-start",
-        gap: 1,
+        alignItems: "center",
         width: "100%",
         maxWidth: "100%",
-        position: "relative"
+        gap: 1
       },
       children: [
         /* @__PURE__ */ jsx2("style", { children: `
@@ -342,47 +425,69 @@ var MathLiveEditor = ({ value, onChange }) => {
           "math-field",
           {
             ref: mathFieldRef,
+            className: "mathlive-editor-standalone",
             "data-math-virtual-keyboard-policy": "manual",
             style: {
-              flex: "1 1 360px",
-              minWidth: 360,
-              maxWidth: "calc(100% - 328px)",
-              // sigma (~40) + gap (8) + panel (280)
+              display: "block",
               boxSizing: "border-box",
               fontSize: "1.25rem",
+              width: "fit-content",
+              maxWidth: mathFieldWidth ? `${mathFieldWidth}px` : "100%",
+              minWidth: 220,
+              flex: "0 1 auto",
               border: "1px solid #ccc",
               borderRadius: 8,
               padding: "8px",
               overflowX: "auto",
               overflowY: "hidden"
-            },
-            className: "mathlive-editor-standalone"
+            }
           }
         ),
-        /* @__PURE__ */ jsx2(Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ jsx2(
-          IconButton,
-          {
-            size: "small",
-            onClick: () => setPanelOpen((o) => !o),
-            sx: {
-              flexShrink: 0,
-              alignSelf: "flex-start",
-              mt: 0.5,
-              bgcolor: panelOpen ? "action.selected" : "transparent",
-              "&:hover": { bgcolor: "action.hover" }
-            },
-            "aria-label": "Insert symbols",
-            children: /* @__PURE__ */ jsx2(Box, { component: "span", sx: { fontSize: "1.25rem", fontWeight: 600 }, children: "\u03A3" })
-          }
-        ) }),
-        panelOpen && /* @__PURE__ */ jsx2(Box, { sx: { flexShrink: 0 }, children: /* @__PURE__ */ jsx2(
-          EquationInsertPanel,
-          {
-            mathFieldRef,
-            open: panelOpen,
-            onClose: () => setPanelOpen(false)
-          }
-        ) })
+        /* @__PURE__ */ jsxs2(Box, { sx: { position: "relative", flexShrink: 0, display: "flex", alignItems: "center" }, children: [
+          /* @__PURE__ */ jsx2(Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ jsx2(
+            IconButton,
+            {
+              ref: sigmaButtonRef,
+              size: "small",
+              onClick: () => setPanelOpen((open) => !open),
+              "aria-label": "Insert symbols",
+              sx: {
+                bgcolor: panelOpen ? "action.selected" : "transparent",
+                "&:hover": { bgcolor: "action.hover" }
+              },
+              children: /* @__PURE__ */ jsx2(Box, { component: "span", sx: { fontSize: "1.25rem", fontWeight: 600 }, children: "\u03A3" })
+            }
+          ) }),
+          panelOpen && /* @__PURE__ */ jsx2(
+            Box,
+            {
+              ref: panelWrapperRef,
+              sx: {
+                position: "absolute",
+                zIndex: 1600,
+                ...panelPlacement === "bottom" ? {
+                  top: panelBottomTopOffset,
+                  left: panelBottomRightOffset
+                } : {
+                  top: panelTopOffset,
+                  ...panelPlacement === "right" ? {
+                    left: "calc(100% + 8px)"
+                  } : {
+                    right: "calc(100% + 8px)"
+                  }
+                }
+              },
+              children: /* @__PURE__ */ jsx2(
+                EquationInsertPanel,
+                {
+                  mathFieldRef,
+                  open: panelOpen,
+                  onClose: () => setPanelOpen(false)
+                }
+              )
+            }
+          )
+        ] })
       ]
     }
   );
@@ -572,15 +677,6 @@ var InlineMathWithMathLive = InlineMath.extend({
             mf.focus();
           } catch (_) {
           }
-        };
-        const updateInlineMathNode = (latex2) => {
-          if (typeof editModePos !== "number") return;
-          const nodeAtPos = editor.state.doc.nodeAt(editModePos);
-          if (!nodeAtPos || nodeAtPos.type.name !== "inlineMath") return;
-          const from = editModePos;
-          const to = from + nodeAtPos.nodeSize;
-          const tr = editor.state.tr.replaceWith(from, to, nodeAtPos.type.create({ latex: latex2 }));
-          editor.view.dispatch(tr);
         };
         const btnStyle2 = `
           min-width: 44px;
@@ -789,96 +885,6 @@ var InlineMathWithMathLive = InlineMath.extend({
         });
         panel.appendChild(plusBar);
         panel.appendChild(expandable);
-        const latexPanel = document.createElement("div");
-        latexPanel.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
-        const viewLatexBtn = document.createElement("button");
-        viewLatexBtn.textContent = "View LaTeX code";
-        viewLatexBtn.type = "button";
-        viewLatexBtn.style.cssText = `
-          width: 100%;
-          height: 28px;
-          font-size: 12px;
-          border: 1px solid #1976d2;
-          border-radius: 6px;
-          background: #e3f2fd;
-          color: #1976d2;
-          cursor: pointer;
-        `;
-        const latexEditor = document.createElement("div");
-        latexEditor.style.cssText = "display: none; flex-direction: column; gap: 6px;";
-        const latexTextarea = document.createElement("textarea");
-        latexTextarea.rows = 3;
-        latexTextarea.style.cssText = `
-          width: 100%;
-          resize: vertical;
-          font-size: 12px;
-          padding: 6px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        `;
-        const latexActions = document.createElement("div");
-        latexActions.style.cssText = "display: flex; gap: 6px; justify-content: flex-end;";
-        const applyLatexBtn = document.createElement("button");
-        applyLatexBtn.textContent = "Apply";
-        applyLatexBtn.type = "button";
-        applyLatexBtn.style.cssText = `
-          padding: 4px 10px;
-          font-size: 12px;
-          border: 1px solid #1976d2;
-          border-radius: 4px;
-          background: #1976d2;
-          color: #fff;
-          cursor: pointer;
-        `;
-        const closeLatexBtn = document.createElement("button");
-        closeLatexBtn.textContent = "Close";
-        closeLatexBtn.type = "button";
-        closeLatexBtn.style.cssText = `
-          padding: 4px 10px;
-          font-size: 12px;
-          border: 1px solid #999;
-          border-radius: 4px;
-          background: #f5f5f5;
-          color: #333;
-          cursor: pointer;
-        `;
-        const stopBlur = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          suppressBlur = true;
-          setTimeout(() => {
-            suppressBlur = false;
-          }, 0);
-        };
-        viewLatexBtn.addEventListener("mousedown", stopBlur);
-        applyLatexBtn.addEventListener("mousedown", stopBlur);
-        closeLatexBtn.addEventListener("mousedown", stopBlur);
-        latexTextarea.addEventListener("mousedown", stopBlur);
-        viewLatexBtn.addEventListener("click", () => {
-          latexTextarea.value = mf.value || "";
-          const open = latexEditor.style.display === "flex";
-          latexEditor.style.display = open ? "none" : "flex";
-        });
-        applyLatexBtn.addEventListener("click", () => {
-          const nextLatex = latexTextarea.value || "";
-          try {
-            mf.value = nextLatex;
-          } catch (_) {
-          }
-          updateInlineMathNode(nextLatex);
-          mf.focus?.();
-        });
-        closeLatexBtn.addEventListener("click", () => {
-          latexEditor.style.display = "none";
-          mf.focus?.();
-        });
-        latexActions.appendChild(closeLatexBtn);
-        latexActions.appendChild(applyLatexBtn);
-        latexEditor.appendChild(latexTextarea);
-        latexEditor.appendChild(latexActions);
-        latexPanel.appendChild(viewLatexBtn);
-        latexPanel.appendChild(latexEditor);
-        panel.appendChild(latexPanel);
         const editRow = document.createElement("div");
         editRow.style.cssText = "display: inline;";
         editRow.appendChild(mf);
@@ -945,7 +951,7 @@ var InlineMathWithMathLive = InlineMath.extend({
       renderKaTeX(node.attrs.latex);
       return {
         dom: wrapper,
-        stopEvent(event) {
+        stopEvent() {
           return isEditing;
         },
         ignoreMutation() {
@@ -1105,7 +1111,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
   const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
   const openPopover = Boolean(anchorEl);
   const closePopover = () => setAnchorEl(null);
-  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ jsx3(Tooltip2, { title: label, arrow: true, children: /* @__PURE__ */ jsx3(
+  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ jsx3(Tooltip2, { title: label, arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
     IconButton2,
     {
       size: "small",
@@ -1115,7 +1121,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
       sx: { borderRadius: 1 },
       children: icon
     }
-  ) }, label);
+  ) }) }, label);
   const handleInsertTable = () => {
     e.chain().focus().insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true }).run();
     closePopover();
@@ -1150,7 +1156,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
           btn("Bullet", /* @__PURE__ */ jsx3(FormatListBulletedIcon, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
           btn("Numbered", /* @__PURE__ */ jsx3(FormatListNumberedIcon, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          /* @__PURE__ */ jsx3(Tooltip2, { title: "Equation", arrow: true, children: /* @__PURE__ */ jsx3(
+          /* @__PURE__ */ jsx3(Tooltip2, { title: "Equation", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
             IconButton2,
             {
               size: "small",
@@ -1160,7 +1166,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
               sx: { borderRadius: 1 },
               children: /* @__PURE__ */ jsx3(FunctionsIcon, {})
             }
-          ) }, "Equation"),
+          ) }) }, "Equation"),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
           /* @__PURE__ */ jsxs3(
             TextField,

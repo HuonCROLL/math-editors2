@@ -88,15 +88,17 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
     disabled = false,
   ) => (
     <Tooltip key={label} title={label} arrow>
-      <IconButton
-        size="small"
-        onClick={onClick}
-        disabled={disabled}
-        color={active ? 'primary' : 'default'}
-        sx={{ borderRadius: 1 }}
-      >
-        {icon}
-      </IconButton>
+      <span>
+        <IconButton
+          size="small"
+          onClick={onClick}
+          disabled={disabled}
+          color={active ? 'primary' : 'default'}
+          sx={{ borderRadius: 1 }}
+        >
+          {icon}
+        </IconButton>
+      </span>
     </Tooltip>
   )
 
@@ -150,15 +152,17 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
         {/* NEW: equation */}
         <Divider orientation="vertical" flexItem />
         <Tooltip key="Equation" title="Equation" arrow>
-          <IconButton
-            size="small"
-            onClick={handleEquationClick}
-            disabled={equationDisabled}
-            color="default"
-            sx={{ borderRadius: 1 }}
-          >
-            <FunctionsIcon />
-          </IconButton>
+          <span>
+            <IconButton
+              size="small"
+              onClick={handleEquationClick}
+              disabled={equationDisabled}
+              color="default"
+              sx={{ borderRadius: 1 }}
+            >
+              <FunctionsIcon />
+            </IconButton>
+          </span>
         </Tooltip>
         <Divider orientation="vertical" flexItem />
 
