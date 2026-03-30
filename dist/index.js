@@ -4670,9 +4670,8 @@ var TiptapEditor = ({
       /* smart‑paste for Overleaf tabular */
       OverleafPaste,
       SmartMathPaste,
-      import_extension_mathematics3.Mathematics.configure({
-        katexOptions: { throwOnError: false }
-      }),
+      import_extension_mathematics3.InlineMath.configure({ katexOptions: { throwOnError: false } }),
+      BlockMathWithBrackets.configure({ katexOptions: { throwOnError: false } }),
       /* tables */
       import_extension_table2.Table.configure({
         resizable: true,

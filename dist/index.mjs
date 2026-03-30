@@ -1435,7 +1435,7 @@ import { Table as Table2 } from "@tiptap/extension-table";
 import TableRow2 from "@tiptap/extension-table-row";
 import TableCell2 from "@tiptap/extension-table-cell";
 import TableHeader2 from "@tiptap/extension-table-header";
-import { Mathematics } from "@tiptap/extension-mathematics";
+import { InlineMath as InlineMath2 } from "@tiptap/extension-mathematics";
 
 // src/extensions/OverleafPaste.ts
 import { Extension as Extension2 } from "@tiptap/core";
@@ -4634,9 +4634,8 @@ var TiptapEditor = ({
       /* smart‑paste for Overleaf tabular */
       OverleafPaste,
       SmartMathPaste,
-      Mathematics.configure({
-        katexOptions: { throwOnError: false }
-      }),
+      InlineMath2.configure({ katexOptions: { throwOnError: false } }),
+      BlockMathWithBrackets.configure({ katexOptions: { throwOnError: false } }),
       /* tables */
       Table2.configure({
         resizable: true,

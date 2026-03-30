@@ -3,7 +3,7 @@ import { BlockMath } from '@tiptap/extension-mathematics';
 import type { MathematicsOptions } from '@tiptap/extension-mathematics';
 import { InlineMathWithMathLive } from './InlineMathWithMathLive';
 
-const BlockMathWithBrackets = BlockMath.extend({
+export const BlockMathWithBrackets = BlockMath.extend({
   addInputRules() {
     return [
       new InputRule({
