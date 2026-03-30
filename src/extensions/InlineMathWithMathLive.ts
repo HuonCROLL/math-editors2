@@ -1,4 +1,5 @@
 import { InputRule } from '@tiptap/core';
+import { TextSelection } from 'prosemirror-state';
 import { InlineMath } from '@tiptap/extension-mathematics';
 import katex from 'katex';
 import type { KatexOptions } from 'katex';
@@ -22,14 +23,15 @@ export const InlineMathWithMathLive = InlineMath.extend({
     return [
       new InputRule({
         find: /\\\((.+?)\\\)$/,
-        handler: ({ range, match, commands }) => {
+        handler: ({ state, range, match }) => {
           const latex = (match[1] || '').trim();
           if (!latex) return null;
-          commands.insertContentAt(range, {
-            type: this.name,
-            attrs: { latex },
-          });
-          return null;
+          const node = this.type.create({ latex });
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, node);
+          // Position cursor after the node so it renders as KaTeX immediately
+          // rather than entering MathLive edit mode.
+          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
         },
       }),
     ];

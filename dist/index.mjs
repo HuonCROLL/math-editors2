@@ -514,932 +514,6 @@ import * as MathematicsPkg from "@tiptap/extension-mathematics";
 import { Extension, InputRule as InputRule2 } from "@tiptap/core";
 import { BlockMath } from "@tiptap/extension-mathematics";
 
-// src/extensions/InlineMathWithMathLive.ts
-import { InputRule } from "@tiptap/core";
-import { InlineMath } from "@tiptap/extension-mathematics";
-import katex from "katex";
-import "mathlive";
-var InlineMathWithMathLive = InlineMath.extend({
-  addOptions() {
-    return {
-      ...this.parent?.(),
-      placeholderLatex: void 0
-    };
-  },
-  addInputRules() {
-    return [
-      new InputRule({
-        find: /\\\((.+?)\\\)$/,
-        handler: ({ range, match, commands }) => {
-          const latex = (match[1] || "").trim();
-          if (!latex) return null;
-          commands.insertContentAt(range, {
-            type: this.name,
-            attrs: { latex }
-          });
-          return null;
-        }
-      })
-    ];
-  },
-  addNodeView() {
-    const { katexOptions } = this.options;
-    const placeholderLatex = this.options.placeholderLatex;
-    return ({ node, getPos, editor }) => {
-      const wrapper = document.createElement("span");
-      wrapper.className = "tiptap-inline-math-wrapper";
-      wrapper.dataset.type = "inline-math";
-      if (editor.isEditable) {
-        wrapper.style.cursor = "pointer";
-      }
-      let isEditing = false;
-      let mathField = null;
-      let editModePos = null;
-      let panelCleanup = null;
-      let didInitialSelect = false;
-      let suppressBlur = false;
-      function renderKaTeX(latex) {
-        wrapper.innerHTML = "";
-        const span = document.createElement("span");
-        span.className = "tiptap-mathematics-render";
-        if (placeholderLatex && latex === placeholderLatex) {
-          span.classList.add("tiptap-math-placeholder");
-        }
-        try {
-          katex.render(latex || "\\ ", span, {
-            ...katexOptions,
-            throwOnError: false
-          });
-        } catch {
-          span.textContent = latex || "?";
-          span.classList.add("inline-math-error");
-        }
-        wrapper.appendChild(span);
-      }
-      function enterEditMode() {
-        if (!editor.isEditable || isEditing) return;
-        const pos = getPos();
-        if (typeof pos !== "number") return;
-        isEditing = true;
-        editModePos = pos;
-        const latex = node.attrs.latex || "";
-        wrapper.innerHTML = "";
-        const inlineStyle = document.createElement("style");
-        inlineStyle.dataset.inlineMathStyle = "true";
-        inlineStyle.textContent = `
-          .tiptap-inline-math-wrapper math-field::part(virtual-keyboard-toggle) {
-            display: none;
-          }
-          .tiptap-inline-math-wrapper math-field::part(menu-toggle) {
-            display: none;
-          }
-        `;
-        wrapper.appendChild(inlineStyle);
-        const mf = document.createElement("math-field");
-        mf.value = latex;
-        mf.setAttribute("data-math-virtual-keyboard-policy", "manual");
-        mf.style.cssText = `
-          display: inline-block;
-          min-width: 60px;
-          font-size: 1em;
-          padding: 2px 6px;
-          border: 1px solid #1976d2;
-          border-radius: 4px;
-          background: #fff;
-        `;
-        const finishEdit = () => {
-          if (!isEditing) return;
-          const posToUse = editModePos;
-          const newLatex = mf.value || "";
-          isEditing = false;
-          editModePos = null;
-          didInitialSelect = false;
-          if (panelCleanup) {
-            panelCleanup();
-            panelCleanup = null;
-          }
-          renderKaTeX(newLatex);
-          mf.remove();
-          mathField = null;
-          setTimeout(() => {
-            if (typeof posToUse !== "number") return;
-            const node2 = editor.state.doc.nodeAt(posToUse);
-            if (!node2 || node2.type.name !== "inlineMath") return;
-            const from = posToUse;
-            const to = from + node2.nodeSize;
-            const tr = editor.state.tr.replaceWith(from, to, node2.type.create({ latex: newLatex }));
-            editor.view.dispatch(tr);
-            editor.commands.focus();
-          }, 10);
-        };
-        mf.addEventListener("blur", (e) => {
-          if (suppressBlur) return;
-          if (panel.contains(e.relatedTarget || null)) return;
-          finishEdit();
-        });
-        mf.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            mf.value = node.attrs.latex || "";
-            mf.blur();
-            return;
-          }
-          if (placeholderLatex && mf.value === placeholderLatex) {
-            if (e.key === "Backspace" || e.key === "Delete") {
-              e.preventDefault();
-              mf.value = "";
-              return;
-            }
-            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-              e.preventDefault();
-              mf.value = "";
-              try {
-                mf.insert?.(e.key) ?? mf.executeCommand?.(["insert", e.key]);
-              } catch (_) {
-              }
-              return;
-            }
-          }
-        });
-        const panel = document.createElement("div");
-        panel.className = "inline-math-insert-panel";
-        panel.style.cssText = `
-          position: fixed;
-          z-index: 9999;
-          min-width: 280px;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding: 6px;
-          background: #fff;
-          border-radius: 6px;
-          border: 1px solid #e0e0e0;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-        `;
-        const insertLatex = (latex2) => {
-          try {
-            if (typeof mf.insert === "function") {
-              mf.insert(latex2);
-            } else {
-              mf.executeCommand?.(["insert", latex2]);
-            }
-            mf.focus();
-          } catch (_) {
-          }
-        };
-        const btnStyle2 = `
-          min-width: 44px;
-          height: 28px;
-          padding: 0 8px;
-          font-size: 13px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          background: #fff;
-          cursor: pointer;
-          white-space: nowrap;
-        `;
-        const snippets = [
-          { label: "\xD7", latex: "\\times" },
-          { label: "\xF7", latex: "\\div" },
-          { label: "a/b", latex: "\\frac{a}{b}" },
-          { label: "\u2264", latex: "\\leq" },
-          { label: "\u2265", latex: "\\geq" },
-          { label: "\u221A", latex: "\\sqrt{}" },
-          { label: "\u221E", latex: "\\infty" },
-          { label: "\u0394", latex: "\\Delta" },
-          { label: "\u03A3", latex: "\\Sigma" },
-          { label: ">", latex: ">" },
-          { label: "<", latex: "<" },
-          { label: "\u2248", latex: "\\approx" },
-          { label: "\u22A5", latex: "\\perp" },
-          { label: "\u2225", latex: "\\parallel" },
-          { label: "\u25B3", latex: "\\triangle" },
-          { label: "\u2220", latex: "\\angle" },
-          { label: "\u222A", latex: "\\cup" },
-          { label: "\u2229", latex: "\\cap" },
-          { label: "\u2192", latex: "\\vec{v}" }
-        ];
-        const snippetsGrid = document.createElement("div");
-        snippetsGrid.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px;";
-        snippets.forEach(({ label, latex: latex2 }) => {
-          const btn = document.createElement("button");
-          btn.textContent = label;
-          btn.type = "button";
-          btn.style.cssText = btnStyle2;
-          btn.addEventListener("mousedown", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            insertLatex(latex2);
-          });
-          snippetsGrid.appendChild(btn);
-        });
-        panel.appendChild(snippetsGrid);
-        const TRIGONOMETRY2 = [
-          { label: "sin", latex: "\\sin" },
-          { label: "cos", latex: "\\cos" },
-          { label: "tan", latex: "\\tan" },
-          { label: "cot", latex: "\\cot" },
-          { label: "sec", latex: "\\sec" },
-          { label: "csc", latex: "\\csc" },
-          { label: "sin\u207B\xB9", latex: "\\arcsin" },
-          { label: "cos\u207B\xB9", latex: "\\arccos" },
-          { label: "tan\u207B\xB9", latex: "\\arctan" },
-          { label: "sinh", latex: "\\sinh" },
-          { label: "cosh", latex: "\\cosh" },
-          { label: "\xB0", latex: "\\degree" }
-        ];
-        const CALCULUS2 = [
-          { label: "d/dx", latex: "\\frac{d}{dx}" },
-          { label: "\u2202/\u2202x", latex: "\\frac{\\partial}{\\partial x}" },
-          { label: "\u222B", latex: "\\int" },
-          { label: "\u222B\u222B", latex: "\\iint" },
-          { label: "\u222C\u222C", latex: "\\iiint" },
-          { label: "\u220F", latex: "\\prod_{i=1}^{n}" },
-          { label: "lim", latex: "\\lim_{x \\to \\infty}" },
-          { label: "\u222B_a^b", latex: "\\int_{a}^{b}" },
-          { label: "log", latex: "\\log" },
-          { label: "ln", latex: "\\ln" },
-          { label: "exp", latex: "\\exp" }
-        ];
-        const GREEK2 = [
-          { label: "\u03B1", latex: "\\alpha" },
-          { label: "\u03B2", latex: "\\beta" },
-          { label: "\u03B3", latex: "\\gamma" },
-          { label: "\u03B4", latex: "\\delta" },
-          { label: "\u03B5", latex: "\\varepsilon" },
-          { label: "\u03B8", latex: "\\theta" },
-          { label: "\u03BB", latex: "\\lambda" },
-          { label: "\u03BC", latex: "\\mu" },
-          { label: "\u03C0", latex: "\\pi" },
-          { label: "\u03C3", latex: "\\sigma" },
-          { label: "\u03C6", latex: "\\phi" },
-          { label: "\u03C9", latex: "\\omega" },
-          { label: "\u03A9", latex: "\\Omega" },
-          { label: "\u0394", latex: "\\Delta" },
-          { label: "\u03A3", latex: "\\Sigma" },
-          { label: "\u221E", latex: "\\infty" },
-          { label: "\u211D", latex: "\\mathbb{R}" },
-          { label: "\u2115", latex: "\\mathbb{N}" },
-          { label: "\u2124", latex: "\\mathbb{Z}" }
-        ];
-        const SYMBOLS2 = [
-          { label: ">", latex: ">" },
-          { label: "<", latex: "<" },
-          { label: "\u2248", latex: "\\approx" },
-          { label: "\u22A5", latex: "\\perp" },
-          { label: "\u2225", latex: "\\parallel" },
-          { label: "\u25B3", latex: "\\triangle" },
-          { label: "\u2220", latex: "\\angle" },
-          { label: "\u222A", latex: "\\cup" },
-          { label: "\u2229", latex: "\\cap" }
-        ];
-        const ACCENTS2 = [
-          { label: "x\u0302", latex: "\\hat{}" },
-          { label: "x\u0304", latex: "\\bar{}" },
-          { label: "\u1E8B", latex: "\\dot{}" },
-          { label: "x\u0308", latex: "\\ddot{}" },
-          { label: "x\u0303", latex: "\\tilde{}" },
-          { label: "x\u20D7", latex: "\\vec{}" },
-          { label: "overline", latex: "\\overline{}" },
-          { label: "underline", latex: "\\underline{}" },
-          { label: "^{}", latex: "^{}" },
-          { label: "_{}", latex: "_{}" },
-          { label: "x\xB2", latex: "^{2}" },
-          { label: "x\u2081", latex: "_{1}" }
-        ];
-        const MATRICES2 = [
-          { label: "( )", latex: "\\begin{pmatrix} \\\\ \\end{pmatrix}" },
-          { label: "[ ]", latex: "\\begin{bmatrix} \\\\ \\end{bmatrix}" },
-          { label: "{ }", latex: "\\begin{Bmatrix} \\\\ \\end{Bmatrix}" },
-          { label: "| |", latex: "\\begin{vmatrix} \\\\ \\end{vmatrix}" },
-          { label: "2\xD72", latex: "\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}" },
-          { label: "\u27E8x\u27E9", latex: "\\langle \\rangle" },
-          { label: "\u2192", latex: "\\vec{v}" },
-          { label: "\u27F6", latex: "\\overrightarrow{}" },
-          { label: "|x|", latex: "|\\mathbf{x}|" }
-        ];
-        const CATEGORIES2 = [
-          { label: "Trig", snippets: TRIGONOMETRY2 },
-          { label: "Calculus", snippets: CALCULUS2 },
-          { label: "Greek", snippets: GREEK2 },
-          { label: "Symbols", snippets: SYMBOLS2 },
-          { label: "Accents", snippets: ACCENTS2 },
-          { label: "Matrices", snippets: MATRICES2 }
-        ];
-        const expandable = document.createElement("div");
-        expandable.style.cssText = "display: none; flex-direction: column; gap: 4px;";
-        const tabBar = document.createElement("div");
-        tabBar.style.cssText = "display: flex; gap: 2px; flex-wrap: wrap;";
-        const tabContent = document.createElement("div");
-        tabContent.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;";
-        const renderTabContent = (index) => {
-          tabContent.innerHTML = "";
-          const cat = CATEGORIES2[index];
-          if (!cat) return;
-          cat.snippets.forEach(({ label, latex: latex2 }) => {
-            const b = document.createElement("button");
-            b.textContent = label;
-            b.type = "button";
-            b.style.cssText = btnStyle2;
-            b.addEventListener("mousedown", (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              insertLatex(latex2);
-            });
-            tabContent.appendChild(b);
-          });
-        };
-        CATEGORIES2.forEach((cat, i) => {
-          const tabBtn = document.createElement("button");
-          tabBtn.textContent = cat.label;
-          tabBtn.type = "button";
-          tabBtn.style.cssText = "font-size: 11px; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; background: #e8e8e8; cursor: pointer;";
-          tabBtn.addEventListener("mousedown", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            CATEGORIES2.forEach((_, j) => {
-              tabBar.children[j].style.background = j === i ? "#1976d2" : "#e8e8e8";
-              tabBar.children[j].style.color = j === i ? "#fff" : "inherit";
-            });
-            renderTabContent(i);
-          });
-          tabBar.appendChild(tabBtn);
-        });
-        renderTabContent(0);
-        tabBar.children[0].style.background = "#1976d2";
-        tabBar.children[0].style.color = "#fff";
-        expandable.appendChild(tabBar);
-        expandable.appendChild(tabContent);
-        const plusBar = document.createElement("button");
-        plusBar.textContent = "+";
-        plusBar.type = "button";
-        plusBar.title = "More symbols";
-        plusBar.style.cssText = `
-          width: 100%;
-          height: 24px;
-          font-size: 16px;
-          font-weight: bold;
-          border: 1px dashed #999;
-          border-radius: 4px;
-          background: #eee;
-          cursor: pointer;
-          color: #666;
-        `;
-        plusBar.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const shown = expandable.style.display === "flex";
-          expandable.style.display = shown ? "none" : "flex";
-          plusBar.textContent = shown ? "+" : "\u2212";
-        });
-        panel.appendChild(plusBar);
-        panel.appendChild(expandable);
-        const editRow = document.createElement("div");
-        editRow.style.cssText = "display: inline;";
-        editRow.appendChild(mf);
-        wrapper.appendChild(editRow);
-        document.body.appendChild(panel);
-        const positionPanel = () => {
-          const rect = mf.getBoundingClientRect();
-          const panelRect = panel.getBoundingClientRect();
-          const margin = 8;
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight;
-          let left = rect.right + margin;
-          if (left + panelRect.width > viewportWidth - margin) {
-            left = rect.left - panelRect.width - margin;
-          }
-          left = Math.max(margin, Math.min(left, viewportWidth - panelRect.width - margin));
-          let top = rect.top;
-          if (top + panelRect.height > viewportHeight - margin) {
-            top = viewportHeight - panelRect.height - margin;
-          }
-          top = Math.max(margin, top);
-          panel.style.left = `${left}px`;
-          panel.style.top = `${top}px`;
-        };
-        const scrollParent = wrapper.closest(".tiptap-editor");
-        const handleReposition = () => positionPanel();
-        scrollParent?.addEventListener("scroll", handleReposition);
-        window.addEventListener("scroll", handleReposition, true);
-        window.addEventListener("resize", handleReposition);
-        mf.addEventListener("input", handleReposition);
-        const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => positionPanel()) : null;
-        resizeObserver?.observe(mf);
-        positionPanel();
-        requestAnimationFrame(positionPanel);
-        panelCleanup = () => {
-          panel.remove();
-          scrollParent?.removeEventListener("scroll", handleReposition);
-          window.removeEventListener("scroll", handleReposition, true);
-          window.removeEventListener("resize", handleReposition);
-          mf.removeEventListener("input", handleReposition);
-          resizeObserver?.disconnect();
-        };
-        mathField = mf;
-        mf.focus();
-        if (!didInitialSelect) {
-          didInitialSelect = true;
-          requestAnimationFrame(() => {
-            try {
-              mf.executeCommand?.("selectAll");
-            } catch (_) {
-            }
-          });
-        }
-      }
-      function handleClick(e) {
-        if (!editor.isEditable) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (!isEditing) {
-          enterEditMode();
-        }
-      }
-      wrapper.addEventListener("click", handleClick);
-      renderKaTeX(node.attrs.latex);
-      return {
-        dom: wrapper,
-        stopEvent() {
-          return isEditing;
-        },
-        ignoreMutation() {
-          return true;
-        },
-        update(updatedNode) {
-          if (node.attrs.latex !== updatedNode.attrs.latex && !isEditing) {
-            node = updatedNode;
-            renderKaTeX(updatedNode.attrs.latex);
-          }
-          return true;
-        },
-        destroy() {
-          wrapper.removeEventListener("click", handleClick);
-          mathField?.removeEventListener("blur", () => {
-          });
-        }
-      };
-    };
-  }
-});
-
-// src/extensions/MathematicsWithInlineEdit.ts
-var BlockMathWithBrackets = BlockMath.extend({
-  addInputRules() {
-    return [
-      new InputRule2({
-        find: /\\\[(.+?)\\\]$/,
-        handler: ({ state, range, match }) => {
-          const latex = (match[1] || "").trim();
-          if (!latex) return;
-          const { tr } = state;
-          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
-        }
-      })
-    ];
-  }
-});
-var MathematicsWithInlineEdit = Extension.create({
-  name: "MathematicsWithInlineEdit",
-  addOptions() {
-    return {
-      inlineOptions: void 0,
-      blockOptions: void 0,
-      katexOptions: void 0,
-      placeholderLatex: void 0
-    };
-  },
-  addExtensions() {
-    return [
-      BlockMathWithBrackets.configure({
-        ...this.options.blockOptions,
-        katexOptions: this.options.katexOptions
-      }),
-      InlineMathWithMathLive.configure({
-        ...this.options.inlineOptions,
-        katexOptions: this.options.katexOptions,
-        placeholderLatex: this.options.placeholderLatex
-      })
-    ];
-  }
-});
-
-// src/editors/ExplanationEditor.tsx
-import TextAlign from "@tiptap/extension-text-align";
-import { Table } from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-
-// src/extensions/TextStyleFontSize.ts
-import { TextStyle } from "@tiptap/extension-text-style";
-var TextStyleFontSize = TextStyle.extend({
-  // keep name as "textStyle" (inherited) so removeEmptyTextStyle works
-  addAttributes() {
-    return {
-      ...this.parent?.() ?? {},
-      fontSize: {
-        default: null,
-        // read inline style="font-size: 16px" -> "16px"
-        parseHTML: (element) => {
-          const size = element.style.fontSize;
-          return size && size.trim().length > 0 ? size : null;
-        },
-        // write style="font-size: 16px"
-        renderHTML: (attributes) => {
-          const fontSize = attributes.fontSize;
-          if (!fontSize) return {};
-          return { style: `font-size: ${fontSize}` };
-        }
-      }
-    };
-  },
-  addCommands() {
-    return {
-      ...this.parent?.() ?? {},
-      setFontSize: (fontSize) => ({ commands }) => {
-        return commands.setMark(this.name, { fontSize });
-      },
-      unsetFontSize: () => ({ chain }) => {
-        return chain().setMark(this.name, { fontSize: null }).removeEmptyTextStyle().run();
-      }
-    };
-  }
-});
-
-// src/editors/ExplanationEditor.tsx
-import "katex/dist/katex.min.css";
-import "mathlive/static.css";
-
-// src/components/MenuBar.tsx
-import { useState as useState3, useMemo, useEffect as useEffect3 } from "react";
-import {
-  IconButton as IconButton2,
-  Tooltip as Tooltip2,
-  Divider,
-  Stack,
-  Popover,
-  Box as Box2,
-  TextField,
-  Button
-} from "@mui/material";
-import FormatBoldIcon from "@mui/icons-material/FormatBold";
-import FormatItalicIcon from "@mui/icons-material/FormatItalic";
-import FormatStrikethroughIcon from "@mui/icons-material/FormatStrikethrough";
-import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
-import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-import UndoIcon from "@mui/icons-material/Undo";
-import RedoIcon from "@mui/icons-material/Redo";
-import TableChartIcon from "@mui/icons-material/TableChart";
-import TableRowsIcon from "@mui/icons-material/TableRows";
-import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CallMergeIcon from "@mui/icons-material/CallMerge";
-import CallSplitIcon from "@mui/icons-material/CallSplit";
-import QuizIcon from "@mui/icons-material/Quiz";
-import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
-import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
-import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
-import FunctionsIcon from "@mui/icons-material/Functions";
-import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-var MenuBar = ({
-  editor,
-  showQuestionButton = false,
-  onInsertEquation,
-  toolbarMode = "tutorFull"
-}) => {
-  const [, forceRerender] = useState3(0);
-  const [insertTableAnchorEl, setInsertTableAnchorEl] = useState3(null);
-  const [rows, setRows] = useState3(3);
-  const [cols, setCols] = useState3(3);
-  const e = editor;
-  useEffect3(() => {
-    if (!editor) return;
-    const rerender = () => forceRerender((x) => x + 1);
-    editor.on("selectionUpdate", rerender);
-    editor.on("transaction", rerender);
-    return () => {
-      editor.off("selectionUpdate", rerender);
-      editor.off("transaction", rerender);
-    };
-  }, [editor]);
-  const hasQuestionExt = useMemo(
-    () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "question") : false,
-    [editor]
-  );
-  const hasMathExt = useMemo(
-    () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "mathematics") : false,
-    [editor]
-  );
-  if (!editor) return null;
-  const FONT_SIZES = ["10px", "12px", "14px", "18px", "24px", "32px"];
-  const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
-  const openInsertPopover = Boolean(insertTableAnchorEl);
-  const closeInsertPopover = () => setInsertTableAnchorEl(null);
-  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ jsx3(Tooltip2, { title: label, arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
-    IconButton2,
-    {
-      size: "small",
-      onClick,
-      disabled,
-      color: active ? "primary" : "default",
-      sx: { borderRadius: 1 },
-      children: icon
-    }
-  ) }) }, label);
-  const handleInsertTable = () => {
-    e.chain().focus().insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true }).run();
-    closeInsertPopover();
-  };
-  const insertQuestionPlaceholder = () => {
-    if (!hasQuestionExt) return;
-    editor.commands.insertQuestion?.(null);
-  };
-  const handleEquationClick = () => {
-    if (onInsertEquation) {
-      onInsertEquation();
-      return;
-    }
-    if (!hasMathExt) return;
-    editor.chain().focus().insertMath?.("")?.run?.() ?? editor.commands.insertMath?.("");
-  };
-  const equationDisabled = !onInsertEquation && !hasMathExt;
-  const isStudentSimple = toolbarMode === "studentSimple";
-  const showAdvancedFormatting = !isStudentSimple;
-  const isInTable = editor.isActive("table");
-  return /* @__PURE__ */ jsxs3(Fragment2, { children: [
-    /* @__PURE__ */ jsxs3(
-      Stack,
-      {
-        direction: "row",
-        spacing: 0.5,
-        sx: { borderBottom: "1px solid #ddd", p: "4px 8px", bgcolor: "#fafafa", flexWrap: "wrap" },
-        children: [
-          btn("Bold", /* @__PURE__ */ jsx3(FormatBoldIcon, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
-          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ jsx3(FormatItalicIcon, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
-          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ jsx3(FormatStrikethroughIcon, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
-          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ jsx3(FormatAlignLeftIcon, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
-          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ jsx3(FormatAlignCenterIcon, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
-          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ jsx3(FormatAlignRightIcon, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
-          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ jsx3(FormatListBulletedIcon, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
-          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ jsx3(FormatListNumberedIcon, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          /* @__PURE__ */ jsx3(Tooltip2, { title: "Equation", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
-            IconButton2,
-            {
-              size: "small",
-              onClick: handleEquationClick,
-              disabled: equationDisabled,
-              color: "default",
-              sx: { borderRadius: 1 },
-              children: /* @__PURE__ */ jsx3(FunctionsIcon, {})
-            }
-          ) }) }, "Equation"),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          /* @__PURE__ */ jsxs3(
-            TextField,
-            {
-              select: true,
-              size: "small",
-              value: currentFontSize,
-              onChange: (e2) => {
-                const value = e2.target.value;
-                if (!value) editor.chain().focus().unsetFontSize?.().run?.();
-                else editor.chain().focus().setFontSize?.(value).run?.();
-              },
-              sx: { width: 95 },
-              SelectProps: { native: true },
-              children: [
-                /* @__PURE__ */ jsx3("option", { value: "", children: "16px" }),
-                FONT_SIZES.map((s) => /* @__PURE__ */ jsx3("option", { value: s, children: s }, s))
-              ]
-            }
-          ),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ jsx3(QuizIcon, {}), insertQuestionPlaceholder),
-          /* @__PURE__ */ jsx3(Tooltip2, { title: "Insert table", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
-            IconButton2,
-            {
-              size: "small",
-              onClick: (event) => setInsertTableAnchorEl(event.currentTarget),
-              color: isInTable ? "primary" : "default",
-              sx: { borderRadius: 1 },
-              children: /* @__PURE__ */ jsx3(TableChartIcon, {})
-            }
-          ) }) }),
-          isInTable && /* @__PURE__ */ jsxs3(Fragment2, { children: [
-            btn("Row \u2191", /* @__PURE__ */ jsx3(ArrowUpwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
-            btn("Row \u2193", /* @__PURE__ */ jsx3(ArrowDownwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
-            btn("Row \xD7", /* @__PURE__ */ jsx3(TableRowsIcon, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
-            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-            btn("Col \u2190", /* @__PURE__ */ jsx3(ArrowBackIcon, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
-            btn("Col \u2192", /* @__PURE__ */ jsx3(ArrowForwardIcon, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
-            btn("Col \xD7", /* @__PURE__ */ jsx3(ViewColumnIcon, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
-            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-            btn("Merge", /* @__PURE__ */ jsx3(CallMergeIcon, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
-            btn("Split", /* @__PURE__ */ jsx3(CallSplitIcon, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
-            btn("Table \xD7", /* @__PURE__ */ jsx3(DeleteForeverIcon, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
-          ] }),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          btn("Undo", /* @__PURE__ */ jsx3(UndoIcon, {}), () => e.chain().focus().undo().run()),
-          btn("Redo", /* @__PURE__ */ jsx3(RedoIcon, {}), () => e.chain().focus().redo().run())
-        ]
-      }
-    ),
-    /* @__PURE__ */ jsx3(
-      Popover,
-      {
-        open: openInsertPopover,
-        anchorEl: insertTableAnchorEl,
-        onClose: closeInsertPopover,
-        anchorOrigin: { vertical: "bottom", horizontal: "left" },
-        children: /* @__PURE__ */ jsxs3(Box2, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
-          /* @__PURE__ */ jsx3(
-            TextField,
-            {
-              label: "Rows",
-              type: "number",
-              size: "small",
-              inputProps: { min: 1, max: 50 },
-              value: rows,
-              onChange: (e2) => setRows(Number(e2.target.value)),
-              sx: { width: 120 }
-            }
-          ),
-          /* @__PURE__ */ jsx3(
-            TextField,
-            {
-              label: "Cols",
-              type: "number",
-              size: "small",
-              inputProps: { min: 1, max: 20 },
-              value: cols,
-              onChange: (e2) => setCols(Number(e2.target.value)),
-              sx: { width: 120 }
-            }
-          ),
-          /* @__PURE__ */ jsx3(Button, { variant: "contained", size: "small", onClick: handleInsertTable, children: "Insert" })
-        ] })
-      }
-    )
-  ] });
-};
-var MenuBar_default = MenuBar;
-
-// src/editors/ExplanationEditor.tsx
-import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
-var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
-var migrateMathStrings2 = MathematicsPkg.migrateMathStrings;
-function ExplanationEditor({
-  value,
-  onChange,
-  placeholder,
-  toolbarMode = "tutorFull",
-  minHeightPx = 120,
-  maxHeightPx = 320
-}) {
-  const [, forceUpdate] = useState4({});
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyleFontSize,
-      TextAlign.configure({
-        types: ["heading", "paragraph"]
-      }),
-      MathematicsWithInlineEdit.configure({
-        katexOptions: {
-          throwOnError: false
-        },
-        placeholderLatex: PLACEHOLDER_LATEX
-      }),
-      Table.configure({
-        resizable: true
-      }),
-      TableRow,
-      TableHeader,
-      TableCell
-    ],
-    content: value || "",
-    editorProps: {
-      attributes: {
-        style: `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
-        placeholder: placeholder || "Enter your answer...",
-        class: "tiptap-editor"
-      }
-    },
-    onUpdate({ editor: editor2 }) {
-      onChange(editor2.getHTML());
-      forceUpdate({});
-    },
-    onSelectionUpdate() {
-      forceUpdate({});
-    }
-  });
-  useEffect4(() => {
-    if (!editor) return;
-    const current = editor.getHTML();
-    if (value !== current && value !== void 0) {
-      editor.commands.setContent(value || "", { emitUpdate: false });
-      if (typeof migrateMathStrings2 === "function" && /\$(?!\$)/.test(value || "")) {
-        migrateMathStrings2(editor, /\$(?!\$)([^$]+?)\$(?!\$)/g);
-      }
-    }
-  }, [editor, value]);
-  const insertInlineMath = (latex = PLACEHOLDER_LATEX) => {
-    if (!editor) return;
-    editor.chain().focus().insertContent({
-      type: "inlineMath",
-      attrs: { latex }
-    }).run();
-  };
-  return /* @__PURE__ */ jsxs4(Box3, { sx: { width: "100%" }, children: [
-    /* @__PURE__ */ jsx4("style", { children: `
-        .tiptap-editor table {
-          border-collapse: collapse;
-          margin: 0;
-          overflow: hidden;
-          table-layout: fixed;
-          width: 100%;
-        }
-        .tiptap-editor table td,
-        .tiptap-editor table th {
-          min-width: 1em;
-          border: 1px solid #ced4da;
-          padding: 6px 8px;
-          vertical-align: top;
-          box-sizing: border-box;
-          position: relative;
-        }
-        .tiptap-editor table th {
-          font-weight: bold;
-          text-align: left;
-          background-color: #f1f3f5;
-        }
-        .tiptap-editor table .selectedCell:after {
-          z-index: 2;
-          position: absolute;
-          content: "";
-          left: 0; right: 0; top: 0; bottom: 0;
-          background: rgba(200, 200, 255, 0.4);
-          pointer-events: none;
-        }
-        .tiptap-editor table .column-resize-handle {
-          position: absolute;
-          right: -2px;
-          top: 0;
-          bottom: -2px;
-          width: 4px;
-          background-color: #adf;
-          pointer-events: none;
-        }
-        .tiptap-inline-math-wrapper math-field::part(virtual-keyboard-toggle) {
-          display: none;
-        }
-        .tiptap-inline-math-wrapper {
-          overflow: visible;
-        }
-        .inline-math-insert-panel {
-          z-index: 9999;
-          min-width: 280px;
-        }
-        .inline-math-insert-panel button {
-          white-space: nowrap;
-        }
-        .tiptap-math-placeholder,
-        .tiptap-math-placeholder .katex {
-          color: #999 !important;
-        }
-      ` }),
-    editor && /* @__PURE__ */ jsx4(
-      MenuBar_default,
-      {
-        editor,
-        toolbarMode,
-        onInsertEquation: () => insertInlineMath()
-      }
-    ),
-    /* @__PURE__ */ jsx4(EditorContent, { editor })
-  ] });
-}
-
-// src/editors/TiptapEditor.tsx
-import { useEffect as useEffect5 } from "react";
-import { useEditor as useEditor2, EditorContent as EditorContent2 } from "@tiptap/react";
-import StarterKit2 from "@tiptap/starter-kit";
-import ImageResize from "tiptap-extension-resize-image";
-import { Table as Table2 } from "@tiptap/extension-table";
-import TableRow2 from "@tiptap/extension-table-row";
-import TableCell2 from "@tiptap/extension-table-cell";
-import TableHeader2 from "@tiptap/extension-table-header";
-import { InlineMath as InlineMath2 } from "@tiptap/extension-mathematics";
-
-// src/extensions/OverleafPaste.ts
-import { Extension as Extension2 } from "@tiptap/core";
-
 // node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a, b, pos) {
   for (let i = 0; ; i++) {
@@ -1495,7 +569,7 @@ function findDiffEnd(a, b, posA, posB) {
     posB -= size;
   }
 }
-var Fragment3 = class _Fragment {
+var Fragment2 = class _Fragment {
   /**
   @internal
   */
@@ -1787,7 +861,7 @@ var Fragment3 = class _Fragment {
     throw new RangeError("Can not convert " + nodes + " to a Fragment" + (nodes.nodesBetween ? " (looks like multiple versions of prosemirror-model were loaded)" : ""));
   }
 };
-Fragment3.empty = new Fragment3([], 0);
+Fragment2.empty = new Fragment2([], 0);
 var found = { index: 0, offset: 0 };
 function retIndex(index, offset) {
   found.index = index;
@@ -2012,7 +1086,7 @@ var Slice = class _Slice {
     let openStart = json.openStart || 0, openEnd = json.openEnd || 0;
     if (typeof openStart != "number" || typeof openEnd != "number")
       throw new RangeError("Invalid input for Slice.fromJSON");
-    return new _Slice(Fragment3.fromJSON(schema, json.content), openStart, openEnd);
+    return new _Slice(Fragment2.fromJSON(schema, json.content), openStart, openEnd);
   }
   /**
   Create a slice from a fragment by taking the maximum possible
@@ -2027,7 +1101,7 @@ var Slice = class _Slice {
     return new _Slice(fragment, openStart, openEnd);
   }
 };
-Slice.empty = new Slice(Fragment3.empty, 0, 0);
+Slice.empty = new Slice(Fragment2.empty, 0, 0);
 function removeRange(content, from, to) {
   let { index, offset } = content.findIndex(from), child = content.maybeChild(index);
   let { index: indexTo, offset: offsetTo } = content.findIndex(to);
@@ -2125,7 +1199,7 @@ function replaceThreeWay($from, $start, $end, $to, depth) {
       addNode(close(openEnd, replaceTwoWay($end, $to, depth + 1)), content);
   }
   addRange($to, null, depth, content);
-  return new Fragment3(content);
+  return new Fragment2(content);
 }
 function replaceTwoWay($from, $to, depth) {
   let content = [];
@@ -2135,13 +1209,13 @@ function replaceTwoWay($from, $to, depth) {
     addNode(close(type, replaceTwoWay($from, $to, depth + 1)), content);
   }
   addRange($to, null, depth, content);
-  return new Fragment3(content);
+  return new Fragment2(content);
 }
 function prepareSliceForReplace(slice, $along) {
   let extra = $along.depth - slice.openStart, parent = $along.node(extra);
   let node = parent.copy(slice.content);
   for (let i = extra - 1; i >= 0; i--)
-    node = $along.node(i).copy(Fragment3.from(node));
+    node = $along.node(i).copy(Fragment2.from(node));
   return {
     start: node.resolveNoCache(slice.openStart + extra),
     end: node.resolveNoCache(node.content.size - slice.openEnd - extra)
@@ -2480,7 +1554,7 @@ var Node = class _Node {
     this.type = type;
     this.attrs = attrs;
     this.marks = marks;
-    this.content = content || Fragment3.empty;
+    this.content = content || Fragment2.empty;
   }
   /**
   The array of this node's child nodes.
@@ -2785,7 +1859,7 @@ var Node = class _Node {
   can optionally pass `start` and `end` indices into the
   replacement fragment.
   */
-  canReplace(from, to, replacement = Fragment3.empty, start = 0, end = replacement.childCount) {
+  canReplace(from, to, replacement = Fragment2.empty, start = 0, end = replacement.childCount) {
     let one = this.contentMatchAt(from).matchFragment(replacement, start, end);
     let two = one && one.matchFragment(this.content, to);
     if (!two || !two.validEnd)
@@ -2867,7 +1941,7 @@ var Node = class _Node {
         throw new RangeError("Invalid text node in JSON");
       return schema.text(json.text, marks);
     }
-    let content = Fragment3.fromJSON(schema, json.content);
+    let content = Fragment2.fromJSON(schema, json.content);
     let node = schema.nodeType(json.type).create(json.attrs, content, marks);
     node.type.checkAttrs(node.attrs);
     return node;
@@ -2963,7 +2037,7 @@ var ContentMatch = class _ContentMatch {
     function search(match, types) {
       let finished = match.matchFragment(after, startIndex);
       if (finished && (!toEnd || finished.validEnd))
-        return Fragment3.from(types.map((tp) => tp.createAndFill()));
+        return Fragment2.from(types.map((tp) => tp.createAndFill()));
       for (let i = 0; i < match.next.length; i++) {
         let { type, next } = match.next[i];
         if (!(type.isText || type.hasRequiredAttrs()) && seen.indexOf(next) == -1) {
@@ -3531,7 +2605,7 @@ function mapFragment(fragment, f, parent) {
       child = f(child, parent, i);
     mapped.push(child);
   }
-  return Fragment3.fromArray(mapped);
+  return Fragment2.fromArray(mapped);
 }
 var AddMarkStep = class _AddMarkStep extends Step {
   /**
@@ -3648,7 +2722,7 @@ var AddNodeMarkStep = class _AddNodeMarkStep extends Step {
     if (!node)
       return StepResult.fail("No node at mark step's position");
     let updated = node.type.create(node.attrs, null, this.mark.addToSet(node.marks));
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment3.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   invert(doc) {
     let node = doc.nodeAt(this.pos);
@@ -3694,7 +2768,7 @@ var RemoveNodeMarkStep = class _RemoveNodeMarkStep extends Step {
     if (!node)
       return StepResult.fail("No node at mark step's position");
     let updated = node.type.create(node.attrs, null, this.mark.removeFromSet(node.marks));
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment3.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   invert(doc) {
     let node = doc.nodeAt(this.pos);
@@ -3895,7 +2969,7 @@ var AttrStep = class _AttrStep extends Step {
       attrs[name] = node.attrs[name];
     attrs[this.attr] = this.value;
     let updated = node.type.create(attrs, null, node.marks);
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment3.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   getMap() {
     return StepMap.empty;
@@ -4279,7 +3353,7 @@ var NodeSelection = class _NodeSelection extends Selection {
     return new _NodeSelection($pos);
   }
   content() {
-    return new Slice(Fragment3.from(this.node), 0, 0);
+    return new Slice(Fragment2.from(this.node), 0, 0);
   }
   eq(other) {
     return other instanceof _NodeSelection && other.anchor == this.anchor;
@@ -4506,7 +3580,932 @@ var PluginKey = class {
   }
 };
 
+// src/extensions/InlineMathWithMathLive.ts
+import { InputRule } from "@tiptap/core";
+import { InlineMath } from "@tiptap/extension-mathematics";
+import katex from "katex";
+import "mathlive";
+var InlineMathWithMathLive = InlineMath.extend({
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      placeholderLatex: void 0
+    };
+  },
+  addInputRules() {
+    return [
+      new InputRule({
+        find: /\\\((.+?)\\\)$/,
+        handler: ({ state, range, match }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return null;
+          const node = this.type.create({ latex });
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, node);
+          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+        }
+      })
+    ];
+  },
+  addNodeView() {
+    const { katexOptions } = this.options;
+    const placeholderLatex = this.options.placeholderLatex;
+    return ({ node, getPos, editor }) => {
+      const wrapper = document.createElement("span");
+      wrapper.className = "tiptap-inline-math-wrapper";
+      wrapper.dataset.type = "inline-math";
+      if (editor.isEditable) {
+        wrapper.style.cursor = "pointer";
+      }
+      let isEditing = false;
+      let mathField = null;
+      let editModePos = null;
+      let panelCleanup = null;
+      let didInitialSelect = false;
+      let suppressBlur = false;
+      function renderKaTeX(latex) {
+        wrapper.innerHTML = "";
+        const span = document.createElement("span");
+        span.className = "tiptap-mathematics-render";
+        if (placeholderLatex && latex === placeholderLatex) {
+          span.classList.add("tiptap-math-placeholder");
+        }
+        try {
+          katex.render(latex || "\\ ", span, {
+            ...katexOptions,
+            throwOnError: false
+          });
+        } catch {
+          span.textContent = latex || "?";
+          span.classList.add("inline-math-error");
+        }
+        wrapper.appendChild(span);
+      }
+      function enterEditMode() {
+        if (!editor.isEditable || isEditing) return;
+        const pos = getPos();
+        if (typeof pos !== "number") return;
+        isEditing = true;
+        editModePos = pos;
+        const latex = node.attrs.latex || "";
+        wrapper.innerHTML = "";
+        const inlineStyle = document.createElement("style");
+        inlineStyle.dataset.inlineMathStyle = "true";
+        inlineStyle.textContent = `
+          .tiptap-inline-math-wrapper math-field::part(virtual-keyboard-toggle) {
+            display: none;
+          }
+          .tiptap-inline-math-wrapper math-field::part(menu-toggle) {
+            display: none;
+          }
+        `;
+        wrapper.appendChild(inlineStyle);
+        const mf = document.createElement("math-field");
+        mf.value = latex;
+        mf.setAttribute("data-math-virtual-keyboard-policy", "manual");
+        mf.style.cssText = `
+          display: inline-block;
+          min-width: 60px;
+          font-size: 1em;
+          padding: 2px 6px;
+          border: 1px solid #1976d2;
+          border-radius: 4px;
+          background: #fff;
+        `;
+        const finishEdit = () => {
+          if (!isEditing) return;
+          const posToUse = editModePos;
+          const newLatex = mf.value || "";
+          isEditing = false;
+          editModePos = null;
+          didInitialSelect = false;
+          if (panelCleanup) {
+            panelCleanup();
+            panelCleanup = null;
+          }
+          renderKaTeX(newLatex);
+          mf.remove();
+          mathField = null;
+          setTimeout(() => {
+            if (typeof posToUse !== "number") return;
+            const node2 = editor.state.doc.nodeAt(posToUse);
+            if (!node2 || node2.type.name !== "inlineMath") return;
+            const from = posToUse;
+            const to = from + node2.nodeSize;
+            const tr = editor.state.tr.replaceWith(from, to, node2.type.create({ latex: newLatex }));
+            editor.view.dispatch(tr);
+            editor.commands.focus();
+          }, 10);
+        };
+        mf.addEventListener("blur", (e) => {
+          if (suppressBlur) return;
+          if (panel.contains(e.relatedTarget || null)) return;
+          finishEdit();
+        });
+        mf.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            mf.value = node.attrs.latex || "";
+            mf.blur();
+            return;
+          }
+          if (placeholderLatex && mf.value === placeholderLatex) {
+            if (e.key === "Backspace" || e.key === "Delete") {
+              e.preventDefault();
+              mf.value = "";
+              return;
+            }
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault();
+              mf.value = "";
+              try {
+                mf.insert?.(e.key) ?? mf.executeCommand?.(["insert", e.key]);
+              } catch (_) {
+              }
+              return;
+            }
+          }
+        });
+        const panel = document.createElement("div");
+        panel.className = "inline-math-insert-panel";
+        panel.style.cssText = `
+          position: fixed;
+          z-index: 9999;
+          min-width: 280px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 6px;
+          background: #fff;
+          border-radius: 6px;
+          border: 1px solid #e0e0e0;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        `;
+        const insertLatex = (latex2) => {
+          try {
+            if (typeof mf.insert === "function") {
+              mf.insert(latex2);
+            } else {
+              mf.executeCommand?.(["insert", latex2]);
+            }
+            mf.focus();
+          } catch (_) {
+          }
+        };
+        const btnStyle2 = `
+          min-width: 44px;
+          height: 28px;
+          padding: 0 8px;
+          font-size: 13px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          background: #fff;
+          cursor: pointer;
+          white-space: nowrap;
+        `;
+        const snippets = [
+          { label: "\xD7", latex: "\\times" },
+          { label: "\xF7", latex: "\\div" },
+          { label: "a/b", latex: "\\frac{a}{b}" },
+          { label: "\u2264", latex: "\\leq" },
+          { label: "\u2265", latex: "\\geq" },
+          { label: "\u221A", latex: "\\sqrt{}" },
+          { label: "\u221E", latex: "\\infty" },
+          { label: "\u0394", latex: "\\Delta" },
+          { label: "\u03A3", latex: "\\Sigma" },
+          { label: ">", latex: ">" },
+          { label: "<", latex: "<" },
+          { label: "\u2248", latex: "\\approx" },
+          { label: "\u22A5", latex: "\\perp" },
+          { label: "\u2225", latex: "\\parallel" },
+          { label: "\u25B3", latex: "\\triangle" },
+          { label: "\u2220", latex: "\\angle" },
+          { label: "\u222A", latex: "\\cup" },
+          { label: "\u2229", latex: "\\cap" },
+          { label: "\u2192", latex: "\\vec{v}" }
+        ];
+        const snippetsGrid = document.createElement("div");
+        snippetsGrid.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px;";
+        snippets.forEach(({ label, latex: latex2 }) => {
+          const btn = document.createElement("button");
+          btn.textContent = label;
+          btn.type = "button";
+          btn.style.cssText = btnStyle2;
+          btn.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            insertLatex(latex2);
+          });
+          snippetsGrid.appendChild(btn);
+        });
+        panel.appendChild(snippetsGrid);
+        const TRIGONOMETRY2 = [
+          { label: "sin", latex: "\\sin" },
+          { label: "cos", latex: "\\cos" },
+          { label: "tan", latex: "\\tan" },
+          { label: "cot", latex: "\\cot" },
+          { label: "sec", latex: "\\sec" },
+          { label: "csc", latex: "\\csc" },
+          { label: "sin\u207B\xB9", latex: "\\arcsin" },
+          { label: "cos\u207B\xB9", latex: "\\arccos" },
+          { label: "tan\u207B\xB9", latex: "\\arctan" },
+          { label: "sinh", latex: "\\sinh" },
+          { label: "cosh", latex: "\\cosh" },
+          { label: "\xB0", latex: "\\degree" }
+        ];
+        const CALCULUS2 = [
+          { label: "d/dx", latex: "\\frac{d}{dx}" },
+          { label: "\u2202/\u2202x", latex: "\\frac{\\partial}{\\partial x}" },
+          { label: "\u222B", latex: "\\int" },
+          { label: "\u222B\u222B", latex: "\\iint" },
+          { label: "\u222C\u222C", latex: "\\iiint" },
+          { label: "\u220F", latex: "\\prod_{i=1}^{n}" },
+          { label: "lim", latex: "\\lim_{x \\to \\infty}" },
+          { label: "\u222B_a^b", latex: "\\int_{a}^{b}" },
+          { label: "log", latex: "\\log" },
+          { label: "ln", latex: "\\ln" },
+          { label: "exp", latex: "\\exp" }
+        ];
+        const GREEK2 = [
+          { label: "\u03B1", latex: "\\alpha" },
+          { label: "\u03B2", latex: "\\beta" },
+          { label: "\u03B3", latex: "\\gamma" },
+          { label: "\u03B4", latex: "\\delta" },
+          { label: "\u03B5", latex: "\\varepsilon" },
+          { label: "\u03B8", latex: "\\theta" },
+          { label: "\u03BB", latex: "\\lambda" },
+          { label: "\u03BC", latex: "\\mu" },
+          { label: "\u03C0", latex: "\\pi" },
+          { label: "\u03C3", latex: "\\sigma" },
+          { label: "\u03C6", latex: "\\phi" },
+          { label: "\u03C9", latex: "\\omega" },
+          { label: "\u03A9", latex: "\\Omega" },
+          { label: "\u0394", latex: "\\Delta" },
+          { label: "\u03A3", latex: "\\Sigma" },
+          { label: "\u221E", latex: "\\infty" },
+          { label: "\u211D", latex: "\\mathbb{R}" },
+          { label: "\u2115", latex: "\\mathbb{N}" },
+          { label: "\u2124", latex: "\\mathbb{Z}" }
+        ];
+        const SYMBOLS2 = [
+          { label: ">", latex: ">" },
+          { label: "<", latex: "<" },
+          { label: "\u2248", latex: "\\approx" },
+          { label: "\u22A5", latex: "\\perp" },
+          { label: "\u2225", latex: "\\parallel" },
+          { label: "\u25B3", latex: "\\triangle" },
+          { label: "\u2220", latex: "\\angle" },
+          { label: "\u222A", latex: "\\cup" },
+          { label: "\u2229", latex: "\\cap" }
+        ];
+        const ACCENTS2 = [
+          { label: "x\u0302", latex: "\\hat{}" },
+          { label: "x\u0304", latex: "\\bar{}" },
+          { label: "\u1E8B", latex: "\\dot{}" },
+          { label: "x\u0308", latex: "\\ddot{}" },
+          { label: "x\u0303", latex: "\\tilde{}" },
+          { label: "x\u20D7", latex: "\\vec{}" },
+          { label: "overline", latex: "\\overline{}" },
+          { label: "underline", latex: "\\underline{}" },
+          { label: "^{}", latex: "^{}" },
+          { label: "_{}", latex: "_{}" },
+          { label: "x\xB2", latex: "^{2}" },
+          { label: "x\u2081", latex: "_{1}" }
+        ];
+        const MATRICES2 = [
+          { label: "( )", latex: "\\begin{pmatrix} \\\\ \\end{pmatrix}" },
+          { label: "[ ]", latex: "\\begin{bmatrix} \\\\ \\end{bmatrix}" },
+          { label: "{ }", latex: "\\begin{Bmatrix} \\\\ \\end{Bmatrix}" },
+          { label: "| |", latex: "\\begin{vmatrix} \\\\ \\end{vmatrix}" },
+          { label: "2\xD72", latex: "\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}" },
+          { label: "\u27E8x\u27E9", latex: "\\langle \\rangle" },
+          { label: "\u2192", latex: "\\vec{v}" },
+          { label: "\u27F6", latex: "\\overrightarrow{}" },
+          { label: "|x|", latex: "|\\mathbf{x}|" }
+        ];
+        const CATEGORIES2 = [
+          { label: "Trig", snippets: TRIGONOMETRY2 },
+          { label: "Calculus", snippets: CALCULUS2 },
+          { label: "Greek", snippets: GREEK2 },
+          { label: "Symbols", snippets: SYMBOLS2 },
+          { label: "Accents", snippets: ACCENTS2 },
+          { label: "Matrices", snippets: MATRICES2 }
+        ];
+        const expandable = document.createElement("div");
+        expandable.style.cssText = "display: none; flex-direction: column; gap: 4px;";
+        const tabBar = document.createElement("div");
+        tabBar.style.cssText = "display: flex; gap: 2px; flex-wrap: wrap;";
+        const tabContent = document.createElement("div");
+        tabContent.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;";
+        const renderTabContent = (index) => {
+          tabContent.innerHTML = "";
+          const cat = CATEGORIES2[index];
+          if (!cat) return;
+          cat.snippets.forEach(({ label, latex: latex2 }) => {
+            const b = document.createElement("button");
+            b.textContent = label;
+            b.type = "button";
+            b.style.cssText = btnStyle2;
+            b.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              insertLatex(latex2);
+            });
+            tabContent.appendChild(b);
+          });
+        };
+        CATEGORIES2.forEach((cat, i) => {
+          const tabBtn = document.createElement("button");
+          tabBtn.textContent = cat.label;
+          tabBtn.type = "button";
+          tabBtn.style.cssText = "font-size: 11px; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; background: #e8e8e8; cursor: pointer;";
+          tabBtn.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            CATEGORIES2.forEach((_, j) => {
+              tabBar.children[j].style.background = j === i ? "#1976d2" : "#e8e8e8";
+              tabBar.children[j].style.color = j === i ? "#fff" : "inherit";
+            });
+            renderTabContent(i);
+          });
+          tabBar.appendChild(tabBtn);
+        });
+        renderTabContent(0);
+        tabBar.children[0].style.background = "#1976d2";
+        tabBar.children[0].style.color = "#fff";
+        expandable.appendChild(tabBar);
+        expandable.appendChild(tabContent);
+        const plusBar = document.createElement("button");
+        plusBar.textContent = "+";
+        plusBar.type = "button";
+        plusBar.title = "More symbols";
+        plusBar.style.cssText = `
+          width: 100%;
+          height: 24px;
+          font-size: 16px;
+          font-weight: bold;
+          border: 1px dashed #999;
+          border-radius: 4px;
+          background: #eee;
+          cursor: pointer;
+          color: #666;
+        `;
+        plusBar.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const shown = expandable.style.display === "flex";
+          expandable.style.display = shown ? "none" : "flex";
+          plusBar.textContent = shown ? "+" : "\u2212";
+        });
+        panel.appendChild(plusBar);
+        panel.appendChild(expandable);
+        const editRow = document.createElement("div");
+        editRow.style.cssText = "display: inline;";
+        editRow.appendChild(mf);
+        wrapper.appendChild(editRow);
+        document.body.appendChild(panel);
+        const positionPanel = () => {
+          const rect = mf.getBoundingClientRect();
+          const panelRect = panel.getBoundingClientRect();
+          const margin = 8;
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          let left = rect.right + margin;
+          if (left + panelRect.width > viewportWidth - margin) {
+            left = rect.left - panelRect.width - margin;
+          }
+          left = Math.max(margin, Math.min(left, viewportWidth - panelRect.width - margin));
+          let top = rect.top;
+          if (top + panelRect.height > viewportHeight - margin) {
+            top = viewportHeight - panelRect.height - margin;
+          }
+          top = Math.max(margin, top);
+          panel.style.left = `${left}px`;
+          panel.style.top = `${top}px`;
+        };
+        const scrollParent = wrapper.closest(".tiptap-editor");
+        const handleReposition = () => positionPanel();
+        scrollParent?.addEventListener("scroll", handleReposition);
+        window.addEventListener("scroll", handleReposition, true);
+        window.addEventListener("resize", handleReposition);
+        mf.addEventListener("input", handleReposition);
+        const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => positionPanel()) : null;
+        resizeObserver?.observe(mf);
+        positionPanel();
+        requestAnimationFrame(positionPanel);
+        panelCleanup = () => {
+          panel.remove();
+          scrollParent?.removeEventListener("scroll", handleReposition);
+          window.removeEventListener("scroll", handleReposition, true);
+          window.removeEventListener("resize", handleReposition);
+          mf.removeEventListener("input", handleReposition);
+          resizeObserver?.disconnect();
+        };
+        mathField = mf;
+        mf.focus();
+        if (!didInitialSelect) {
+          didInitialSelect = true;
+          requestAnimationFrame(() => {
+            try {
+              mf.executeCommand?.("selectAll");
+            } catch (_) {
+            }
+          });
+        }
+      }
+      function handleClick(e) {
+        if (!editor.isEditable) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isEditing) {
+          enterEditMode();
+        }
+      }
+      wrapper.addEventListener("click", handleClick);
+      renderKaTeX(node.attrs.latex);
+      return {
+        dom: wrapper,
+        stopEvent() {
+          return isEditing;
+        },
+        ignoreMutation() {
+          return true;
+        },
+        update(updatedNode) {
+          if (node.attrs.latex !== updatedNode.attrs.latex && !isEditing) {
+            node = updatedNode;
+            renderKaTeX(updatedNode.attrs.latex);
+          }
+          return true;
+        },
+        destroy() {
+          wrapper.removeEventListener("click", handleClick);
+          mathField?.removeEventListener("blur", () => {
+          });
+        }
+      };
+    };
+  }
+});
+
+// src/extensions/MathematicsWithInlineEdit.ts
+var BlockMathWithBrackets = BlockMath.extend({
+  addInputRules() {
+    return [
+      new InputRule2({
+        find: /\\\[(.+?)\\\]$/,
+        handler: ({ state, range, match }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return;
+          const node = this.type.create({ latex });
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, node);
+          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+        }
+      })
+    ];
+  }
+});
+var MathematicsWithInlineEdit = Extension.create({
+  name: "MathematicsWithInlineEdit",
+  addOptions() {
+    return {
+      inlineOptions: void 0,
+      blockOptions: void 0,
+      katexOptions: void 0,
+      placeholderLatex: void 0
+    };
+  },
+  addExtensions() {
+    return [
+      BlockMathWithBrackets.configure({
+        ...this.options.blockOptions,
+        katexOptions: this.options.katexOptions
+      }),
+      InlineMathWithMathLive.configure({
+        ...this.options.inlineOptions,
+        katexOptions: this.options.katexOptions,
+        placeholderLatex: this.options.placeholderLatex
+      })
+    ];
+  }
+});
+
+// src/editors/ExplanationEditor.tsx
+import TextAlign from "@tiptap/extension-text-align";
+import { Table } from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+
+// src/extensions/TextStyleFontSize.ts
+import { TextStyle } from "@tiptap/extension-text-style";
+var TextStyleFontSize = TextStyle.extend({
+  // keep name as "textStyle" (inherited) so removeEmptyTextStyle works
+  addAttributes() {
+    return {
+      ...this.parent?.() ?? {},
+      fontSize: {
+        default: null,
+        // read inline style="font-size: 16px" -> "16px"
+        parseHTML: (element) => {
+          const size = element.style.fontSize;
+          return size && size.trim().length > 0 ? size : null;
+        },
+        // write style="font-size: 16px"
+        renderHTML: (attributes) => {
+          const fontSize = attributes.fontSize;
+          if (!fontSize) return {};
+          return { style: `font-size: ${fontSize}` };
+        }
+      }
+    };
+  },
+  addCommands() {
+    return {
+      ...this.parent?.() ?? {},
+      setFontSize: (fontSize) => ({ commands }) => {
+        return commands.setMark(this.name, { fontSize });
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain().setMark(this.name, { fontSize: null }).removeEmptyTextStyle().run();
+      }
+    };
+  }
+});
+
+// src/editors/ExplanationEditor.tsx
+import "katex/dist/katex.min.css";
+import "mathlive/static.css";
+
+// src/components/MenuBar.tsx
+import { useState as useState3, useMemo, useEffect as useEffect3 } from "react";
+import {
+  IconButton as IconButton2,
+  Tooltip as Tooltip2,
+  Divider,
+  Stack,
+  Popover,
+  Box as Box2,
+  TextField,
+  Button
+} from "@mui/material";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatStrikethroughIcon from "@mui/icons-material/FormatStrikethrough";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import UndoIcon from "@mui/icons-material/Undo";
+import RedoIcon from "@mui/icons-material/Redo";
+import TableChartIcon from "@mui/icons-material/TableChart";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CallMergeIcon from "@mui/icons-material/CallMerge";
+import CallSplitIcon from "@mui/icons-material/CallSplit";
+import QuizIcon from "@mui/icons-material/Quiz";
+import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
+import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
+import FunctionsIcon from "@mui/icons-material/Functions";
+import { Fragment as Fragment3, jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
+var MenuBar = ({
+  editor,
+  showQuestionButton = false,
+  onInsertEquation,
+  toolbarMode = "tutorFull"
+}) => {
+  const [, forceRerender] = useState3(0);
+  const [insertTableAnchorEl, setInsertTableAnchorEl] = useState3(null);
+  const [rows, setRows] = useState3(3);
+  const [cols, setCols] = useState3(3);
+  const e = editor;
+  useEffect3(() => {
+    if (!editor) return;
+    const rerender = () => forceRerender((x) => x + 1);
+    editor.on("selectionUpdate", rerender);
+    editor.on("transaction", rerender);
+    return () => {
+      editor.off("selectionUpdate", rerender);
+      editor.off("transaction", rerender);
+    };
+  }, [editor]);
+  const hasQuestionExt = useMemo(
+    () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "question") : false,
+    [editor]
+  );
+  const hasMathExt = useMemo(
+    () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "mathematics") : false,
+    [editor]
+  );
+  if (!editor) return null;
+  const FONT_SIZES = ["10px", "12px", "14px", "18px", "24px", "32px"];
+  const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
+  const openInsertPopover = Boolean(insertTableAnchorEl);
+  const closeInsertPopover = () => setInsertTableAnchorEl(null);
+  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ jsx3(Tooltip2, { title: label, arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+    IconButton2,
+    {
+      size: "small",
+      onClick,
+      disabled,
+      color: active ? "primary" : "default",
+      sx: { borderRadius: 1 },
+      children: icon
+    }
+  ) }) }, label);
+  const handleInsertTable = () => {
+    e.chain().focus().insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true }).run();
+    closeInsertPopover();
+  };
+  const insertQuestionPlaceholder = () => {
+    if (!hasQuestionExt) return;
+    editor.commands.insertQuestion?.(null);
+  };
+  const handleEquationClick = () => {
+    if (onInsertEquation) {
+      onInsertEquation();
+      return;
+    }
+    if (!hasMathExt) return;
+    editor.chain().focus().insertMath?.("")?.run?.() ?? editor.commands.insertMath?.("");
+  };
+  const equationDisabled = !onInsertEquation && !hasMathExt;
+  const isStudentSimple = toolbarMode === "studentSimple";
+  const showAdvancedFormatting = !isStudentSimple;
+  const isInTable = editor.isActive("table");
+  return /* @__PURE__ */ jsxs3(Fragment3, { children: [
+    /* @__PURE__ */ jsxs3(
+      Stack,
+      {
+        direction: "row",
+        spacing: 0.5,
+        sx: { borderBottom: "1px solid #ddd", p: "4px 8px", bgcolor: "#fafafa", flexWrap: "wrap" },
+        children: [
+          btn("Bold", /* @__PURE__ */ jsx3(FormatBoldIcon, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
+          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ jsx3(FormatItalicIcon, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
+          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ jsx3(FormatStrikethroughIcon, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
+          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ jsx3(FormatAlignLeftIcon, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
+          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ jsx3(FormatAlignCenterIcon, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
+          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ jsx3(FormatAlignRightIcon, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
+          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ jsx3(FormatListBulletedIcon, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
+          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ jsx3(FormatListNumberedIcon, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
+          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+          /* @__PURE__ */ jsx3(Tooltip2, { title: "Equation", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+            IconButton2,
+            {
+              size: "small",
+              onClick: handleEquationClick,
+              disabled: equationDisabled,
+              color: "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ jsx3(FunctionsIcon, {})
+            }
+          ) }) }, "Equation"),
+          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+          /* @__PURE__ */ jsxs3(
+            TextField,
+            {
+              select: true,
+              size: "small",
+              value: currentFontSize,
+              onChange: (e2) => {
+                const value = e2.target.value;
+                if (!value) editor.chain().focus().unsetFontSize?.().run?.();
+                else editor.chain().focus().setFontSize?.(value).run?.();
+              },
+              sx: { width: 95 },
+              SelectProps: { native: true },
+              children: [
+                /* @__PURE__ */ jsx3("option", { value: "", children: "16px" }),
+                FONT_SIZES.map((s) => /* @__PURE__ */ jsx3("option", { value: s, children: s }, s))
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+          showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ jsx3(QuizIcon, {}), insertQuestionPlaceholder),
+          /* @__PURE__ */ jsx3(Tooltip2, { title: "Insert table", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+            IconButton2,
+            {
+              size: "small",
+              onClick: (event) => setInsertTableAnchorEl(event.currentTarget),
+              color: isInTable ? "primary" : "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ jsx3(TableChartIcon, {})
+            }
+          ) }) }),
+          isInTable && /* @__PURE__ */ jsxs3(Fragment3, { children: [
+            btn("Row \u2191", /* @__PURE__ */ jsx3(ArrowUpwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
+            btn("Row \u2193", /* @__PURE__ */ jsx3(ArrowDownwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
+            btn("Row \xD7", /* @__PURE__ */ jsx3(TableRowsIcon, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
+            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+            btn("Col \u2190", /* @__PURE__ */ jsx3(ArrowBackIcon, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
+            btn("Col \u2192", /* @__PURE__ */ jsx3(ArrowForwardIcon, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
+            btn("Col \xD7", /* @__PURE__ */ jsx3(ViewColumnIcon, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
+            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+            btn("Merge", /* @__PURE__ */ jsx3(CallMergeIcon, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
+            btn("Split", /* @__PURE__ */ jsx3(CallSplitIcon, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
+            btn("Table \xD7", /* @__PURE__ */ jsx3(DeleteForeverIcon, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
+          ] }),
+          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+          btn("Undo", /* @__PURE__ */ jsx3(UndoIcon, {}), () => e.chain().focus().undo().run()),
+          btn("Redo", /* @__PURE__ */ jsx3(RedoIcon, {}), () => e.chain().focus().redo().run())
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsx3(
+      Popover,
+      {
+        open: openInsertPopover,
+        anchorEl: insertTableAnchorEl,
+        onClose: closeInsertPopover,
+        anchorOrigin: { vertical: "bottom", horizontal: "left" },
+        children: /* @__PURE__ */ jsxs3(Box2, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
+          /* @__PURE__ */ jsx3(
+            TextField,
+            {
+              label: "Rows",
+              type: "number",
+              size: "small",
+              inputProps: { min: 1, max: 50 },
+              value: rows,
+              onChange: (e2) => setRows(Number(e2.target.value)),
+              sx: { width: 120 }
+            }
+          ),
+          /* @__PURE__ */ jsx3(
+            TextField,
+            {
+              label: "Cols",
+              type: "number",
+              size: "small",
+              inputProps: { min: 1, max: 20 },
+              value: cols,
+              onChange: (e2) => setCols(Number(e2.target.value)),
+              sx: { width: 120 }
+            }
+          ),
+          /* @__PURE__ */ jsx3(Button, { variant: "contained", size: "small", onClick: handleInsertTable, children: "Insert" })
+        ] })
+      }
+    )
+  ] });
+};
+var MenuBar_default = MenuBar;
+
+// src/editors/ExplanationEditor.tsx
+import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
+var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
+var migrateMathStrings2 = MathematicsPkg.migrateMathStrings;
+function ExplanationEditor({
+  value,
+  onChange,
+  placeholder,
+  toolbarMode = "tutorFull",
+  minHeightPx = 120,
+  maxHeightPx = 320
+}) {
+  const [, forceUpdate] = useState4({});
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyleFontSize,
+      TextAlign.configure({
+        types: ["heading", "paragraph"]
+      }),
+      MathematicsWithInlineEdit.configure({
+        katexOptions: {
+          throwOnError: false
+        },
+        placeholderLatex: PLACEHOLDER_LATEX
+      }),
+      Table.configure({
+        resizable: true
+      }),
+      TableRow,
+      TableHeader,
+      TableCell
+    ],
+    content: value || "",
+    editorProps: {
+      attributes: {
+        style: `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
+        placeholder: placeholder || "Enter your answer...",
+        class: "tiptap-editor"
+      }
+    },
+    onUpdate({ editor: editor2 }) {
+      onChange(editor2.getHTML());
+      forceUpdate({});
+    },
+    onSelectionUpdate() {
+      forceUpdate({});
+    }
+  });
+  useEffect4(() => {
+    if (!editor) return;
+    const current = editor.getHTML();
+    if (value !== current && value !== void 0) {
+      editor.commands.setContent(value || "", { emitUpdate: false });
+      if (typeof migrateMathStrings2 === "function" && /\$(?!\$)/.test(value || "")) {
+        migrateMathStrings2(editor, /\$(?!\$)([^$]+?)\$(?!\$)/g);
+      }
+    }
+  }, [editor, value]);
+  const insertInlineMath = (latex = PLACEHOLDER_LATEX) => {
+    if (!editor) return;
+    editor.chain().focus().insertContent({
+      type: "inlineMath",
+      attrs: { latex }
+    }).run();
+  };
+  return /* @__PURE__ */ jsxs4(Box3, { sx: { width: "100%" }, children: [
+    /* @__PURE__ */ jsx4("style", { children: `
+        .tiptap-editor table {
+          border-collapse: collapse;
+          margin: 0;
+          overflow: hidden;
+          table-layout: fixed;
+          width: 100%;
+        }
+        .tiptap-editor table td,
+        .tiptap-editor table th {
+          min-width: 1em;
+          border: 1px solid #ced4da;
+          padding: 6px 8px;
+          vertical-align: top;
+          box-sizing: border-box;
+          position: relative;
+        }
+        .tiptap-editor table th {
+          font-weight: bold;
+          text-align: left;
+          background-color: #f1f3f5;
+        }
+        .tiptap-editor table .selectedCell:after {
+          z-index: 2;
+          position: absolute;
+          content: "";
+          left: 0; right: 0; top: 0; bottom: 0;
+          background: rgba(200, 200, 255, 0.4);
+          pointer-events: none;
+        }
+        .tiptap-editor table .column-resize-handle {
+          position: absolute;
+          right: -2px;
+          top: 0;
+          bottom: -2px;
+          width: 4px;
+          background-color: #adf;
+          pointer-events: none;
+        }
+        .tiptap-inline-math-wrapper math-field::part(virtual-keyboard-toggle) {
+          display: none;
+        }
+        .tiptap-inline-math-wrapper {
+          overflow: visible;
+        }
+        .inline-math-insert-panel {
+          z-index: 9999;
+          min-width: 280px;
+        }
+        .inline-math-insert-panel button {
+          white-space: nowrap;
+        }
+        .tiptap-math-placeholder,
+        .tiptap-math-placeholder .katex {
+          color: #999 !important;
+        }
+      ` }),
+    editor && /* @__PURE__ */ jsx4(
+      MenuBar_default,
+      {
+        editor,
+        toolbarMode,
+        onInsertEquation: () => insertInlineMath()
+      }
+    ),
+    /* @__PURE__ */ jsx4(EditorContent, { editor })
+  ] });
+}
+
+// src/editors/TiptapEditor.tsx
+import { useEffect as useEffect5 } from "react";
+import { useEditor as useEditor2, EditorContent as EditorContent2 } from "@tiptap/react";
+import StarterKit2 from "@tiptap/starter-kit";
+import ImageResize from "tiptap-extension-resize-image";
+import { Table as Table2 } from "@tiptap/extension-table";
+import TableRow2 from "@tiptap/extension-table-row";
+import TableCell2 from "@tiptap/extension-table-cell";
+import TableHeader2 from "@tiptap/extension-table-header";
+import { InlineMath as InlineMath2 } from "@tiptap/extension-mathematics";
+
 // src/extensions/OverleafPaste.ts
+import { Extension as Extension2 } from "@tiptap/core";
 var OverleafPaste = Extension2.create({
   name: "overleafPaste",
   addProseMirrorPlugins() {
