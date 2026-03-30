@@ -30,9 +30,17 @@ interface Props {
   /** Enable question placeholders + picker (pass subject/category to scope results) */
   questions?: QuestionOpts;
   menuBarWrapperSx?: any;
+  toolbarMode?: 'studentSimple' | 'tutorFull';
 }
 
-const TiptapEditor: React.FC<Props> = ({ value, onChange, readOnly, questions = false, menuBarWrapperSx }) => {
+const TiptapEditor: React.FC<Props> = ({
+  value,
+  onChange,
+  readOnly,
+  questions = false,
+  menuBarWrapperSx,
+  toolbarMode = 'tutorFull',
+}) => {
   /* -------------------------------- editor -------------------------------- */
   const editor = useEditor({
     content: value || '<p></p>',
@@ -88,7 +96,7 @@ const TiptapEditor: React.FC<Props> = ({ value, onChange, readOnly, questions = 
   return (
     <>
       <Box sx={menuBarWrapperSx}>
-        <MenuBar editor={editor} showQuestionButton={false} />
+        <MenuBar editor={editor} showQuestionButton={false} toolbarMode={toolbarMode} />
       </Box>
       <EditorContent editor={editor} className="tiptap" />
     </>

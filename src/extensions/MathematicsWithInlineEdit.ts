@@ -1,12 +1,28 @@
-import { Extension } from '@tiptap/core';
+import { Extension, InputRule } from '@tiptap/core';
 import { BlockMath } from '@tiptap/extension-mathematics';
 import type { MathematicsOptions } from '@tiptap/extension-mathematics';
 import { InlineMathWithMathLive } from './InlineMathWithMathLive';
 
+const BlockMathWithBrackets = BlockMath.extend({
+  addInputRules() {
+    return [
+      new InputRule({
+        find: /\\\[(.+?)\\\]$/,
+        handler: ({ state, range, match }) => {
+          const latex = (match[1] || '').trim();
+          if (!latex) return;
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
+        },
+      }),
+    ];
+  },
+});
+
 /**
  * Mathematics extension that uses InlineMathWithMathLive for inline math,
  * enabling click-to-edit with MathLive (no popover, no raw LaTeX visible).
- * Block math uses the default implementation.
+ * Block math uses \[...\] delimiters.
  */
 export const MathematicsWithInlineEdit = Extension.create<MathematicsOptions>({
   name: 'MathematicsWithInlineEdit',
@@ -22,7 +38,7 @@ export const MathematicsWithInlineEdit = Extension.create<MathematicsOptions>({
 
   addExtensions() {
     return [
-      BlockMath.configure({
+      BlockMathWithBrackets.configure({
         ...this.options.blockOptions,
         katexOptions: this.options.katexOptions,
       }),

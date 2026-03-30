@@ -287,7 +287,14 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
 
 // src/editors/MathLiveEditor.tsx
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
-var MathLiveEditor = ({ value, onChange }) => {
+var MathLiveEditor = ({
+  value,
+  onChange,
+  minWidthPx = 280,
+  minWidthPercent = 70,
+  minHeightPx = 120,
+  maxHeightPx = 320
+}) => {
   const mathFieldRef = useRef(null);
   const containerRef = useRef(null);
   const panelWrapperRef = useRef(null);
@@ -317,7 +324,7 @@ var MathLiveEditor = ({ value, onChange }) => {
       const containerWidth = container.clientWidth;
       const sigmaWidth = sigmaButton?.offsetWidth ?? 32;
       const gap = 8;
-      const minEditorWidth = 220;
+      const minEditorWidth = Math.max(minWidthPx, Math.round(containerWidth * minWidthPercent / 100));
       const available = Math.max(minEditorWidth, containerWidth - sigmaWidth - gap);
       setMathFieldWidth(available);
     };
@@ -433,13 +440,15 @@ var MathLiveEditor = ({ value, onChange }) => {
               fontSize: "1.25rem",
               width: "fit-content",
               maxWidth: mathFieldWidth ? `${mathFieldWidth}px` : "100%",
-              minWidth: 220,
+              minWidth: minWidthPx,
               flex: "0 1 auto",
+              minHeight: `${minHeightPx}px`,
+              maxHeight: `${maxHeightPx}px`,
               border: "1px solid #ccc",
               borderRadius: 8,
               padding: "8px",
               overflowX: "auto",
-              overflowY: "hidden"
+              overflowY: "auto"
             }
           }
         ),
@@ -1082,9 +1091,14 @@ import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
 import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
 import FunctionsIcon from "@mui/icons-material/Functions";
 import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
+var MenuBar = ({
+  editor,
+  showQuestionButton = false,
+  onInsertEquation,
+  toolbarMode = "tutorFull"
+}) => {
   const [, forceRerender] = useState3(0);
-  const [anchorEl, setAnchorEl] = useState3(null);
+  const [insertTableAnchorEl, setInsertTableAnchorEl] = useState3(null);
   const [rows, setRows] = useState3(3);
   const [cols, setCols] = useState3(3);
   const e = editor;
@@ -1109,8 +1123,8 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
   if (!editor) return null;
   const FONT_SIZES = ["10px", "12px", "14px", "18px", "24px", "32px"];
   const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
-  const openPopover = Boolean(anchorEl);
-  const closePopover = () => setAnchorEl(null);
+  const openInsertPopover = Boolean(insertTableAnchorEl);
+  const closeInsertPopover = () => setInsertTableAnchorEl(null);
   const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ jsx3(Tooltip2, { title: label, arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
     IconButton2,
     {
@@ -1124,7 +1138,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
   ) }) }, label);
   const handleInsertTable = () => {
     e.chain().focus().insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true }).run();
-    closePopover();
+    closeInsertPopover();
   };
   const insertQuestionPlaceholder = () => {
     if (!hasQuestionExt) return;
@@ -1139,6 +1153,9 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
     editor.chain().focus().insertMath?.("")?.run?.() ?? editor.commands.insertMath?.("");
   };
   const equationDisabled = !onInsertEquation && !hasMathExt;
+  const isStudentSimple = toolbarMode === "studentSimple";
+  const showAdvancedFormatting = !isStudentSimple;
+  const isInTable = editor.isActive("table");
   return /* @__PURE__ */ jsxs3(Fragment2, { children: [
     /* @__PURE__ */ jsxs3(
       Stack,
@@ -1148,13 +1165,13 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
         sx: { borderBottom: "1px solid #ddd", p: "4px 8px", bgcolor: "#fafafa", flexWrap: "wrap" },
         children: [
           btn("Bold", /* @__PURE__ */ jsx3(FormatBoldIcon, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
-          btn("Italic", /* @__PURE__ */ jsx3(FormatItalicIcon, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
-          btn("Strike", /* @__PURE__ */ jsx3(FormatStrikethroughIcon, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
-          btn("Align Left", /* @__PURE__ */ jsx3(FormatAlignLeftIcon, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
-          btn("Align Center", /* @__PURE__ */ jsx3(FormatAlignCenterIcon, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
-          btn("Align Right", /* @__PURE__ */ jsx3(FormatAlignRightIcon, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
-          btn("Bullet", /* @__PURE__ */ jsx3(FormatListBulletedIcon, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
-          btn("Numbered", /* @__PURE__ */ jsx3(FormatListNumberedIcon, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
+          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ jsx3(FormatItalicIcon, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
+          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ jsx3(FormatStrikethroughIcon, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
+          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ jsx3(FormatAlignLeftIcon, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
+          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ jsx3(FormatAlignCenterIcon, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
+          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ jsx3(FormatAlignRightIcon, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
+          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ jsx3(FormatListBulletedIcon, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
+          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ jsx3(FormatListNumberedIcon, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
           /* @__PURE__ */ jsx3(Tooltip2, { title: "Equation", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
             IconButton2,
@@ -1189,19 +1206,29 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
           ),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
           showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ jsx3(QuizIcon, {}), insertQuestionPlaceholder),
-          btn("Insert table", /* @__PURE__ */ jsx3(TableChartIcon, {}), () => setAnchorEl(e.view.dom), e.isActive("table"), !e.can().insertTable()),
-          btn("Row \u2191", /* @__PURE__ */ jsx3(ArrowUpwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
-          btn("Row \u2193", /* @__PURE__ */ jsx3(ArrowDownwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
-          btn("Row \xD7", /* @__PURE__ */ jsx3(TableRowsIcon, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          btn("Col \u2190", /* @__PURE__ */ jsx3(ArrowBackIcon, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
-          btn("Col \u2192", /* @__PURE__ */ jsx3(ArrowForwardIcon, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
-          btn("Col \xD7", /* @__PURE__ */ jsx3(ViewColumnIcon, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          btn("Merge", /* @__PURE__ */ jsx3(CallMergeIcon, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
-          btn("Split", /* @__PURE__ */ jsx3(CallSplitIcon, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
-          /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
-          btn("Table \xD7", /* @__PURE__ */ jsx3(DeleteForeverIcon, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable()),
+          /* @__PURE__ */ jsx3(Tooltip2, { title: "Insert table", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+            IconButton2,
+            {
+              size: "small",
+              onClick: (event) => setInsertTableAnchorEl(event.currentTarget),
+              color: isInTable ? "primary" : "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ jsx3(TableChartIcon, {})
+            }
+          ) }) }),
+          isInTable && /* @__PURE__ */ jsxs3(Fragment2, { children: [
+            btn("Row \u2191", /* @__PURE__ */ jsx3(ArrowUpwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
+            btn("Row \u2193", /* @__PURE__ */ jsx3(ArrowDownwardIcon, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
+            btn("Row \xD7", /* @__PURE__ */ jsx3(TableRowsIcon, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
+            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+            btn("Col \u2190", /* @__PURE__ */ jsx3(ArrowBackIcon, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
+            btn("Col \u2192", /* @__PURE__ */ jsx3(ArrowForwardIcon, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
+            btn("Col \xD7", /* @__PURE__ */ jsx3(ViewColumnIcon, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
+            /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
+            btn("Merge", /* @__PURE__ */ jsx3(CallMergeIcon, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
+            btn("Split", /* @__PURE__ */ jsx3(CallSplitIcon, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
+            btn("Table \xD7", /* @__PURE__ */ jsx3(DeleteForeverIcon, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
+          ] }),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
           btn("Undo", /* @__PURE__ */ jsx3(UndoIcon, {}), () => e.chain().focus().undo().run()),
           btn("Redo", /* @__PURE__ */ jsx3(RedoIcon, {}), () => e.chain().focus().redo().run())
@@ -1211,9 +1238,9 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
     /* @__PURE__ */ jsx3(
       Popover,
       {
-        open: openPopover,
-        anchorEl,
-        onClose: closePopover,
+        open: openInsertPopover,
+        anchorEl: insertTableAnchorEl,
+        onClose: closeInsertPopover,
         anchorOrigin: { vertical: "bottom", horizontal: "left" },
         children: /* @__PURE__ */ jsxs3(Box2, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
           /* @__PURE__ */ jsx3(
@@ -1252,7 +1279,14 @@ var MenuBar_default = MenuBar;
 import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
 var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
 var migrateMathStrings2 = MathematicsPkg.migrateMathStrings;
-function ExplanationEditor({ value, onChange, placeholder }) {
+function ExplanationEditor({
+  value,
+  onChange,
+  placeholder,
+  toolbarMode = "tutorFull",
+  minHeightPx = 120,
+  maxHeightPx = 320
+}) {
   const [, forceUpdate] = useState4({});
   const editor = useEditor({
     extensions: [
@@ -1277,7 +1311,7 @@ function ExplanationEditor({ value, onChange, placeholder }) {
     content: value || "",
     editorProps: {
       attributes: {
-        style: "min-height:80px;max-height:200px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;",
+        style: `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
         placeholder: placeholder || "Enter your answer...",
         class: "tiptap-editor"
       }
@@ -1369,6 +1403,7 @@ function ExplanationEditor({ value, onChange, placeholder }) {
       MenuBar_default,
       {
         editor,
+        toolbarMode,
         onInsertEquation: () => insertInlineMath()
       }
     ),
@@ -4561,7 +4596,14 @@ import TextAlign2 from "@tiptap/extension-text-align";
 import Box4 from "@mui/material/Box";
 import "katex/dist/katex.min.css";
 import { Fragment as Fragment4, jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
-var TiptapEditor = ({ value, onChange, readOnly, questions = false, menuBarWrapperSx }) => {
+var TiptapEditor = ({
+  value,
+  onChange,
+  readOnly,
+  questions = false,
+  menuBarWrapperSx,
+  toolbarMode = "tutorFull"
+}) => {
   const editor = useEditor2({
     content: value || "<p></p>",
     editable: !readOnly,
@@ -4605,7 +4647,7 @@ var TiptapEditor = ({ value, onChange, readOnly, questions = false, menuBarWrapp
   }, [editor, value]);
   if (!editor) return null;
   return /* @__PURE__ */ jsxs5(Fragment4, { children: [
-    /* @__PURE__ */ jsx5(Box4, { sx: menuBarWrapperSx, children: /* @__PURE__ */ jsx5(MenuBar_default, { editor, showQuestionButton: false }) }),
+    /* @__PURE__ */ jsx5(Box4, { sx: menuBarWrapperSx, children: /* @__PURE__ */ jsx5(MenuBar_default, { editor, showQuestionButton: false, toolbarMode }) }),
     /* @__PURE__ */ jsx5(EditorContent2, { editor, className: "tiptap" })
   ] });
 };

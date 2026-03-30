@@ -8,9 +8,20 @@ import EquationInsertPanel from '../components/EquationInsertPanel.js';
 interface Props {
   value: string;
   onChange: (latex: string) => void;
+  minWidthPx?: number;
+  minWidthPercent?: number;
+  minHeightPx?: number;
+  maxHeightPx?: number;
 }
 
-const MathLiveEditor: React.FC<Props> = ({ value, onChange }) => {
+const MathLiveEditor: React.FC<Props> = ({
+  value,
+  onChange,
+  minWidthPx = 280,
+  minWidthPercent = 70,
+  minHeightPx = 120,
+  maxHeightPx = 320,
+}) => {
   const mathFieldRef = useRef<MathfieldElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const panelWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -43,7 +54,7 @@ const MathLiveEditor: React.FC<Props> = ({ value, onChange }) => {
       const containerWidth = container.clientWidth;
       const sigmaWidth = sigmaButton?.offsetWidth ?? 32;
       const gap = 8;
-      const minEditorWidth = 220;
+      const minEditorWidth = Math.max(minWidthPx, Math.round((containerWidth * minWidthPercent) / 100));
       const available = Math.max(minEditorWidth, containerWidth - sigmaWidth - gap);
       setMathFieldWidth(available);
     };
@@ -175,13 +186,15 @@ const MathLiveEditor: React.FC<Props> = ({ value, onChange }) => {
           fontSize: '1.25rem',
           width: 'fit-content',
           maxWidth: mathFieldWidth ? `${mathFieldWidth}px` : '100%',
-          minWidth: 220,
+          minWidth: minWidthPx,
           flex: '0 1 auto',
+          minHeight: `${minHeightPx}px`,
+          maxHeight: `${maxHeightPx}px`,
           border: '1px solid #ccc',
           borderRadius: 8,
           padding: '8px',
           overflowX: 'auto',
-          overflowY: 'hidden',
+          overflowY: 'auto',
         }}
       />
 

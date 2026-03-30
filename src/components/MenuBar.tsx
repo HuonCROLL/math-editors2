@@ -10,8 +10,6 @@ import FormatItalicIcon from '@mui/icons-material/FormatItalic'
 import FormatStrikethroughIcon from '@mui/icons-material/FormatStrikethrough'
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered'
-import FormatQuoteIcon from '@mui/icons-material/FormatQuote'
-import CodeIcon from '@mui/icons-material/Code'
 import UndoIcon from '@mui/icons-material/Undo'
 import RedoIcon from '@mui/icons-material/Redo'
 import TableChartIcon from '@mui/icons-material/TableChart'
@@ -38,12 +36,18 @@ interface Props {
   showQuestionButton?: boolean;
   /** When provided, Equation button inserts inline math (e.g. empty placeholder) */
   onInsertEquation?: () => void;
+  toolbarMode?: 'studentSimple' | 'tutorFull';
 }
 
-const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsertEquation }) => {
+const MenuBar: React.FC<Props> = ({
+  editor,
+  showQuestionButton = false,
+  onInsertEquation,
+  toolbarMode = 'tutorFull',
+}) => {
   // Move ALL hooks to the top, before any early returns
   const [, forceRerender] = useState(0)
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const [insertTableAnchorEl, setInsertTableAnchorEl] = useState<HTMLElement | null>(null)
   const [rows, setRows] = useState(3)
   const [cols, setCols] = useState(3)
   
@@ -75,8 +79,8 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
 
   const FONT_SIZES = ['10px', '12px', '14px', '18px', '24px', '32px'] as const
   const currentFontSize = (editor.getAttributes('textStyle').fontSize as string | null) ?? ''
-  const openPopover = Boolean(anchorEl)
-  const closePopover = () => setAnchorEl(null)
+  const openInsertPopover = Boolean(insertTableAnchorEl)
+  const closeInsertPopover = () => setInsertTableAnchorEl(null)
 
   // force rerender when selection/content changes so the dropdown reflects current selection
 
@@ -106,7 +110,7 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
     e.chain().focus()
       .insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true })
       .run()
-    closePopover()
+    closeInsertPopover()
   }
 
   const insertQuestionPlaceholder = () => {
@@ -127,6 +131,9 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
   }
 
   const equationDisabled = !onInsertEquation && !hasMathExt
+  const isStudentSimple = toolbarMode === 'studentSimple'
+  const showAdvancedFormatting = !isStudentSimple
+  const isInTable = editor.isActive('table')
 
   return (
     <>
@@ -137,17 +144,24 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
       >
         {/* marks */}
         {btn('Bold', <FormatBoldIcon />, () => e.chain().focus().toggleBold().run(), editor.isActive('bold'))}
-        {btn('Italic', <FormatItalicIcon />, () => e.chain().focus().toggleItalic().run(), editor.isActive('italic'))}
-        {btn('Strike', <FormatStrikethroughIcon />, () => e.chain().focus().toggleStrike().run(), editor.isActive('strike'))}
+        {showAdvancedFormatting &&
+          btn('Italic', <FormatItalicIcon />, () => e.chain().focus().toggleItalic().run(), editor.isActive('italic'))}
+        {showAdvancedFormatting &&
+          btn('Strike', <FormatStrikethroughIcon />, () => e.chain().focus().toggleStrike().run(), editor.isActive('strike'))}
 
         {/* Alignment */}
-        {btn('Align Left', <FormatAlignLeftIcon />, () => e.chain().focus().setTextAlign('left').run(), editor.isActive({ textAlign: 'left' }))}
-        {btn('Align Center', <FormatAlignCenterIcon />, () => e.chain().focus().setTextAlign('center').run(), editor.isActive({ textAlign: 'center' }))}
-        {btn('Align Right', <FormatAlignRightIcon />, () => e.chain().focus().setTextAlign('right').run(), editor.isActive({ textAlign: 'right' }))}
+        {showAdvancedFormatting &&
+          btn('Align Left', <FormatAlignLeftIcon />, () => e.chain().focus().setTextAlign('left').run(), editor.isActive({ textAlign: 'left' }))}
+        {showAdvancedFormatting &&
+          btn('Align Center', <FormatAlignCenterIcon />, () => e.chain().focus().setTextAlign('center').run(), editor.isActive({ textAlign: 'center' }))}
+        {showAdvancedFormatting &&
+          btn('Align Right', <FormatAlignRightIcon />, () => e.chain().focus().setTextAlign('right').run(), editor.isActive({ textAlign: 'right' }))}
 
         {/* lists */}
-        {btn('Bullet', <FormatListBulletedIcon />, () => e.chain().focus().toggleBulletList().run(), editor.isActive('bulletList'))}
-        {btn('Numbered', <FormatListNumberedIcon />, () => e.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'))}
+        {showAdvancedFormatting &&
+          btn('Bullet', <FormatListBulletedIcon />, () => e.chain().focus().toggleBulletList().run(), editor.isActive('bulletList'))}
+        {showAdvancedFormatting &&
+          btn('Numbered', <FormatListNumberedIcon />, () => e.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'))}
 
         {/* NEW: equation */}
         <Divider orientation="vertical" flexItem />
@@ -191,25 +205,37 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
           btn('Insert question', <QuizIcon />, insertQuestionPlaceholder)
         }
 
-        {/* table */}
-        {btn('Insert table', <TableChartIcon />, () => setAnchorEl(e.view.dom as HTMLElement), e.isActive('table'), !e.can().insertTable())}
-        {btn('Row ↑', <ArrowUpwardIcon fontSize="small" />, () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore())}
-        {btn('Row ↓', <ArrowDownwardIcon fontSize="small" />, () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter())}
-        {btn('Row ×', <TableRowsIcon fontSize="small" />, () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow())}
+        <Tooltip title="Insert table" arrow>
+          <span>
+            <IconButton
+              size="small"
+              onClick={(event) => setInsertTableAnchorEl(event.currentTarget)}
+              color={isInTable ? 'primary' : 'default'}
+              sx={{ borderRadius: 1 }}
+            >
+              <TableChartIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+        {isInTable && (
+          <>
+            {btn('Row ↑', <ArrowUpwardIcon fontSize="small" />, () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore())}
+            {btn('Row ↓', <ArrowDownwardIcon fontSize="small" />, () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter())}
+            {btn('Row ×', <TableRowsIcon fontSize="small" />, () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow())}
 
-        <Divider orientation="vertical" flexItem />
+            <Divider orientation="vertical" flexItem />
 
-        {btn('Col ←', <ArrowBackIcon fontSize="small" />, () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore())}
-        {btn('Col →', <ArrowForwardIcon fontSize="small" />, () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter())}
-        {btn('Col ×', <ViewColumnIcon fontSize="small" />, () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn())}
+            {btn('Col ←', <ArrowBackIcon fontSize="small" />, () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore())}
+            {btn('Col →', <ArrowForwardIcon fontSize="small" />, () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter())}
+            {btn('Col ×', <ViewColumnIcon fontSize="small" />, () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn())}
 
-        <Divider orientation="vertical" flexItem />
+            <Divider orientation="vertical" flexItem />
 
-        {btn('Merge', <CallMergeIcon fontSize="small" />, () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells())}
-        {btn('Split', <CallSplitIcon fontSize="small" />, () => e.chain().focus().splitCell().run(), false, !e.can().splitCell())}
-
-        <Divider orientation="vertical" flexItem />
-        {btn('Table ×', <DeleteForeverIcon />, () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())}
+            {btn('Merge', <CallMergeIcon fontSize="small" />, () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells())}
+            {btn('Split', <CallSplitIcon fontSize="small" />, () => e.chain().focus().splitCell().run(), false, !e.can().splitCell())}
+            {btn('Table ×', <DeleteForeverIcon />, () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())}
+          </>
+        )}
 
         <Divider orientation="vertical" flexItem />
 
@@ -219,9 +245,9 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
 
       {/* table-size popover */}
       <Popover
-        open={openPopover}
-        anchorEl={anchorEl}
-        onClose={closePopover}
+        open={openInsertPopover}
+        anchorEl={insertTableAnchorEl}
+        onClose={closeInsertPopover}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -248,6 +274,7 @@ const MenuBar: React.FC<Props> = ({ editor, showQuestionButton = false, onInsert
           </Button>
         </Box>
       </Popover>
+
     </>
   )
 }

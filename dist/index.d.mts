@@ -11,6 +11,10 @@ import * as _tiptap_extension_text_style from '@tiptap/extension-text-style';
 interface Props$4 {
     value: string;
     onChange: (latex: string) => void;
+    minWidthPx?: number;
+    minWidthPercent?: number;
+    minHeightPx?: number;
+    maxHeightPx?: number;
 }
 declare const MathLiveEditor: React.FC<Props$4>;
 
@@ -18,8 +22,11 @@ type Props$3 = {
     value: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    toolbarMode?: 'studentSimple' | 'tutorFull';
+    minHeightPx?: number;
+    maxHeightPx?: number;
 };
-declare function ExplanationEditor({ value, onChange, placeholder }: Props$3): react_jsx_runtime.JSX.Element;
+declare function ExplanationEditor({ value, onChange, placeholder, toolbarMode, minHeightPx, maxHeightPx, }: Props$3): react_jsx_runtime.JSX.Element;
 
 type QuestionOpts = boolean | {
     enabled: boolean;
@@ -33,6 +40,7 @@ interface Props$2 {
     /** Enable question placeholders + picker (pass subject/category to scope results) */
     questions?: QuestionOpts;
     menuBarWrapperSx?: any;
+    toolbarMode?: 'studentSimple' | 'tutorFull';
 }
 declare const TiptapEditor: React.FC<Props$2>;
 
@@ -41,6 +49,7 @@ interface Props$1 {
     showQuestionButton?: boolean;
     /** When provided, Equation button inserts inline math (e.g. empty placeholder) */
     onInsertEquation?: () => void;
+    toolbarMode?: 'studentSimple' | 'tutorFull';
 }
 declare const MenuBar: React.FC<Props$1>;
 

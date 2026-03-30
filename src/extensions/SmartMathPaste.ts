@@ -14,10 +14,9 @@ export const SmartMathPaste = Extension.create({
         props: {
           handlePaste(_view, event) {
             const plain = event.clipboardData?.getData('text/plain') ?? '';
-            if (!plain.includes('$$')) return false;
+            if (!plain.includes('\\[')) return false;
 
-            // robust multi-line $$...$$ capture
-            const pattern = /\$\$([\s\S]+?)\$\$/g;
+            const pattern = /\\\[([\s\S]+?)\\\]/g;
             if (!pattern.test(plain)) return false;
 
             event.preventDefault();

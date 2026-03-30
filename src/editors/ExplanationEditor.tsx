@@ -18,6 +18,9 @@ type Props = {
   value: string; // HTML or text string
   onChange: (html: string) => void;
   placeholder?: string;
+  toolbarMode?: 'studentSimple' | 'tutorFull';
+  minHeightPx?: number;
+  maxHeightPx?: number;
 };
 
 const PLACEHOLDER_LATEX = '\\text{Enter Equation here}';
@@ -25,7 +28,14 @@ const migrateMathStrings = (
   MathematicsPkg as unknown as { migrateMathStrings?: (editor: any, regex?: RegExp) => void }
 ).migrateMathStrings;
 
-export default function ExplanationEditor({ value, onChange, placeholder }: Props) {
+export default function ExplanationEditor({
+  value,
+  onChange,
+  placeholder,
+  toolbarMode = 'tutorFull',
+  minHeightPx = 120,
+  maxHeightPx = 320,
+}: Props) {
   const [, forceUpdate] = useState({});
 
   const editor = useEditor({
@@ -52,7 +62,7 @@ export default function ExplanationEditor({ value, onChange, placeholder }: Prop
     editorProps: {
       attributes: {
         style:
-          'min-height:80px;max-height:200px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;',
+          `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
         placeholder: placeholder || 'Enter your answer...',
         class: 'tiptap-editor',
       },
@@ -157,6 +167,7 @@ export default function ExplanationEditor({ value, onChange, placeholder }: Prop
       {editor && (
         <MenuBar
           editor={editor}
+          toolbarMode={toolbarMode}
           onInsertEquation={() => insertInlineMath()}
         />
       )}

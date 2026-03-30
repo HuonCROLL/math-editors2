@@ -19,23 +19,20 @@ export const InlineMathWithMathLive = InlineMath.extend({
   },
 
   addInputRules() {
-    const parentRules =
-      (this.parent?.() as { addInputRules?: () => InputRule[] } | undefined)?.addInputRules?.() ?? [];
-
-    const inlineDollarRule = new InputRule({
-      find: /\$(?!\$)([^$]+?)\$(?!\$)$/,
-      handler: ({ range, match, commands }) => {
-        const latex = (match[1] || '').trim();
-        if (!latex) return null;
-        commands.insertContentAt(range, {
-          type: this.name,
-          attrs: { latex },
-        });
-        return null;
-      },
-    });
-
-    return [inlineDollarRule, ...parentRules];
+    return [
+      new InputRule({
+        find: /\\\((.+?)\\\)$/,
+        handler: ({ range, match, commands }) => {
+          const latex = (match[1] || '').trim();
+          if (!latex) return null;
+          commands.insertContentAt(range, {
+            type: this.name,
+            attrs: { latex },
+          });
+          return null;
+        },
+      }),
+    ];
   },
 
   addNodeView() {

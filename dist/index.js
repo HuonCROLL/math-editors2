@@ -332,7 +332,14 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
 
 // src/editors/MathLiveEditor.tsx
 var import_jsx_runtime2 = require("react/jsx-runtime");
-var MathLiveEditor = ({ value, onChange }) => {
+var MathLiveEditor = ({
+  value,
+  onChange,
+  minWidthPx = 280,
+  minWidthPercent = 70,
+  minHeightPx = 120,
+  maxHeightPx = 320
+}) => {
   const mathFieldRef = (0, import_react2.useRef)(null);
   const containerRef = (0, import_react2.useRef)(null);
   const panelWrapperRef = (0, import_react2.useRef)(null);
@@ -362,7 +369,7 @@ var MathLiveEditor = ({ value, onChange }) => {
       const containerWidth = container.clientWidth;
       const sigmaWidth = sigmaButton?.offsetWidth ?? 32;
       const gap = 8;
-      const minEditorWidth = 220;
+      const minEditorWidth = Math.max(minWidthPx, Math.round(containerWidth * minWidthPercent / 100));
       const available = Math.max(minEditorWidth, containerWidth - sigmaWidth - gap);
       setMathFieldWidth(available);
     };
@@ -478,13 +485,15 @@ var MathLiveEditor = ({ value, onChange }) => {
               fontSize: "1.25rem",
               width: "fit-content",
               maxWidth: mathFieldWidth ? `${mathFieldWidth}px` : "100%",
-              minWidth: 220,
+              minWidth: minWidthPx,
               flex: "0 1 auto",
+              minHeight: `${minHeightPx}px`,
+              maxHeight: `${maxHeightPx}px`,
               border: "1px solid #ccc",
               borderRadius: 8,
               padding: "8px",
               overflowX: "auto",
-              overflowY: "hidden"
+              overflowY: "auto"
             }
           }
         ),
@@ -1118,9 +1127,14 @@ var import_FormatAlignCenter = __toESM(require("@mui/icons-material/FormatAlignC
 var import_FormatAlignRight = __toESM(require("@mui/icons-material/FormatAlignRight"));
 var import_Functions = __toESM(require("@mui/icons-material/Functions"));
 var import_jsx_runtime3 = require("react/jsx-runtime");
-var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
+var MenuBar = ({
+  editor,
+  showQuestionButton = false,
+  onInsertEquation,
+  toolbarMode = "tutorFull"
+}) => {
   const [, forceRerender] = (0, import_react3.useState)(0);
-  const [anchorEl, setAnchorEl] = (0, import_react3.useState)(null);
+  const [insertTableAnchorEl, setInsertTableAnchorEl] = (0, import_react3.useState)(null);
   const [rows, setRows] = (0, import_react3.useState)(3);
   const [cols, setCols] = (0, import_react3.useState)(3);
   const e = editor;
@@ -1145,8 +1159,8 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
   if (!editor) return null;
   const FONT_SIZES = ["10px", "12px", "14px", "18px", "24px", "32px"];
   const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
-  const openPopover = Boolean(anchorEl);
-  const closePopover = () => setAnchorEl(null);
+  const openInsertPopover = Boolean(insertTableAnchorEl);
+  const closeInsertPopover = () => setInsertTableAnchorEl(null);
   const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: label, arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
     import_material2.IconButton,
     {
@@ -1160,7 +1174,7 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
   ) }) }, label);
   const handleInsertTable = () => {
     e.chain().focus().insertTable({ rows: Math.max(1, rows), cols: Math.max(1, cols), withHeaderRow: true }).run();
-    closePopover();
+    closeInsertPopover();
   };
   const insertQuestionPlaceholder = () => {
     if (!hasQuestionExt) return;
@@ -1175,6 +1189,9 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
     editor.chain().focus().insertMath?.("")?.run?.() ?? editor.commands.insertMath?.("");
   };
   const equationDisabled = !onInsertEquation && !hasMathExt;
+  const isStudentSimple = toolbarMode === "studentSimple";
+  const showAdvancedFormatting = !isStudentSimple;
+  const isInTable = editor.isActive("table");
   return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
       import_material2.Stack,
@@ -1184,13 +1201,13 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
         sx: { borderBottom: "1px solid #ddd", p: "4px 8px", bgcolor: "#fafafa", flexWrap: "wrap" },
         children: [
           btn("Bold", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatBold.default, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
-          btn("Italic", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatItalic.default, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
-          btn("Strike", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatStrikethrough.default, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
-          btn("Align Left", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignLeft.default, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
-          btn("Align Center", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignCenter.default, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
-          btn("Align Right", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignRight.default, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
-          btn("Bullet", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListBulleted.default, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
-          btn("Numbered", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListNumbered.default, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
+          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatItalic.default, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
+          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatStrikethrough.default, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
+          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignLeft.default, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
+          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignCenter.default, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
+          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignRight.default, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
+          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListBulleted.default, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
+          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListNumbered.default, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: "Equation", arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
             import_material2.IconButton,
@@ -1225,19 +1242,29 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
           ),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
           showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Quiz.default, {}), insertQuestionPlaceholder),
-          btn("Insert table", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableChart.default, {}), () => setAnchorEl(e.view.dom), e.isActive("table"), !e.can().insertTable()),
-          btn("Row \u2191", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowUpward.default, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
-          btn("Row \u2193", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowDownward.default, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
-          btn("Row \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableRows.default, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          btn("Col \u2190", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowBack.default, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
-          btn("Col \u2192", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowForward.default, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
-          btn("Col \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ViewColumn.default, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          btn("Merge", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallMerge.default, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
-          btn("Split", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallSplit.default, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          btn("Table \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_DeleteForever.default, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable()),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: "Insert table", arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            import_material2.IconButton,
+            {
+              size: "small",
+              onClick: (event) => setInsertTableAnchorEl(event.currentTarget),
+              color: isInTable ? "primary" : "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableChart.default, {})
+            }
+          ) }) }),
+          isInTable && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+            btn("Row \u2191", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowUpward.default, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
+            btn("Row \u2193", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowDownward.default, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
+            btn("Row \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableRows.default, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
+            btn("Col \u2190", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowBack.default, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
+            btn("Col \u2192", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowForward.default, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
+            btn("Col \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ViewColumn.default, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
+            btn("Merge", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallMerge.default, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
+            btn("Split", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallSplit.default, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
+            btn("Table \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_DeleteForever.default, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
+          ] }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
           btn("Undo", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Undo.default, {}), () => e.chain().focus().undo().run()),
           btn("Redo", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Redo.default, {}), () => e.chain().focus().redo().run())
@@ -1247,9 +1274,9 @@ var MenuBar = ({ editor, showQuestionButton = false, onInsertEquation }) => {
     /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
       import_material2.Popover,
       {
-        open: openPopover,
-        anchorEl,
-        onClose: closePopover,
+        open: openInsertPopover,
+        anchorEl: insertTableAnchorEl,
+        onClose: closeInsertPopover,
         anchorOrigin: { vertical: "bottom", horizontal: "left" },
         children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_material2.Box, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
@@ -1288,7 +1315,14 @@ var MenuBar_default = MenuBar;
 var import_jsx_runtime4 = require("react/jsx-runtime");
 var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
 var migrateMathStrings2 = MathematicsPkg.migrateMathStrings;
-function ExplanationEditor({ value, onChange, placeholder }) {
+function ExplanationEditor({
+  value,
+  onChange,
+  placeholder,
+  toolbarMode = "tutorFull",
+  minHeightPx = 120,
+  maxHeightPx = 320
+}) {
   const [, forceUpdate] = (0, import_react4.useState)({});
   const editor = (0, import_react5.useEditor)({
     extensions: [
@@ -1313,7 +1347,7 @@ function ExplanationEditor({ value, onChange, placeholder }) {
     content: value || "",
     editorProps: {
       attributes: {
-        style: "min-height:80px;max-height:200px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;",
+        style: `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
         placeholder: placeholder || "Enter your answer...",
         class: "tiptap-editor"
       }
@@ -1405,6 +1439,7 @@ function ExplanationEditor({ value, onChange, placeholder }) {
       MenuBar_default,
       {
         editor,
+        toolbarMode,
         onInsertEquation: () => insertInlineMath()
       }
     ),
@@ -4597,7 +4632,14 @@ var import_extension_text_align2 = __toESM(require("@tiptap/extension-text-align
 var import_Box = __toESM(require("@mui/material/Box"));
 var import_katex_min2 = require("katex/dist/katex.min.css");
 var import_jsx_runtime5 = require("react/jsx-runtime");
-var TiptapEditor = ({ value, onChange, readOnly, questions = false, menuBarWrapperSx }) => {
+var TiptapEditor = ({
+  value,
+  onChange,
+  readOnly,
+  questions = false,
+  menuBarWrapperSx,
+  toolbarMode = "tutorFull"
+}) => {
   const editor = (0, import_react7.useEditor)({
     content: value || "<p></p>",
     editable: !readOnly,
@@ -4641,7 +4683,7 @@ var TiptapEditor = ({ value, onChange, readOnly, questions = false, menuBarWrapp
   }, [editor, value]);
   if (!editor) return null;
   return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_Box.default, { sx: menuBarWrapperSx, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MenuBar_default, { editor, showQuestionButton: false }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_Box.default, { sx: menuBarWrapperSx, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MenuBar_default, { editor, showQuestionButton: false, toolbarMode }) }),
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_react7.EditorContent, { editor, className: "tiptap" })
   ] });
 };
