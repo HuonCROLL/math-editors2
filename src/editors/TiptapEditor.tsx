@@ -14,7 +14,6 @@ import { SmartMathPaste } from '../extensions/SmartMathPaste';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyleFontSize } from '../extensions/TextStyleFontSize';
 import Box from '@mui/material/Box';
-
 import 'katex/dist/katex.min.css';
 import '../styles/tiptap.css';
 import MenuBar from '../components/MenuBar';
