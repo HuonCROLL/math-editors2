@@ -1,6 +1,5 @@
 import { Extension, InputRule } from '@tiptap/core';
 import { BlockMath } from '@tiptap/extension-mathematics';
-import { TextSelection } from 'prosemirror-state';
 import type { MathematicsOptions } from '@tiptap/extension-mathematics';
 import { InlineMathWithMathLive } from './InlineMathWithMathLive';
 
@@ -12,11 +11,12 @@ export const BlockMathWithBrackets = BlockMath.extend({
         handler: ({ state, range, match }) => {
           const latex = (match[1] || '').trim();
           if (!latex) return;
-          const node = this.type.create({ latex });
           const { tr } = state;
-          tr.replaceWith(range.from, range.to, node);
-          // Position cursor after the block node so it renders immediately.
-          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
+          // No manual setSelection: ProseMirror places the cursor naturally after
+          // the block node. Manually resolving position after replaceWith can produce
+          // an invalid offset when the document is restructured to fit the block node,
+          // causing the transaction to be silently rolled back.
         },
       }),
     ];

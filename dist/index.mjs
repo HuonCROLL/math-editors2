@@ -514,6 +514,9 @@ import * as MathematicsPkg from "@tiptap/extension-mathematics";
 import { Extension, InputRule as InputRule2 } from "@tiptap/core";
 import { BlockMath } from "@tiptap/extension-mathematics";
 
+// src/extensions/InlineMathWithMathLive.ts
+import { InputRule } from "@tiptap/core";
+
 // node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a, b, pos) {
   for (let i = 0; ; i++) {
@@ -3581,7 +3584,6 @@ var PluginKey = class {
 };
 
 // src/extensions/InlineMathWithMathLive.ts
-import { InputRule } from "@tiptap/core";
 import { InlineMath } from "@tiptap/extension-mathematics";
 import katex from "katex";
 import "mathlive";
@@ -3624,7 +3626,6 @@ var InlineMathWithMathLive = InlineMath.extend({
       let didInitialSelect = false;
       let suppressBlur = false;
       function renderKaTeX(latex) {
-        wrapper.innerHTML = "";
         const span = document.createElement("span");
         span.className = "tiptap-mathematics-render";
         if (placeholderLatex && latex === placeholderLatex) {
@@ -3639,6 +3640,7 @@ var InlineMathWithMathLive = InlineMath.extend({
           span.textContent = latex || "?";
           span.classList.add("inline-math-error");
         }
+        Array.from(wrapper.childNodes).forEach((child) => child.remove());
         wrapper.appendChild(span);
       }
       function enterEditMode() {
@@ -3684,8 +3686,11 @@ var InlineMathWithMathLive = InlineMath.extend({
             panelCleanup = null;
           }
           renderKaTeX(newLatex);
-          mf.remove();
           mathField = null;
+          const mfToRemove = mf;
+          setTimeout(() => {
+            if (mfToRemove.isConnected) mfToRemove.remove();
+          }, 0);
           setTimeout(() => {
             if (typeof posToUse !== "number") return;
             const node2 = editor.state.doc.nodeAt(posToUse);
@@ -4057,10 +4062,8 @@ var BlockMathWithBrackets = BlockMath.extend({
         handler: ({ state, range, match }) => {
           const latex = (match[1] || "").trim();
           if (!latex) return;
-          const node = this.type.create({ latex });
           const { tr } = state;
-          tr.replaceWith(range.from, range.to, node);
-          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
         }
       })
     ];

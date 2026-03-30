@@ -57,7 +57,6 @@ export const InlineMathWithMathLive = InlineMath.extend({
       let suppressBlur = false;
 
       function renderKaTeX(latex: string) {
-        wrapper.innerHTML = '';
         const span = document.createElement('span');
         span.className = 'tiptap-mathematics-render';
         if (placeholderLatex && latex === placeholderLatex) {
@@ -72,6 +71,10 @@ export const InlineMathWithMathLive = InlineMath.extend({
           span.textContent = latex || '?';
           span.classList.add('inline-math-error');
         }
+        // Remove existing children individually instead of innerHTML='' to avoid
+        // synchronously triggering MathLive's disconnectedCallback (which nulls
+        // internal refs) before MathLive's async ResizeObserver cleanup runs.
+        Array.from(wrapper.childNodes).forEach(child => child.remove());
         wrapper.appendChild(span);
       }
 
@@ -122,10 +125,14 @@ export const InlineMathWithMathLive = InlineMath.extend({
             panelCleanup = null;
           }
 
-          // Restore KaTeX display immediately so DOM is valid before any async work
+          // Restore KaTeX display immediately so DOM is valid before any async work.
+          // Keep mf in the DOM momentarily so MathLive's async ResizeObserver cleanup
+          // can call unobserve() on a valid element before disconnectedCallback nulls
+          // its internal refs.
           renderKaTeX(newLatex);
-          mf.remove();
           mathField = null;
+          const mfToRemove = mf;
+          setTimeout(() => { if (mfToRemove.isConnected) mfToRemove.remove(); }, 0);
 
           // Defer doc update to next tick - avoids ProseMirror reconciling during blur
           setTimeout(() => {

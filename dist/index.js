@@ -559,6 +559,9 @@ var MathematicsPkg = __toESM(require("@tiptap/extension-mathematics"));
 var import_core2 = require("@tiptap/core");
 var import_extension_mathematics2 = require("@tiptap/extension-mathematics");
 
+// src/extensions/InlineMathWithMathLive.ts
+var import_core = require("@tiptap/core");
+
 // node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a, b, pos) {
   for (let i = 0; ; i++) {
@@ -3626,7 +3629,6 @@ var PluginKey = class {
 };
 
 // src/extensions/InlineMathWithMathLive.ts
-var import_core = require("@tiptap/core");
 var import_extension_mathematics = require("@tiptap/extension-mathematics");
 var import_katex = __toESM(require("katex"));
 var import_mathlive2 = require("mathlive");
@@ -3669,7 +3671,6 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
       let didInitialSelect = false;
       let suppressBlur = false;
       function renderKaTeX(latex) {
-        wrapper.innerHTML = "";
         const span = document.createElement("span");
         span.className = "tiptap-mathematics-render";
         if (placeholderLatex && latex === placeholderLatex) {
@@ -3684,6 +3685,7 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           span.textContent = latex || "?";
           span.classList.add("inline-math-error");
         }
+        Array.from(wrapper.childNodes).forEach((child) => child.remove());
         wrapper.appendChild(span);
       }
       function enterEditMode() {
@@ -3729,8 +3731,11 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
             panelCleanup = null;
           }
           renderKaTeX(newLatex);
-          mf.remove();
           mathField = null;
+          const mfToRemove = mf;
+          setTimeout(() => {
+            if (mfToRemove.isConnected) mfToRemove.remove();
+          }, 0);
           setTimeout(() => {
             if (typeof posToUse !== "number") return;
             const node2 = editor.state.doc.nodeAt(posToUse);
@@ -4102,10 +4107,8 @@ var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
         handler: ({ state, range, match }) => {
           const latex = (match[1] || "").trim();
           if (!latex) return;
-          const node = this.type.create({ latex });
           const { tr } = state;
-          tr.replaceWith(range.from, range.to, node);
-          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
         }
       })
     ];
