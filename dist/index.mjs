@@ -511,7 +511,7 @@ import StarterKit from "@tiptap/starter-kit";
 import * as MathematicsPkg from "@tiptap/extension-mathematics";
 
 // src/extensions/MathematicsWithInlineEdit.ts
-import { Extension } from "@tiptap/core";
+import { Extension, InputRule as InputRule2 } from "@tiptap/core";
 import { BlockMath } from "@tiptap/extension-mathematics";
 
 // src/extensions/InlineMathWithMathLive.ts
@@ -527,20 +527,20 @@ var InlineMathWithMathLive = InlineMath.extend({
     };
   },
   addInputRules() {
-    const parentRules = this.parent?.()?.addInputRules?.() ?? [];
-    const inlineDollarRule = new InputRule({
-      find: /\$(?!\$)([^$]+?)\$(?!\$)$/,
-      handler: ({ range, match, commands }) => {
-        const latex = (match[1] || "").trim();
-        if (!latex) return null;
-        commands.insertContentAt(range, {
-          type: this.name,
-          attrs: { latex }
-        });
-        return null;
-      }
-    });
-    return [inlineDollarRule, ...parentRules];
+    return [
+      new InputRule({
+        find: /\\\((.+?)\\\)$/,
+        handler: ({ range, match, commands }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return null;
+          commands.insertContentAt(range, {
+            type: this.name,
+            attrs: { latex }
+          });
+          return null;
+        }
+      })
+    ];
   },
   addNodeView() {
     const { katexOptions } = this.options;
@@ -984,6 +984,21 @@ var InlineMathWithMathLive = InlineMath.extend({
 });
 
 // src/extensions/MathematicsWithInlineEdit.ts
+var BlockMathWithBrackets = BlockMath.extend({
+  addInputRules() {
+    return [
+      new InputRule2({
+        find: /\\\[(.+?)\\\]$/,
+        handler: ({ state, range, match }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return;
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
+        }
+      })
+    ];
+  }
+});
 var MathematicsWithInlineEdit = Extension.create({
   name: "MathematicsWithInlineEdit",
   addOptions() {
@@ -996,7 +1011,7 @@ var MathematicsWithInlineEdit = Extension.create({
   },
   addExtensions() {
     return [
-      BlockMath.configure({
+      BlockMathWithBrackets.configure({
         ...this.options.blockOptions,
         katexOptions: this.options.katexOptions
       }),
@@ -4547,8 +4562,8 @@ var SmartMathPaste = Extension3.create({
         props: {
           handlePaste(_view, event) {
             const plain = event.clipboardData?.getData("text/plain") ?? "";
-            if (!plain.includes("$$")) return false;
-            const pattern = /\$\$([\s\S]+?)\$\$/g;
+            if (!plain.includes("\\[")) return false;
+            const pattern = /\\\[([\s\S]+?)\\\]/g;
             if (!pattern.test(plain)) return false;
             event.preventDefault();
             const mathNodeName = editor.schema.nodes.math ? "math" : editor.schema.nodes.mathBlock ? "mathBlock" : null;

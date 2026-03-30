@@ -572,20 +572,20 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
     };
   },
   addInputRules() {
-    const parentRules = this.parent?.()?.addInputRules?.() ?? [];
-    const inlineDollarRule = new import_core.InputRule({
-      find: /\$(?!\$)([^$]+?)\$(?!\$)$/,
-      handler: ({ range, match, commands }) => {
-        const latex = (match[1] || "").trim();
-        if (!latex) return null;
-        commands.insertContentAt(range, {
-          type: this.name,
-          attrs: { latex }
-        });
-        return null;
-      }
-    });
-    return [inlineDollarRule, ...parentRules];
+    return [
+      new import_core.InputRule({
+        find: /\\\((.+?)\\\)$/,
+        handler: ({ range, match, commands }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return null;
+          commands.insertContentAt(range, {
+            type: this.name,
+            attrs: { latex }
+          });
+          return null;
+        }
+      })
+    ];
   },
   addNodeView() {
     const { katexOptions } = this.options;
@@ -1029,6 +1029,21 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
 });
 
 // src/extensions/MathematicsWithInlineEdit.ts
+var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
+  addInputRules() {
+    return [
+      new import_core2.InputRule({
+        find: /\\\[(.+?)\\\]$/,
+        handler: ({ state, range, match }) => {
+          const latex = (match[1] || "").trim();
+          if (!latex) return;
+          const { tr } = state;
+          tr.replaceWith(range.from, range.to, this.type.create({ latex }));
+        }
+      })
+    ];
+  }
+});
 var MathematicsWithInlineEdit = import_core2.Extension.create({
   name: "MathematicsWithInlineEdit",
   addOptions() {
@@ -1041,7 +1056,7 @@ var MathematicsWithInlineEdit = import_core2.Extension.create({
   },
   addExtensions() {
     return [
-      import_extension_mathematics2.BlockMath.configure({
+      BlockMathWithBrackets.configure({
         ...this.options.blockOptions,
         katexOptions: this.options.katexOptions
       }),
@@ -4583,8 +4598,8 @@ var SmartMathPaste = import_core4.Extension.create({
         props: {
           handlePaste(_view, event) {
             const plain = event.clipboardData?.getData("text/plain") ?? "";
-            if (!plain.includes("$$")) return false;
-            const pattern = /\$\$([\s\S]+?)\$\$/g;
+            if (!plain.includes("\\[")) return false;
+            const pattern = /\\\[([\s\S]+?)\\\]/g;
             if (!pattern.test(plain)) return false;
             event.preventDefault();
             const mathNodeName = editor.schema.nodes.math ? "math" : editor.schema.nodes.mathBlock ? "mathBlock" : null;

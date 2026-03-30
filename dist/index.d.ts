@@ -69,7 +69,7 @@ declare const InlineMathWithMathLive: _tiptap_core.Node<_tiptap_extension_mathem
 /**
  * Mathematics extension that uses InlineMathWithMathLive for inline math,
  * enabling click-to-edit with MathLive (no popover, no raw LaTeX visible).
- * Block math uses the default implementation.
+ * Block math uses \[...\] delimiters.
  */
 declare const MathematicsWithInlineEdit: Extension<MathematicsOptions, any>;
 
