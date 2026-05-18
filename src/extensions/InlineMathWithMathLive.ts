@@ -212,7 +212,7 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           { label: 'xⁿ', latex: 'x^{a}' },
           { label: '÷', latex: '\\div' },
           { label: '√', latex: '\\sqrt{}' },
-          { label: '□⁄□', latex: '\\frac{}{}' },
+          { label: 'a⁄b', latex: '\\frac{a}{b}' },
           { label: 'π', latex: '\\pi' },
           { label: 'θ', latex: '\\theta' },
           { label: 'Δ', latex: '\\Delta' },
