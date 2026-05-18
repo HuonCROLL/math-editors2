@@ -1,8 +1,6 @@
-import { InputRule } from '@tiptap/core';
-import { TextSelection } from 'prosemirror-state';
-import { InlineMath } from '@tiptap/extension-mathematics';
 import katex from 'katex';
 import type { KatexOptions } from 'katex';
+import { InlineMathWithParens } from './InlineMathWithParens';
 
 // Ensure MathLive web component is registered
 import 'mathlive';
@@ -11,30 +9,12 @@ import 'mathlive';
  * InlineMath extension with inline MathLive editing on click.
  * Renders with KaTeX when not focused; swaps to MathLive when clicked for editing.
  */
-export const InlineMathWithMathLive = InlineMath.extend({
+export const InlineMathWithMathLive = InlineMathWithParens.extend({
   addOptions() {
     return {
       ...this.parent?.(),
       placeholderLatex: undefined as string | undefined,
     };
-  },
-
-  addInputRules() {
-    return [
-      new InputRule({
-        find: /\\\((.+?)\\\)$/,
-        handler: ({ state, range, match }) => {
-          const latex = (match[1] || '').trim();
-          if (!latex) return null;
-          const node = this.type.create({ latex });
-          const { tr } = state;
-          tr.replaceWith(range.from, range.to, node);
-          // Position cursor after the node so it renders as KaTeX immediately
-          // rather than entering MathLive edit mode.
-          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
-        },
-      }),
-    ];
   },
 
   addNodeView() {
@@ -55,6 +35,7 @@ export const InlineMathWithMathLive = InlineMath.extend({
       let panelCleanup: (() => void) | null = null;
       let didInitialSelect = false;
       let suppressBlur = false;
+      let pendingFinishTimeout: number | null = null;
 
       function renderKaTeX(latex: string) {
         const span = document.createElement('span');
@@ -125,28 +106,32 @@ export const InlineMathWithMathLive = InlineMath.extend({
             panelCleanup = null;
           }
 
-          // Restore KaTeX display immediately so DOM is valid before any async work.
-          // Keep mf in the DOM momentarily so MathLive's async ResizeObserver cleanup
-          // can call unobserve() on a valid element before disconnectedCallback nulls
-          // its internal refs.
-          renderKaTeX(newLatex);
-          mathField = null;
-          const mfToRemove = mf;
-          setTimeout(() => { if (mfToRemove.isConnected) mfToRemove.remove(); }, 0);
+          // MathLive performs ResizeObserver cleanup during/just after blur. Keep the
+          // math-field mounted until that cycle has finished, then let ProseMirror's
+          // node update replace it with the KaTeX render.
+          pendingFinishTimeout = window.setTimeout(() => {
+            pendingFinishTimeout = null;
+            mathField = null;
 
-          // Defer doc update to next tick - avoids ProseMirror reconciling during blur
-          setTimeout(() => {
             if (typeof posToUse !== 'number') return;
-            const node = editor.state.doc.nodeAt(posToUse);
-            if (!node || node.type.name !== 'inlineMath') return;
+            const currentNode = editor.state.doc.nodeAt(posToUse);
+            if (!currentNode || currentNode.type.name !== 'inlineMath') {
+              renderKaTeX(newLatex);
+              return;
+            }
 
             const from = posToUse;
-            const to = from + node.nodeSize;
-            const tr = editor.state.tr.replaceWith(from, to, node.type.create({ latex: newLatex }));
+            const to = from + currentNode.nodeSize;
+            const tr = editor.state.tr.replaceWith(from, to, currentNode.type.create({ latex: newLatex }));
             editor.view.dispatch(tr);
             editor.commands.focus();
-          }, 10);
+          }, 50);
         };
+
+        // Keep pointer events on the math-field from bubbling to the wrapper handler below.
+        mf.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+        });
 
         mf.addEventListener('blur', (e: FocusEvent) => {
           if (suppressBlur) return;
@@ -185,11 +170,11 @@ export const InlineMathWithMathLive = InlineMath.extend({
         panel.style.cssText = `
           position: fixed;
           z-index: 9999;
-          min-width: 280px;
+          min-width: 300px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          padding: 6px;
+          gap: 8px;
+          padding: 8px;
           background: #fff;
           border-radius: 6px;
           border: 1px solid #e0e0e0;
@@ -208,7 +193,7 @@ export const InlineMathWithMathLive = InlineMath.extend({
         };
 
         const btnStyle = `
-          min-width: 44px;
+          min-width: 40px;
           height: 28px;
           padding: 0 8px;
           font-size: 13px;
@@ -220,29 +205,22 @@ export const InlineMathWithMathLive = InlineMath.extend({
         `;
 
         const snippets: { label: string; latex: string }[] = [
+          { label: '+', latex: '+' },
+          { label: '−', latex: '-' },
           { label: '×', latex: '\\times' },
           { label: '÷', latex: '\\div' },
-          { label: 'a/b', latex: '\\frac{a}{b}' },
-          { label: '≤', latex: '\\leq' },
-          { label: '≥', latex: '\\geq' },
           { label: '√', latex: '\\sqrt{}' },
-          { label: '∞', latex: '\\infty' },
+          { label: 'a/b', latex: '\\frac{a}{b}' },
+          { label: 'π', latex: '\\pi' },
+          { label: 'θ', latex: '\\theta' },
           { label: 'Δ', latex: '\\Delta' },
           { label: 'Σ', latex: '\\Sigma' },
-          { label: '>', latex: '>' },
-          { label: '<', latex: '<' },
-          { label: '≈', latex: '\\approx' },
-          { label: '⊥', latex: '\\perp' },
-          { label: '∥', latex: '\\parallel' },
-          { label: '△', latex: '\\triangle' },
-          { label: '∠', latex: '\\angle' },
-          { label: '∪', latex: '\\cup' },
-          { label: '∩', latex: '\\cap' },
-          { label: '→', latex: '\\vec{v}' },
+          { label: '≤', latex: '\\leq' },
+          { label: '≥', latex: '\\geq' },
         ];
 
         const snippetsGrid = document.createElement('div');
-        snippetsGrid.style.cssText = 'display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px;';
+        snippetsGrid.style.cssText = 'display: grid; grid-template-columns: repeat(6, minmax(40px, 1fr)); gap: 4px;';
         snippets.forEach(({ label, latex }) => {
           const btn = document.createElement('button');
           btn.textContent = label;
@@ -286,52 +264,39 @@ export const InlineMathWithMathLive = InlineMath.extend({
           { label: 'ℝ', latex: '\\mathbb{R}' }, { label: 'ℕ', latex: '\\mathbb{N}' },
           { label: 'ℤ', latex: '\\mathbb{Z}' },
         ];
-        const SYMBOLS: { label: string; latex: string }[] = [
-          { label: '>', latex: '>' }, { label: '<', latex: '<' },
-          { label: '≈', latex: '\\approx' }, { label: '⊥', latex: '\\perp' },
-          { label: '∥', latex: '\\parallel' }, { label: '△', latex: '\\triangle' },
-          { label: '∠', latex: '\\angle' }, { label: '∪', latex: '\\cup' },
-          { label: '∩', latex: '\\cap' },
-        ];
-        const ACCENTS: { label: string; latex: string }[] = [
-          { label: 'x̂', latex: '\\hat{}' }, { label: 'x̄', latex: '\\bar{}' },
-          { label: 'ẋ', latex: '\\dot{}' }, { label: 'ẍ', latex: '\\ddot{}' },
-          { label: 'x̃', latex: '\\tilde{}' }, { label: 'x⃗', latex: '\\vec{}' },
-          { label: 'overline', latex: '\\overline{}' }, { label: 'underline', latex: '\\underline{}' },
-          { label: '^{}', latex: '^{}' }, { label: '_{}', latex: '_{}' },
-          { label: 'x²', latex: '^{2}' }, { label: 'x₁', latex: '_{1}' },
-        ];
-        const MATRICES: { label: string; latex: string }[] = [
-          { label: '( )', latex: '\\begin{pmatrix} \\\\ \\end{pmatrix}' },
-          { label: '[ ]', latex: '\\begin{bmatrix} \\\\ \\end{bmatrix}' },
-          { label: '{ }', latex: '\\begin{Bmatrix} \\\\ \\end{Bmatrix}' },
-          { label: '| |', latex: '\\begin{vmatrix} \\\\ \\end{vmatrix}' },
-          { label: '2×2', latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
-          { label: '⟨x⟩', latex: '\\langle \\rangle' },
-          { label: '→', latex: '\\vec{v}' }, { label: '⟶', latex: '\\overrightarrow{}' },
-          { label: '|x|', latex: '|\\mathbf{x}|' },
+        const CHEMISTRY: { label: string; latex: string }[] = [
+          { label: 'H₂O', latex: '\\mathrm{H_2O}' }, { label: 'CO₂', latex: '\\mathrm{CO_2}' },
+          { label: 'NaCl', latex: '\\mathrm{NaCl}' }, { label: 'O₂', latex: '\\mathrm{O_2}' },
+          { label: '→', latex: '\\rightarrow' }, { label: '⇌', latex: '\\rightleftharpoons' },
+          { label: 'ΔH', latex: '\\Delta H' }, { label: 'mol', latex: '\\mathrm{mol}' },
+          { label: 'aq', latex: '\\mathrm{(aq)}' }, { label: 's', latex: '\\mathrm{(s)}' },
+          { label: 'l', latex: '\\mathrm{(l)}' }, { label: 'g', latex: '\\mathrm{(g)}' },
         ];
 
         const CATEGORIES: { label: string; snippets: { label: string; latex: string }[] }[] = [
           { label: 'Trig', snippets: TRIGONOMETRY },
-          { label: 'Calculus', snippets: CALCULUS },
+          { label: 'Calc', snippets: CALCULUS },
           { label: 'Greek', snippets: GREEK },
-          { label: 'Symbols', snippets: SYMBOLS },
-          { label: 'Accents', snippets: ACCENTS },
-          { label: 'Matrices', snippets: MATRICES },
+          { label: 'Chem', snippets: CHEMISTRY },
         ];
 
         const expandable = document.createElement('div');
-        expandable.style.cssText = 'display: none; flex-direction: column; gap: 4px;';
+        expandable.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
         const tabBar = document.createElement('div');
-        tabBar.style.cssText = 'display: flex; gap: 2px; flex-wrap: wrap;';
+        tabBar.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;';
         const tabContent = document.createElement('div');
-        tabContent.style.cssText = 'display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;';
+        tabContent.style.cssText = 'display: none; grid-template-columns: repeat(6, minmax(40px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;';
+        let activeCategoryIndex: number | null = null;
 
-        const renderTabContent = (index: number) => {
+        const renderTabContent = (index: number | null) => {
           tabContent.innerHTML = '';
+          if (index === null) {
+            tabContent.style.display = 'none';
+            return;
+          }
           const cat = CATEGORIES[index];
           if (!cat) return;
+          tabContent.style.display = 'grid';
           cat.snippets.forEach(({ label, latex }) => {
             const b = document.createElement('button');
             b.textContent = label;
@@ -347,52 +312,34 @@ export const InlineMathWithMathLive = InlineMath.extend({
         };
 
         CATEGORIES.forEach((cat, i) => {
+          if (i > 0) {
+            const separator = document.createElement('span');
+            separator.textContent = '|';
+            separator.style.cssText = 'color: #999; font-size: 12px;';
+            tabBar.appendChild(separator);
+          }
           const tabBtn = document.createElement('button');
           tabBtn.textContent = cat.label;
           tabBtn.type = 'button';
-          tabBtn.style.cssText = 'font-size: 11px; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; background: #e8e8e8; cursor: pointer;';
+          tabBtn.style.cssText = 'font-size: 12px; padding: 2px 4px; border: 0; border-radius: 3px; background: transparent; color: #444; cursor: pointer;';
           tabBtn.addEventListener('mousedown', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            CATEGORIES.forEach((_, j) => {
-              (tabBar.children[j] as HTMLElement).style.background = j === i ? '#1976d2' : '#e8e8e8';
-              (tabBar.children[j] as HTMLElement).style.color = j === i ? '#fff' : 'inherit';
+            activeCategoryIndex = activeCategoryIndex === i ? null : i;
+            Array.from(tabBar.querySelectorAll('button')).forEach((button, j) => {
+              (button as HTMLElement).style.background = j === activeCategoryIndex ? 'rgba(25, 118, 210, 0.10)' : 'transparent';
+              (button as HTMLElement).style.color = j === activeCategoryIndex ? '#1976d2' : '#444';
             });
-            renderTabContent(i);
+            renderTabContent(activeCategoryIndex);
+            positionPanel();
           });
           tabBar.appendChild(tabBtn);
         });
-        renderTabContent(0);
-        (tabBar.children[0] as HTMLElement).style.background = '#1976d2';
-        (tabBar.children[0] as HTMLElement).style.color = '#fff';
+        renderTabContent(null);
 
         expandable.appendChild(tabBar);
         expandable.appendChild(tabContent);
 
-        const plusBar = document.createElement('button');
-        plusBar.textContent = '+';
-        plusBar.type = 'button';
-        plusBar.title = 'More symbols';
-        plusBar.style.cssText = `
-          width: 100%;
-          height: 24px;
-          font-size: 16px;
-          font-weight: bold;
-          border: 1px dashed #999;
-          border-radius: 4px;
-          background: #eee;
-          cursor: pointer;
-          color: #666;
-        `;
-        plusBar.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const shown = expandable.style.display === 'flex';
-          expandable.style.display = shown ? 'none' : 'flex';
-          plusBar.textContent = shown ? '+' : '−';
-        });
-
-        panel.appendChild(plusBar);
         panel.appendChild(expandable);
 
         const editRow = document.createElement('div');
@@ -449,25 +396,27 @@ export const InlineMathWithMathLive = InlineMath.extend({
         };
         mathField = mf;
         (mf as any).focus();
-        // Select all so user can immediately type to replace (especially placeholder)
+        // Select all only for placeholder text so the user can type to replace it.
         if (!didInitialSelect) {
           didInitialSelect = true;
-          requestAnimationFrame(() => {
-            try { (mf as any).executeCommand?.('selectAll'); } catch (_) {}
-          });
+          if (placeholderLatex && latex === placeholderLatex) {
+            requestAnimationFrame(() => {
+              try { (mf as any).executeCommand?.('selectAll'); } catch (_) {}
+            });
+          }
         }
       }
 
-      function handleClick(e: MouseEvent) {
+      function handleWrapperPointerDown(e: PointerEvent) {
         if (!editor.isEditable) return;
-        e.preventDefault();
-        e.stopPropagation();
+        if ((e.target as HTMLElement).closest('math-field')) return;
         if (!isEditing) {
+          e.preventDefault();
           enterEditMode();
         }
       }
 
-      wrapper.addEventListener('click', handleClick);
+      wrapper.addEventListener('pointerdown', handleWrapperPointerDown);
       renderKaTeX(node.attrs.latex);
 
       return {
@@ -486,7 +435,10 @@ export const InlineMathWithMathLive = InlineMath.extend({
           return true;
         },
         destroy() {
-          wrapper.removeEventListener('click', handleClick);
+          if (pendingFinishTimeout !== null) {
+            window.clearTimeout(pendingFinishTimeout);
+          }
+          wrapper.removeEventListener('pointerdown', handleWrapperPointerDown);
           mathField?.removeEventListener('blur', () => {});
         },
       };

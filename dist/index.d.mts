@@ -7,6 +7,7 @@ import { Extension } from '@tiptap/core';
 import * as _tiptap_extension_mathematics from '@tiptap/extension-mathematics';
 import { MathematicsOptions } from '@tiptap/extension-mathematics';
 import * as _tiptap_extension_text_style from '@tiptap/extension-text-style';
+import { EditorView } from 'prosemirror-view';
 
 interface Props$4 {
     value: string;
@@ -67,6 +68,12 @@ declare function EquationInsertPanel({ mathFieldRef, open, onClose }: Props): re
 declare const InlineMathWithMathLive: _tiptap_core.Node<_tiptap_extension_mathematics.InlineMathOptions, any>;
 
 /**
+ * Inline math with only \( ... \) input rules.
+ * This intentionally avoids the upstream dollar-delimiter rules.
+ */
+declare const InlineMathWithParens: _tiptap_core.Node<_tiptap_extension_mathematics.InlineMathOptions, any>;
+
+/**
  * Mathematics extension that uses InlineMathWithMathLive for inline math,
  * enabling click-to-edit with MathLive (no popover, no raw LaTeX visible).
  * Block math uses \[...\] delimiters.
@@ -95,4 +102,12 @@ declare module '@tiptap/core' {
 }
 declare const TextStyleFontSize: _tiptap_core.Mark<_tiptap_extension_text_style.TextStyleOptions, any>;
 
-export { EquationInsertPanel, ExplanationEditor, InlineMathWithMathLive, MathLiveEditor, MathematicsWithInlineEdit, MenuBar, OverleafPaste, SmartMathPaste, TextStyleFontSize, TiptapEditor };
+/**
+ * Consistent Backspace behavior around atomic math nodes:
+ * - First Backspace after inline math selects the node (visible outline).
+ * - Second Backspace deletes the selected math node.
+ * - Backspace in an empty paragraph after block math selects the block node.
+ */
+declare function handleMathBackspaceKeyDown(view: EditorView, event: KeyboardEvent): boolean;
+
+export { EquationInsertPanel, ExplanationEditor, InlineMathWithMathLive, InlineMathWithParens, MathLiveEditor, MathematicsWithInlineEdit, MenuBar, OverleafPaste, SmartMathPaste, TextStyleFontSize, TiptapEditor, handleMathBackspaceKeyDown };

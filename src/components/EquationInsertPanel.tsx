@@ -4,25 +4,18 @@ import type { MathfieldElement } from 'mathlive';
 type Snippet = { label: string; latex: string };
 
 const SNIPPETS: Snippet[] = [
+  { label: '+', latex: '+' },
+  { label: '−', latex: '-' },
   { label: '×', latex: '\\times' },
   { label: '÷', latex: '\\div' },
-  { label: 'a/b', latex: '\\frac{a}{b}' },
-  { label: '≤', latex: '\\leq' },
-  { label: '≥', latex: '\\geq' },
   { label: '√', latex: '\\sqrt{}' },
-  { label: '∞', latex: '\\infty' },
+  { label: 'a/b', latex: '\\frac{a}{b}' },
+  { label: 'π', latex: '\\pi' },
+  { label: 'θ', latex: '\\theta' },
   { label: 'Δ', latex: '\\Delta' },
   { label: 'Σ', latex: '\\Sigma' },
-  { label: '>', latex: '>' },
-  { label: '<', latex: '<' },
-  { label: '≈', latex: '\\approx' },
-  { label: '⊥', latex: '\\perp' },
-  { label: '∥', latex: '\\parallel' },
-  { label: '△', latex: '\\triangle' },
-  { label: '∠', latex: '\\angle' },
-  { label: '∪', latex: '\\cup' },
-  { label: '∩', latex: '\\cap' },
-  { label: '→', latex: '\\vec{v}' },
+  { label: '≤', latex: '\\leq' },
+  { label: '≥', latex: '\\geq' },
 ];
 
 const TRIGONOMETRY: Snippet[] = [
@@ -56,41 +49,20 @@ const GREEK: Snippet[] = [
   { label: 'ℤ', latex: '\\mathbb{Z}' },
 ];
 
-const SYMBOLS: Snippet[] = [
-  { label: '>', latex: '>' }, { label: '<', latex: '<' },
-  { label: '≈', latex: '\\approx' }, { label: '⊥', latex: '\\perp' },
-  { label: '∥', latex: '\\parallel' }, { label: '△', latex: '\\triangle' },
-  { label: '∠', latex: '\\angle' }, { label: '∪', latex: '\\cup' },
-  { label: '∩', latex: '\\cap' },
-];
-
-const ACCENTS: Snippet[] = [
-  { label: 'x̂', latex: '\\hat{}' }, { label: 'x̄', latex: '\\bar{}' },
-  { label: 'ẋ', latex: '\\dot{}' }, { label: 'ẍ', latex: '\\ddot{}' },
-  { label: 'x̃', latex: '\\tilde{}' }, { label: 'x⃗', latex: '\\vec{}' },
-  { label: 'overline', latex: '\\overline{}' }, { label: 'underline', latex: '\\underline{}' },
-  { label: '^{}', latex: '^{}' }, { label: '_{}', latex: '_{}' },
-  { label: 'x²', latex: '^{2}' }, { label: 'x₁', latex: '_{1}' },
-];
-
-const MATRICES: Snippet[] = [
-  { label: '( )', latex: '\\begin{pmatrix} \\\\ \\end{pmatrix}' },
-  { label: '[ ]', latex: '\\begin{bmatrix} \\\\ \\end{bmatrix}' },
-  { label: '{ }', latex: '\\begin{Bmatrix} \\\\ \\end{Bmatrix}' },
-  { label: '| |', latex: '\\begin{vmatrix} \\\\ \\end{vmatrix}' },
-  { label: '2×2', latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
-  { label: '⟨x⟩', latex: '\\langle \\rangle' },
-  { label: '→', latex: '\\vec{v}' }, { label: '⟶', latex: '\\overrightarrow{}' },
-  { label: '|x|', latex: '|\\mathbf{x}|' },
+const CHEMISTRY: Snippet[] = [
+  { label: 'H₂O', latex: '\\mathrm{H_2O}' }, { label: 'CO₂', latex: '\\mathrm{CO_2}' },
+  { label: 'NaCl', latex: '\\mathrm{NaCl}' }, { label: 'O₂', latex: '\\mathrm{O_2}' },
+  { label: '→', latex: '\\rightarrow' }, { label: '⇌', latex: '\\rightleftharpoons' },
+  { label: 'ΔH', latex: '\\Delta H' }, { label: 'mol', latex: '\\mathrm{mol}' },
+  { label: 'aq', latex: '\\mathrm{(aq)}' }, { label: 's', latex: '\\mathrm{(s)}' },
+  { label: 'l', latex: '\\mathrm{(l)}' }, { label: 'g', latex: '\\mathrm{(g)}' },
 ];
 
 const CATEGORIES: { label: string; snippets: Snippet[] }[] = [
   { label: 'Trig', snippets: TRIGONOMETRY },
-  { label: 'Calculus', snippets: CALCULUS },
+  { label: 'Calc', snippets: CALCULUS },
   { label: 'Greek', snippets: GREEK },
-  { label: 'Symbols', snippets: SYMBOLS },
-  { label: 'Accents', snippets: ACCENTS },
-  { label: 'Matrices', snippets: MATRICES },
+  { label: 'Chem', snippets: CHEMISTRY },
 ];
 
 const btnStyle: React.CSSProperties = {
@@ -112,8 +84,7 @@ type Props = {
 };
 
 export default function EquationInsertPanel({ mathFieldRef, open, onClose }: Props) {
-  const [tabIndex, setTabIndex] = useState(0);
-  const [expandOpen, setExpandOpen] = useState(false);
+  const [tabIndex, setTabIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -141,17 +112,17 @@ export default function EquationInsertPanel({ mathFieldRef, open, onClose }: Pro
 
   if (!open) return null;
 
-  const snippets = CATEGORIES[tabIndex]?.snippets ?? [];
+  const snippets = tabIndex === null ? [] : CATEGORIES[tabIndex]?.snippets ?? [];
 
   return (
     <div
       className="inline-math-insert-panel"
       style={{
-        minWidth: 280,
+        minWidth: 300,
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
-        padding: 6,
+        gap: 8,
+        padding: 8,
         background: '#fff',
         borderRadius: 6,
         border: '1px solid #e0e0e0',
@@ -160,27 +131,7 @@ export default function EquationInsertPanel({ mathFieldRef, open, onClose }: Pro
       }}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          type="button"
-          aria-label="Close"
-          title="Close"
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: 16,
-            lineHeight: 1,
-            padding: 2,
-            color: '#666',
-          }}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={onClose}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(44px, 1fr))', gap: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(40px, 1fr))', gap: 4 }}>
         {SNIPPETS.map(({ label, latex }) => (
           <button
             key={`${label}-${latex}`}
@@ -196,77 +147,56 @@ export default function EquationInsertPanel({ mathFieldRef, open, onClose }: Pro
         ))}
       </div>
 
-      <button
-        type="button"
-        title="More symbols"
-        style={{
-          width: '100%',
-          height: 24,
-          fontSize: 16,
-          fontWeight: 'bold',
-          border: '1px dashed #999',
-          borderRadius: 4,
-          background: '#eee',
-          cursor: 'pointer',
-          color: '#666',
-        }}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          setExpandOpen((v) => !v);
-        }}
-      >
-        {expandOpen ? '−' : '+'}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+        {CATEGORIES.map((cat, i) => (
+          <React.Fragment key={cat.label}>
+            {i > 0 && <span style={{ color: '#999', fontSize: 12 }}>|</span>}
+            <button
+              type="button"
+              style={{
+                fontSize: 12,
+                padding: '2px 4px',
+                border: 0,
+                borderRadius: 3,
+                background: i === tabIndex ? 'rgba(25, 118, 210, 0.10)' : 'transparent',
+                color: i === tabIndex ? '#1976d2' : '#444',
+                cursor: 'pointer',
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setTabIndex((current) => (current === i ? null : i));
+              }}
+            >
+              {cat.label}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
 
-      {expandOpen && (
-        <>
-          <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            {CATEGORIES.map((cat, i) => (
-              <button
-                key={cat.label}
-                type="button"
-                style={{
-                  fontSize: 11,
-                  padding: '2px 6px',
-                  border: '1px solid #999',
-                  borderRadius: 3,
-                  background: i === tabIndex ? '#1976d2' : '#e8e8e8',
-                  color: i === tabIndex ? '#fff' : 'inherit',
-                  cursor: 'pointer',
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setTabIndex(i);
-                }}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(5, minmax(44px, 1fr))',
-              gap: 4,
-              maxHeight: 120,
-              overflowY: 'auto',
-            }}
-          >
-            {snippets.map(({ label, latex }) => (
-              <button
-                key={`${label}-${latex}`}
-                type="button"
-                style={btnStyle}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  insertLatex(latex);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
+      {tabIndex !== null && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, minmax(40px, 1fr))',
+            gap: 4,
+            maxHeight: 120,
+            overflowY: 'auto',
+          }}
+        >
+          {snippets.map(({ label, latex }) => (
+            <button
+              key={`${label}-${latex}`}
+              type="button"
+              style={btnStyle}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertLatex(latex);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

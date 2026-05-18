@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import * as MathematicsPkg from '@tiptap/extension-mathematics';
 import { MathematicsWithInlineEdit } from '../extensions/MathematicsWithInlineEdit.js';
 import TextAlign from '@tiptap/extension-text-align';
 import { Table } from '@tiptap/extension-table';
@@ -13,6 +12,7 @@ import { TextStyleFontSize } from '../extensions/TextStyleFontSize.js';
 import 'katex/dist/katex.min.css';
 import 'mathlive/static.css';
 import MenuBar from '../components/MenuBar.js';
+import { handleMathBackspaceKeyDown } from '../utils/mathBackspace.js';
 
 type Props = {
   value: string; // HTML or text string
@@ -24,9 +24,6 @@ type Props = {
 };
 
 const PLACEHOLDER_LATEX = '\\text{Enter Equation here}';
-const migrateMathStrings = (
-  MathematicsPkg as unknown as { migrateMathStrings?: (editor: any, regex?: RegExp) => void }
-).migrateMathStrings;
 
 export default function ExplanationEditor({
   value,
@@ -60,6 +57,7 @@ export default function ExplanationEditor({
     ],
     content: value || '',
     editorProps: {
+      handleKeyDown: handleMathBackspaceKeyDown,
       attributes: {
         style:
           `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
@@ -85,9 +83,6 @@ export default function ExplanationEditor({
     // Only update if truly different (avoid infinite loops)
     if (value !== current && value !== undefined) {
       editor.commands.setContent(value || '', { emitUpdate: false });
-      if (typeof migrateMathStrings === 'function' && /\$(?!\$)/.test(value || '')) {
-        migrateMathStrings(editor, /\$(?!\$)([^$]+?)\$(?!\$)/g);
-      }
     }
   }, [editor, value]);
 

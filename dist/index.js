@@ -33,13 +33,15 @@ __export(index_exports, {
   EquationInsertPanel: () => EquationInsertPanel,
   ExplanationEditor: () => ExplanationEditor,
   InlineMathWithMathLive: () => InlineMathWithMathLive,
+  InlineMathWithParens: () => InlineMathWithParens,
   MathLiveEditor: () => MathLiveEditor_default,
   MathematicsWithInlineEdit: () => MathematicsWithInlineEdit,
   MenuBar: () => MenuBar_default,
   OverleafPaste: () => OverleafPaste,
   SmartMathPaste: () => SmartMathPaste,
   TextStyleFontSize: () => TextStyleFontSize,
-  TiptapEditor: () => TiptapEditor_default
+  TiptapEditor: () => TiptapEditor_default,
+  handleMathBackspaceKeyDown: () => handleMathBackspaceKeyDown
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -49,28 +51,21 @@ var import_material = require("@mui/material");
 var import_mathlive = require("mathlive");
 
 // src/components/EquationInsertPanel.tsx
-var import_react = require("react");
+var import_react = __toESM(require("react"));
 var import_jsx_runtime = require("react/jsx-runtime");
 var SNIPPETS = [
+  { label: "+", latex: "+" },
+  { label: "\u2212", latex: "-" },
   { label: "\xD7", latex: "\\times" },
   { label: "\xF7", latex: "\\div" },
-  { label: "a/b", latex: "\\frac{a}{b}" },
-  { label: "\u2264", latex: "\\leq" },
-  { label: "\u2265", latex: "\\geq" },
   { label: "\u221A", latex: "\\sqrt{}" },
-  { label: "\u221E", latex: "\\infty" },
+  { label: "a/b", latex: "\\frac{a}{b}" },
+  { label: "\u03C0", latex: "\\pi" },
+  { label: "\u03B8", latex: "\\theta" },
   { label: "\u0394", latex: "\\Delta" },
   { label: "\u03A3", latex: "\\Sigma" },
-  { label: ">", latex: ">" },
-  { label: "<", latex: "<" },
-  { label: "\u2248", latex: "\\approx" },
-  { label: "\u22A5", latex: "\\perp" },
-  { label: "\u2225", latex: "\\parallel" },
-  { label: "\u25B3", latex: "\\triangle" },
-  { label: "\u2220", latex: "\\angle" },
-  { label: "\u222A", latex: "\\cup" },
-  { label: "\u2229", latex: "\\cap" },
-  { label: "\u2192", latex: "\\vec{v}" }
+  { label: "\u2264", latex: "\\leq" },
+  { label: "\u2265", latex: "\\geq" }
 ];
 var TRIGONOMETRY = [
   { label: "sin", latex: "\\sin" },
@@ -120,49 +115,25 @@ var GREEK = [
   { label: "\u2115", latex: "\\mathbb{N}" },
   { label: "\u2124", latex: "\\mathbb{Z}" }
 ];
-var SYMBOLS = [
-  { label: ">", latex: ">" },
-  { label: "<", latex: "<" },
-  { label: "\u2248", latex: "\\approx" },
-  { label: "\u22A5", latex: "\\perp" },
-  { label: "\u2225", latex: "\\parallel" },
-  { label: "\u25B3", latex: "\\triangle" },
-  { label: "\u2220", latex: "\\angle" },
-  { label: "\u222A", latex: "\\cup" },
-  { label: "\u2229", latex: "\\cap" }
-];
-var ACCENTS = [
-  { label: "x\u0302", latex: "\\hat{}" },
-  { label: "x\u0304", latex: "\\bar{}" },
-  { label: "\u1E8B", latex: "\\dot{}" },
-  { label: "x\u0308", latex: "\\ddot{}" },
-  { label: "x\u0303", latex: "\\tilde{}" },
-  { label: "x\u20D7", latex: "\\vec{}" },
-  { label: "overline", latex: "\\overline{}" },
-  { label: "underline", latex: "\\underline{}" },
-  { label: "^{}", latex: "^{}" },
-  { label: "_{}", latex: "_{}" },
-  { label: "x\xB2", latex: "^{2}" },
-  { label: "x\u2081", latex: "_{1}" }
-];
-var MATRICES = [
-  { label: "( )", latex: "\\begin{pmatrix} \\\\ \\end{pmatrix}" },
-  { label: "[ ]", latex: "\\begin{bmatrix} \\\\ \\end{bmatrix}" },
-  { label: "{ }", latex: "\\begin{Bmatrix} \\\\ \\end{Bmatrix}" },
-  { label: "| |", latex: "\\begin{vmatrix} \\\\ \\end{vmatrix}" },
-  { label: "2\xD72", latex: "\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}" },
-  { label: "\u27E8x\u27E9", latex: "\\langle \\rangle" },
-  { label: "\u2192", latex: "\\vec{v}" },
-  { label: "\u27F6", latex: "\\overrightarrow{}" },
-  { label: "|x|", latex: "|\\mathbf{x}|" }
+var CHEMISTRY = [
+  { label: "H\u2082O", latex: "\\mathrm{H_2O}" },
+  { label: "CO\u2082", latex: "\\mathrm{CO_2}" },
+  { label: "NaCl", latex: "\\mathrm{NaCl}" },
+  { label: "O\u2082", latex: "\\mathrm{O_2}" },
+  { label: "\u2192", latex: "\\rightarrow" },
+  { label: "\u21CC", latex: "\\rightleftharpoons" },
+  { label: "\u0394H", latex: "\\Delta H" },
+  { label: "mol", latex: "\\mathrm{mol}" },
+  { label: "aq", latex: "\\mathrm{(aq)}" },
+  { label: "s", latex: "\\mathrm{(s)}" },
+  { label: "l", latex: "\\mathrm{(l)}" },
+  { label: "g", latex: "\\mathrm{(g)}" }
 ];
 var CATEGORIES = [
   { label: "Trig", snippets: TRIGONOMETRY },
-  { label: "Calculus", snippets: CALCULUS },
+  { label: "Calc", snippets: CALCULUS },
   { label: "Greek", snippets: GREEK },
-  { label: "Symbols", snippets: SYMBOLS },
-  { label: "Accents", snippets: ACCENTS },
-  { label: "Matrices", snippets: MATRICES }
+  { label: "Chem", snippets: CHEMISTRY }
 ];
 var btnStyle = {
   minWidth: 44,
@@ -176,8 +147,7 @@ var btnStyle = {
   whiteSpace: "nowrap"
 };
 function EquationInsertPanel({ mathFieldRef, open, onClose }) {
-  const [tabIndex, setTabIndex] = (0, import_react.useState)(0);
-  const [expandOpen, setExpandOpen] = (0, import_react.useState)(false);
+  const [tabIndex, setTabIndex] = (0, import_react.useState)(null);
   (0, import_react.useEffect)(() => {
     if (!open) return;
     const handleKeyDown = (event) => {
@@ -202,17 +172,17 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
     }
   };
   if (!open) return null;
-  const snippets = CATEGORIES[tabIndex]?.snippets ?? [];
+  const snippets = tabIndex === null ? [] : CATEGORIES[tabIndex]?.snippets ?? [];
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
     "div",
     {
       className: "inline-math-insert-panel",
       style: {
-        minWidth: 280,
+        minWidth: 300,
         display: "flex",
         flexDirection: "column",
-        gap: 6,
-        padding: 6,
+        gap: 8,
+        padding: 8,
         background: "#fff",
         borderRadius: 6,
         border: "1px solid #e0e0e0",
@@ -221,27 +191,7 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
       },
       onMouseDown: (e) => e.stopPropagation(),
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", justifyContent: "flex-end" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
-          {
-            type: "button",
-            "aria-label": "Close",
-            title: "Close",
-            style: {
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 16,
-              lineHeight: 1,
-              padding: 2,
-              color: "#666"
-            },
-            onMouseDown: (e) => e.preventDefault(),
-            onClick: onClose,
-            children: "\xD7"
-          }
-        ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "grid", gridTemplateColumns: "repeat(5, minmax(44px, 1fr))", gap: 4 }, children: SNIPPETS.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "grid", gridTemplateColumns: "repeat(6, minmax(40px, 1fr))", gap: 4 }, children: SNIPPETS.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
           "button",
           {
             type: "button",
@@ -254,77 +204,54 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
           },
           `${label}-${latex}`
         )) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
-          {
-            type: "button",
-            title: "More symbols",
-            style: {
-              width: "100%",
-              height: 24,
-              fontSize: 16,
-              fontWeight: "bold",
-              border: "1px dashed #999",
-              borderRadius: 4,
-              background: "#eee",
-              cursor: "pointer",
-              color: "#666"
-            },
-            onMouseDown: (e) => {
-              e.preventDefault();
-              setExpandOpen((v) => !v);
-            },
-            children: expandOpen ? "\u2212" : "+"
-          }
-        ),
-        expandOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", gap: 2, flexWrap: "wrap" }, children: CATEGORIES.map((cat, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap" }, children: CATEGORIES.map((cat, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.default.Fragment, { children: [
+          i > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { color: "#999", fontSize: 12 }, children: "|" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
             "button",
             {
               type: "button",
               style: {
-                fontSize: 11,
-                padding: "2px 6px",
-                border: "1px solid #999",
+                fontSize: 12,
+                padding: "2px 4px",
+                border: 0,
                 borderRadius: 3,
-                background: i === tabIndex ? "#1976d2" : "#e8e8e8",
-                color: i === tabIndex ? "#fff" : "inherit",
+                background: i === tabIndex ? "rgba(25, 118, 210, 0.10)" : "transparent",
+                color: i === tabIndex ? "#1976d2" : "#444",
                 cursor: "pointer"
               },
               onMouseDown: (e) => {
                 e.preventDefault();
-                setTabIndex(i);
+                setTabIndex((current) => current === i ? null : i);
               },
               children: cat.label
-            },
-            cat.label
-          )) }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-            "div",
-            {
-              style: {
-                display: "grid",
-                gridTemplateColumns: "repeat(5, minmax(44px, 1fr))",
-                gap: 4,
-                maxHeight: 120,
-                overflowY: "auto"
-              },
-              children: snippets.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                "button",
-                {
-                  type: "button",
-                  style: btnStyle,
-                  onMouseDown: (e) => {
-                    e.preventDefault();
-                    insertLatex(latex);
-                  },
-                  children: label
-                },
-                `${label}-${latex}`
-              ))
             }
           )
-        ] })
+        ] }, cat.label)) }),
+        tabIndex !== null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "div",
+          {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(6, minmax(40px, 1fr))",
+              gap: 4,
+              maxHeight: 120,
+              overflowY: "auto"
+            },
+            children: snippets.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              "button",
+              {
+                type: "button",
+                style: btnStyle,
+                onMouseDown: (e) => {
+                  e.preventDefault();
+                  insertLatex(latex);
+                },
+                children: label
+              },
+              `${label}-${latex}`
+            ))
+          }
+        )
       ]
     }
   );
@@ -335,21 +262,19 @@ var import_jsx_runtime2 = require("react/jsx-runtime");
 var MathLiveEditor = ({
   value,
   onChange,
-  minWidthPx = 280,
-  minWidthPercent = 70,
-  minHeightPx = 120,
-  maxHeightPx = 320
+  minWidthPx = 220,
+  minWidthPercent = 55,
+  minHeightPx = 48,
+  maxHeightPx = 120
 }) => {
   const mathFieldRef = (0, import_react2.useRef)(null);
   const containerRef = (0, import_react2.useRef)(null);
   const panelWrapperRef = (0, import_react2.useRef)(null);
-  const sigmaButtonRef = (0, import_react2.useRef)(null);
+  const insertButtonRef = (0, import_react2.useRef)(null);
   const [panelOpen, setPanelOpen] = (0, import_react2.useState)(false);
-  const [panelPlacement, setPanelPlacement] = (0, import_react2.useState)("right");
-  const [panelTopOffset, setPanelTopOffset] = (0, import_react2.useState)(0);
-  const [panelBottomTopOffset, setPanelBottomTopOffset] = (0, import_react2.useState)(0);
-  const [panelBottomRightOffset, setPanelBottomRightOffset] = (0, import_react2.useState)(0);
   const [mathFieldWidth, setMathFieldWidth] = (0, import_react2.useState)(null);
+  const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (value ?? "").length * 11));
+  const resolvedMathFieldWidth = mathFieldWidth ? Math.min(mathFieldWidth, estimatedContentWidth) : estimatedContentWidth;
   (0, import_react2.useEffect)(() => {
     if (!panelOpen) return void 0;
     const handleClickOutside = (event) => {
@@ -365,12 +290,9 @@ var MathLiveEditor = ({
     const container = containerRef.current;
     if (!container) return void 0;
     const updateEditorWidth = () => {
-      const sigmaButton = sigmaButtonRef.current;
       const containerWidth = container.clientWidth;
-      const sigmaWidth = sigmaButton?.offsetWidth ?? 32;
-      const gap = 8;
       const minEditorWidth = Math.max(minWidthPx, Math.round(containerWidth * minWidthPercent / 100));
-      const available = Math.max(minEditorWidth, containerWidth - sigmaWidth - gap);
+      const available = Math.min(Math.max(minEditorWidth, containerWidth), containerWidth);
       setMathFieldWidth(available);
     };
     updateEditorWidth();
@@ -380,59 +302,8 @@ var MathLiveEditor = ({
     }
     const resizeObserver = new ResizeObserver(() => updateEditorWidth());
     resizeObserver.observe(container);
-    if (sigmaButtonRef.current) {
-      resizeObserver.observe(sigmaButtonRef.current);
-    }
     return () => resizeObserver.disconnect();
-  }, []);
-  (0, import_react2.useEffect)(() => {
-    if (!panelOpen) return void 0;
-    const updatePlacement = () => {
-      const container = containerRef.current;
-      const sigmaButton = sigmaButtonRef.current;
-      const panelWrapper = panelWrapperRef.current;
-      if (!container || !sigmaButton) return;
-      const viewportPadding = 8;
-      const gap = 8;
-      const panelWidth = panelWrapper?.getBoundingClientRect().width ?? 280;
-      const sigmaRect = sigmaButton.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      const rightEdge = sigmaRect.right + gap + panelWidth;
-      const hitsParentRightEdge = rightEdge >= containerRect.right - viewportPadding;
-      const fitsRightInViewport = rightEdge <= window.innerWidth - viewportPadding;
-      if (!hitsParentRightEdge && fitsRightInViewport) {
-        setPanelPlacement("right");
-      } else if (hitsParentRightEdge) {
-        setPanelPlacement("bottom");
-      } else {
-        setPanelPlacement("left");
-      }
-      setPanelTopOffset(containerRect.top - sigmaRect.top);
-      setPanelBottomTopOffset(containerRect.bottom - sigmaRect.top + gap);
-      setPanelBottomRightOffset(containerRect.right - sigmaRect.left - panelWidth);
-    };
-    let raf1 = 0;
-    let raf2 = 0;
-    updatePlacement();
-    raf1 = window.requestAnimationFrame(() => {
-      updatePlacement();
-      raf2 = window.requestAnimationFrame(updatePlacement);
-    });
-    window.addEventListener("resize", updatePlacement);
-    let resizeObserver;
-    if (typeof ResizeObserver !== "undefined") {
-      resizeObserver = new ResizeObserver(() => updatePlacement());
-      if (containerRef.current) resizeObserver.observe(containerRef.current);
-      if (sigmaButtonRef.current) resizeObserver.observe(sigmaButtonRef.current);
-      if (panelWrapperRef.current) resizeObserver.observe(panelWrapperRef.current);
-    }
-    return () => {
-      window.removeEventListener("resize", updatePlacement);
-      window.cancelAnimationFrame(raf1);
-      window.cancelAnimationFrame(raf2);
-      resizeObserver?.disconnect();
-    };
-  }, [panelOpen, value, mathFieldWidth]);
+  }, [minWidthPercent, minWidthPx]);
   (0, import_react2.useEffect)(() => {
     const mathField = mathFieldRef.current;
     if (!mathField) return;
@@ -461,8 +332,7 @@ var MathLiveEditor = ({
         display: "flex",
         alignItems: "center",
         width: "100%",
-        maxWidth: "100%",
-        gap: 1
+        maxWidth: "100%"
       },
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("style", { children: `
@@ -472,76 +342,108 @@ var MathLiveEditor = ({
         .mathlive-editor-standalone::part(menu-toggle) {
           display: none;
         }
+        math-field.mathlive-editor-standalone {
+          color-scheme: light;
+          --selection-background-color: hsl(210, 65%, 88%);
+          --contains-highlight-background-color: hsl(210, 40%, 94%);
+          --selection-color: #111827;
+          vertical-align: middle;
+        }
+        math-field.mathlive-editor-standalone::part(content) {
+          align-items: center;
+        }
       ` }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-          "math-field",
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+          import_material.Box,
           {
-            ref: mathFieldRef,
-            className: "mathlive-editor-standalone",
-            "data-math-virtual-keyboard-policy": "manual",
-            style: {
-              display: "block",
-              boxSizing: "border-box",
-              fontSize: "1.25rem",
-              width: "fit-content",
-              maxWidth: mathFieldWidth ? `${mathFieldWidth}px` : "100%",
-              minWidth: minWidthPx,
-              flex: "0 1 auto",
-              minHeight: `${minHeightPx}px`,
-              maxHeight: `${maxHeightPx}px`,
-              border: "1px solid #ccc",
-              borderRadius: 8,
-              padding: "8px",
-              overflowX: "auto",
-              overflowY: "auto"
-            }
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_material.Box, { sx: { position: "relative", flexShrink: 0, display: "flex", alignItems: "center" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_material.Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-            import_material.IconButton,
-            {
-              ref: sigmaButtonRef,
-              size: "small",
-              onClick: () => setPanelOpen((open) => !open),
-              "aria-label": "Insert symbols",
-              sx: {
-                bgcolor: panelOpen ? "action.selected" : "transparent",
-                "&:hover": { bgcolor: "action.hover" }
-              },
-              children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_material.Box, { component: "span", sx: { fontSize: "1.25rem", fontWeight: 600 }, children: "\u03A3" })
-            }
-          ) }),
-          panelOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-            import_material.Box,
-            {
-              ref: panelWrapperRef,
-              sx: {
-                position: "absolute",
-                zIndex: 1600,
-                ...panelPlacement === "bottom" ? {
-                  top: panelBottomTopOffset,
-                  left: panelBottomRightOffset
-                } : {
-                  top: panelTopOffset,
-                  ...panelPlacement === "right" ? {
-                    left: "calc(100% + 8px)"
-                  } : {
-                    right: "calc(100% + 8px)"
+            sx: {
+              position: "relative",
+              width: `${resolvedMathFieldWidth}px`,
+              maxWidth: "100%",
+              minWidth: `${minWidthPx}px`,
+              flex: "0 1 auto"
+            },
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+                "math-field",
+                {
+                  ref: mathFieldRef,
+                  className: "mathlive-editor-standalone",
+                  "data-math-virtual-keyboard-policy": "manual",
+                  style: {
+                    display: "block",
+                    boxSizing: "border-box",
+                    fontSize: "1.25rem",
+                    width: "100%",
+                    minHeight: `${minHeightPx}px`,
+                    maxHeight: `${maxHeightPx}px`,
+                    border: "1px solid #ccc",
+                    borderRadius: 8,
+                    padding: "6px 58px 6px 10px",
+                    overflowX: "auto",
+                    overflowY: "auto"
                   }
                 }
-              },
-              children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-                EquationInsertPanel,
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_material.Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+                import_material.Box,
                 {
-                  mathFieldRef,
-                  open: panelOpen,
-                  onClose: () => setPanelOpen(false)
+                  component: "button",
+                  ref: insertButtonRef,
+                  type: "button",
+                  "aria-label": "Insert symbols",
+                  onMouseDown: (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  },
+                  onClick: () => setPanelOpen((open) => !open),
+                  sx: {
+                    position: "absolute",
+                    right: 6,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    border: 0,
+                    borderRadius: "6px",
+                    px: 0.75,
+                    py: 0.25,
+                    bgcolor: panelOpen ? "rgba(25, 118, 210, 0.10)" : "transparent",
+                    color: panelOpen ? "primary.main" : "text.secondary",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    fontStyle: "normal",
+                    lineHeight: 1.2,
+                    "&:hover": { bgcolor: "action.hover" }
+                  },
+                  children: "f(x)"
+                }
+              ) }),
+              panelOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+                import_material.Box,
+                {
+                  ref: panelWrapperRef,
+                  sx: {
+                    position: "absolute",
+                    zIndex: 1600,
+                    top: "calc(100% + 8px)",
+                    left: 0,
+                    width: "100%",
+                    minWidth: 280
+                  },
+                  children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+                    EquationInsertPanel,
+                    {
+                      mathFieldRef,
+                      open: panelOpen,
+                      onClose: () => setPanelOpen(false)
+                    }
+                  )
                 }
               )
-            }
-          )
-        ] })
+            ]
+          }
+        )
       ]
     }
   );
@@ -553,13 +455,15 @@ var import_react4 = require("react");
 var import_material3 = require("@mui/material");
 var import_react5 = require("@tiptap/react");
 var import_starter_kit = __toESM(require("@tiptap/starter-kit"));
-var MathematicsPkg = __toESM(require("@tiptap/extension-mathematics"));
 
 // src/extensions/MathematicsWithInlineEdit.ts
-var import_core2 = require("@tiptap/core");
+var import_core3 = require("@tiptap/core");
 var import_extension_mathematics2 = require("@tiptap/extension-mathematics");
 
 // src/extensions/InlineMathWithMathLive.ts
+var import_katex = __toESM(require("katex"));
+
+// src/extensions/InlineMathWithParens.ts
 var import_core = require("@tiptap/core");
 
 // node_modules/prosemirror-model/dist/index.js
@@ -617,7 +521,7 @@ function findDiffEnd(a, b, posA, posB) {
     posB -= size;
   }
 }
-var Fragment2 = class _Fragment {
+var Fragment = class _Fragment {
   /**
   @internal
   */
@@ -909,7 +813,7 @@ var Fragment2 = class _Fragment {
     throw new RangeError("Can not convert " + nodes + " to a Fragment" + (nodes.nodesBetween ? " (looks like multiple versions of prosemirror-model were loaded)" : ""));
   }
 };
-Fragment2.empty = new Fragment2([], 0);
+Fragment.empty = new Fragment([], 0);
 var found = { index: 0, offset: 0 };
 function retIndex(index, offset) {
   found.index = index;
@@ -1134,7 +1038,7 @@ var Slice = class _Slice {
     let openStart = json.openStart || 0, openEnd = json.openEnd || 0;
     if (typeof openStart != "number" || typeof openEnd != "number")
       throw new RangeError("Invalid input for Slice.fromJSON");
-    return new _Slice(Fragment2.fromJSON(schema, json.content), openStart, openEnd);
+    return new _Slice(Fragment.fromJSON(schema, json.content), openStart, openEnd);
   }
   /**
   Create a slice from a fragment by taking the maximum possible
@@ -1149,7 +1053,7 @@ var Slice = class _Slice {
     return new _Slice(fragment, openStart, openEnd);
   }
 };
-Slice.empty = new Slice(Fragment2.empty, 0, 0);
+Slice.empty = new Slice(Fragment.empty, 0, 0);
 function removeRange(content, from, to) {
   let { index, offset } = content.findIndex(from), child = content.maybeChild(index);
   let { index: indexTo, offset: offsetTo } = content.findIndex(to);
@@ -1247,7 +1151,7 @@ function replaceThreeWay($from, $start, $end, $to, depth) {
       addNode(close(openEnd, replaceTwoWay($end, $to, depth + 1)), content);
   }
   addRange($to, null, depth, content);
-  return new Fragment2(content);
+  return new Fragment(content);
 }
 function replaceTwoWay($from, $to, depth) {
   let content = [];
@@ -1257,13 +1161,13 @@ function replaceTwoWay($from, $to, depth) {
     addNode(close(type, replaceTwoWay($from, $to, depth + 1)), content);
   }
   addRange($to, null, depth, content);
-  return new Fragment2(content);
+  return new Fragment(content);
 }
 function prepareSliceForReplace(slice, $along) {
   let extra = $along.depth - slice.openStart, parent = $along.node(extra);
   let node = parent.copy(slice.content);
   for (let i = extra - 1; i >= 0; i--)
-    node = $along.node(i).copy(Fragment2.from(node));
+    node = $along.node(i).copy(Fragment.from(node));
   return {
     start: node.resolveNoCache(slice.openStart + extra),
     end: node.resolveNoCache(node.content.size - slice.openEnd - extra)
@@ -1602,7 +1506,7 @@ var Node = class _Node {
     this.type = type;
     this.attrs = attrs;
     this.marks = marks;
-    this.content = content || Fragment2.empty;
+    this.content = content || Fragment.empty;
   }
   /**
   The array of this node's child nodes.
@@ -1907,7 +1811,7 @@ var Node = class _Node {
   can optionally pass `start` and `end` indices into the
   replacement fragment.
   */
-  canReplace(from, to, replacement = Fragment2.empty, start = 0, end = replacement.childCount) {
+  canReplace(from, to, replacement = Fragment.empty, start = 0, end = replacement.childCount) {
     let one = this.contentMatchAt(from).matchFragment(replacement, start, end);
     let two = one && one.matchFragment(this.content, to);
     if (!two || !two.validEnd)
@@ -1989,7 +1893,7 @@ var Node = class _Node {
         throw new RangeError("Invalid text node in JSON");
       return schema.text(json.text, marks);
     }
-    let content = Fragment2.fromJSON(schema, json.content);
+    let content = Fragment.fromJSON(schema, json.content);
     let node = schema.nodeType(json.type).create(json.attrs, content, marks);
     node.type.checkAttrs(node.attrs);
     return node;
@@ -2085,7 +1989,7 @@ var ContentMatch = class _ContentMatch {
     function search(match, types) {
       let finished = match.matchFragment(after, startIndex);
       if (finished && (!toEnd || finished.validEnd))
-        return Fragment2.from(types.map((tp) => tp.createAndFill()));
+        return Fragment.from(types.map((tp) => tp.createAndFill()));
       for (let i = 0; i < match.next.length; i++) {
         let { type, next } = match.next[i];
         if (!(type.isText || type.hasRequiredAttrs()) && seen.indexOf(next) == -1) {
@@ -2653,7 +2557,7 @@ function mapFragment(fragment, f, parent) {
       child = f(child, parent, i);
     mapped.push(child);
   }
-  return Fragment2.fromArray(mapped);
+  return Fragment.fromArray(mapped);
 }
 var AddMarkStep = class _AddMarkStep extends Step {
   /**
@@ -2770,7 +2674,7 @@ var AddNodeMarkStep = class _AddNodeMarkStep extends Step {
     if (!node)
       return StepResult.fail("No node at mark step's position");
     let updated = node.type.create(node.attrs, null, this.mark.addToSet(node.marks));
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   invert(doc) {
     let node = doc.nodeAt(this.pos);
@@ -2816,7 +2720,7 @@ var RemoveNodeMarkStep = class _RemoveNodeMarkStep extends Step {
     if (!node)
       return StepResult.fail("No node at mark step's position");
     let updated = node.type.create(node.attrs, null, this.mark.removeFromSet(node.marks));
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   invert(doc) {
     let node = doc.nodeAt(this.pos);
@@ -3017,7 +2921,7 @@ var AttrStep = class _AttrStep extends Step {
       attrs[name] = node.attrs[name];
     attrs[this.attr] = this.value;
     let updated = node.type.create(attrs, null, node.marks);
-    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment2.from(updated), 0, node.isLeaf ? 0 : 1));
+    return StepResult.fromReplace(doc, this.pos, this.pos + 1, new Slice(Fragment.from(updated), 0, node.isLeaf ? 0 : 1));
   }
   getMap() {
     return StepMap.empty;
@@ -3401,7 +3305,7 @@ var NodeSelection = class _NodeSelection extends Selection {
     return new _NodeSelection($pos);
   }
   content() {
-    return new Slice(Fragment2.from(this.node), 0, 0);
+    return new Slice(Fragment.from(this.node), 0, 0);
   }
   eq(other) {
     return other instanceof _NodeSelection && other.anchor == this.anchor;
@@ -3628,16 +3532,11 @@ var PluginKey = class {
   }
 };
 
-// src/extensions/InlineMathWithMathLive.ts
+// src/extensions/InlineMathWithParens.ts
 var import_extension_mathematics = require("@tiptap/extension-mathematics");
-var import_katex = __toESM(require("katex"));
-var import_mathlive2 = require("mathlive");
-var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
-  addOptions() {
-    return {
-      ...this.parent?.(),
-      placeholderLatex: void 0
-    };
+var InlineMathWithParens = import_extension_mathematics.InlineMath.extend({
+  addPasteRules() {
+    return [];
   },
   addInputRules() {
     return [
@@ -3649,10 +3548,22 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           const node = this.type.create({ latex });
           const { tr } = state;
           tr.replaceWith(range.from, range.to, node);
-          tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + node.nodeSize)));
+          const afterPos = range.from + node.nodeSize;
+          tr.setSelection(TextSelection.create(tr.doc, afterPos));
         }
       })
     ];
+  }
+});
+
+// src/extensions/InlineMathWithMathLive.ts
+var import_mathlive2 = require("mathlive");
+var InlineMathWithMathLive = InlineMathWithParens.extend({
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      placeholderLatex: void 0
+    };
   },
   addNodeView() {
     const { katexOptions } = this.options;
@@ -3670,6 +3581,7 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
       let panelCleanup = null;
       let didInitialSelect = false;
       let suppressBlur = false;
+      let pendingFinishTimeout = null;
       function renderKaTeX(latex) {
         const span = document.createElement("span");
         span.className = "tiptap-mathematics-render";
@@ -3730,23 +3642,25 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
             panelCleanup();
             panelCleanup = null;
           }
-          renderKaTeX(newLatex);
-          mathField = null;
-          const mfToRemove = mf;
-          setTimeout(() => {
-            if (mfToRemove.isConnected) mfToRemove.remove();
-          }, 0);
-          setTimeout(() => {
+          pendingFinishTimeout = window.setTimeout(() => {
+            pendingFinishTimeout = null;
+            mathField = null;
             if (typeof posToUse !== "number") return;
-            const node2 = editor.state.doc.nodeAt(posToUse);
-            if (!node2 || node2.type.name !== "inlineMath") return;
+            const currentNode = editor.state.doc.nodeAt(posToUse);
+            if (!currentNode || currentNode.type.name !== "inlineMath") {
+              renderKaTeX(newLatex);
+              return;
+            }
             const from = posToUse;
-            const to = from + node2.nodeSize;
-            const tr = editor.state.tr.replaceWith(from, to, node2.type.create({ latex: newLatex }));
+            const to = from + currentNode.nodeSize;
+            const tr = editor.state.tr.replaceWith(from, to, currentNode.type.create({ latex: newLatex }));
             editor.view.dispatch(tr);
             editor.commands.focus();
-          }, 10);
+          }, 50);
         };
+        mf.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+        });
         mf.addEventListener("blur", (e) => {
           if (suppressBlur) return;
           if (panel.contains(e.relatedTarget || null)) return;
@@ -3781,11 +3695,11 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
         panel.style.cssText = `
           position: fixed;
           z-index: 9999;
-          min-width: 280px;
+          min-width: 300px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          padding: 6px;
+          gap: 8px;
+          padding: 8px;
           background: #fff;
           border-radius: 6px;
           border: 1px solid #e0e0e0;
@@ -3803,7 +3717,7 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           }
         };
         const btnStyle2 = `
-          min-width: 44px;
+          min-width: 40px;
           height: 28px;
           padding: 0 8px;
           font-size: 13px;
@@ -3814,28 +3728,21 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           white-space: nowrap;
         `;
         const snippets = [
+          { label: "+", latex: "+" },
+          { label: "\u2212", latex: "-" },
           { label: "\xD7", latex: "\\times" },
           { label: "\xF7", latex: "\\div" },
-          { label: "a/b", latex: "\\frac{a}{b}" },
-          { label: "\u2264", latex: "\\leq" },
-          { label: "\u2265", latex: "\\geq" },
           { label: "\u221A", latex: "\\sqrt{}" },
-          { label: "\u221E", latex: "\\infty" },
+          { label: "a/b", latex: "\\frac{a}{b}" },
+          { label: "\u03C0", latex: "\\pi" },
+          { label: "\u03B8", latex: "\\theta" },
           { label: "\u0394", latex: "\\Delta" },
           { label: "\u03A3", latex: "\\Sigma" },
-          { label: ">", latex: ">" },
-          { label: "<", latex: "<" },
-          { label: "\u2248", latex: "\\approx" },
-          { label: "\u22A5", latex: "\\perp" },
-          { label: "\u2225", latex: "\\parallel" },
-          { label: "\u25B3", latex: "\\triangle" },
-          { label: "\u2220", latex: "\\angle" },
-          { label: "\u222A", latex: "\\cup" },
-          { label: "\u2229", latex: "\\cap" },
-          { label: "\u2192", latex: "\\vec{v}" }
+          { label: "\u2264", latex: "\\leq" },
+          { label: "\u2265", latex: "\\geq" }
         ];
         const snippetsGrid = document.createElement("div");
-        snippetsGrid.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px;";
+        snippetsGrid.style.cssText = "display: grid; grid-template-columns: repeat(6, minmax(40px, 1fr)); gap: 4px;";
         snippets.forEach(({ label, latex: latex2 }) => {
           const btn = document.createElement("button");
           btn.textContent = label;
@@ -3897,60 +3804,42 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           { label: "\u2115", latex: "\\mathbb{N}" },
           { label: "\u2124", latex: "\\mathbb{Z}" }
         ];
-        const SYMBOLS2 = [
-          { label: ">", latex: ">" },
-          { label: "<", latex: "<" },
-          { label: "\u2248", latex: "\\approx" },
-          { label: "\u22A5", latex: "\\perp" },
-          { label: "\u2225", latex: "\\parallel" },
-          { label: "\u25B3", latex: "\\triangle" },
-          { label: "\u2220", latex: "\\angle" },
-          { label: "\u222A", latex: "\\cup" },
-          { label: "\u2229", latex: "\\cap" }
-        ];
-        const ACCENTS2 = [
-          { label: "x\u0302", latex: "\\hat{}" },
-          { label: "x\u0304", latex: "\\bar{}" },
-          { label: "\u1E8B", latex: "\\dot{}" },
-          { label: "x\u0308", latex: "\\ddot{}" },
-          { label: "x\u0303", latex: "\\tilde{}" },
-          { label: "x\u20D7", latex: "\\vec{}" },
-          { label: "overline", latex: "\\overline{}" },
-          { label: "underline", latex: "\\underline{}" },
-          { label: "^{}", latex: "^{}" },
-          { label: "_{}", latex: "_{}" },
-          { label: "x\xB2", latex: "^{2}" },
-          { label: "x\u2081", latex: "_{1}" }
-        ];
-        const MATRICES2 = [
-          { label: "( )", latex: "\\begin{pmatrix} \\\\ \\end{pmatrix}" },
-          { label: "[ ]", latex: "\\begin{bmatrix} \\\\ \\end{bmatrix}" },
-          { label: "{ }", latex: "\\begin{Bmatrix} \\\\ \\end{Bmatrix}" },
-          { label: "| |", latex: "\\begin{vmatrix} \\\\ \\end{vmatrix}" },
-          { label: "2\xD72", latex: "\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}" },
-          { label: "\u27E8x\u27E9", latex: "\\langle \\rangle" },
-          { label: "\u2192", latex: "\\vec{v}" },
-          { label: "\u27F6", latex: "\\overrightarrow{}" },
-          { label: "|x|", latex: "|\\mathbf{x}|" }
+        const CHEMISTRY2 = [
+          { label: "H\u2082O", latex: "\\mathrm{H_2O}" },
+          { label: "CO\u2082", latex: "\\mathrm{CO_2}" },
+          { label: "NaCl", latex: "\\mathrm{NaCl}" },
+          { label: "O\u2082", latex: "\\mathrm{O_2}" },
+          { label: "\u2192", latex: "\\rightarrow" },
+          { label: "\u21CC", latex: "\\rightleftharpoons" },
+          { label: "\u0394H", latex: "\\Delta H" },
+          { label: "mol", latex: "\\mathrm{mol}" },
+          { label: "aq", latex: "\\mathrm{(aq)}" },
+          { label: "s", latex: "\\mathrm{(s)}" },
+          { label: "l", latex: "\\mathrm{(l)}" },
+          { label: "g", latex: "\\mathrm{(g)}" }
         ];
         const CATEGORIES2 = [
           { label: "Trig", snippets: TRIGONOMETRY2 },
-          { label: "Calculus", snippets: CALCULUS2 },
+          { label: "Calc", snippets: CALCULUS2 },
           { label: "Greek", snippets: GREEK2 },
-          { label: "Symbols", snippets: SYMBOLS2 },
-          { label: "Accents", snippets: ACCENTS2 },
-          { label: "Matrices", snippets: MATRICES2 }
+          { label: "Chem", snippets: CHEMISTRY2 }
         ];
         const expandable = document.createElement("div");
-        expandable.style.cssText = "display: none; flex-direction: column; gap: 4px;";
+        expandable.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
         const tabBar = document.createElement("div");
-        tabBar.style.cssText = "display: flex; gap: 2px; flex-wrap: wrap;";
+        tabBar.style.cssText = "display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;";
         const tabContent = document.createElement("div");
-        tabContent.style.cssText = "display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;";
+        tabContent.style.cssText = "display: none; grid-template-columns: repeat(6, minmax(40px, 1fr)); gap: 4px; max-height: 120px; overflow-y: auto;";
+        let activeCategoryIndex = null;
         const renderTabContent = (index) => {
           tabContent.innerHTML = "";
+          if (index === null) {
+            tabContent.style.display = "none";
+            return;
+          }
           const cat = CATEGORIES2[index];
           if (!cat) return;
+          tabContent.style.display = "grid";
           cat.snippets.forEach(({ label, latex: latex2 }) => {
             const b = document.createElement("button");
             b.textContent = label;
@@ -3965,49 +3854,32 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           });
         };
         CATEGORIES2.forEach((cat, i) => {
+          if (i > 0) {
+            const separator = document.createElement("span");
+            separator.textContent = "|";
+            separator.style.cssText = "color: #999; font-size: 12px;";
+            tabBar.appendChild(separator);
+          }
           const tabBtn = document.createElement("button");
           tabBtn.textContent = cat.label;
           tabBtn.type = "button";
-          tabBtn.style.cssText = "font-size: 11px; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; background: #e8e8e8; cursor: pointer;";
+          tabBtn.style.cssText = "font-size: 12px; padding: 2px 4px; border: 0; border-radius: 3px; background: transparent; color: #444; cursor: pointer;";
           tabBtn.addEventListener("mousedown", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            CATEGORIES2.forEach((_, j) => {
-              tabBar.children[j].style.background = j === i ? "#1976d2" : "#e8e8e8";
-              tabBar.children[j].style.color = j === i ? "#fff" : "inherit";
+            activeCategoryIndex = activeCategoryIndex === i ? null : i;
+            Array.from(tabBar.querySelectorAll("button")).forEach((button, j) => {
+              button.style.background = j === activeCategoryIndex ? "rgba(25, 118, 210, 0.10)" : "transparent";
+              button.style.color = j === activeCategoryIndex ? "#1976d2" : "#444";
             });
-            renderTabContent(i);
+            renderTabContent(activeCategoryIndex);
+            positionPanel();
           });
           tabBar.appendChild(tabBtn);
         });
-        renderTabContent(0);
-        tabBar.children[0].style.background = "#1976d2";
-        tabBar.children[0].style.color = "#fff";
+        renderTabContent(null);
         expandable.appendChild(tabBar);
         expandable.appendChild(tabContent);
-        const plusBar = document.createElement("button");
-        plusBar.textContent = "+";
-        plusBar.type = "button";
-        plusBar.title = "More symbols";
-        plusBar.style.cssText = `
-          width: 100%;
-          height: 24px;
-          font-size: 16px;
-          font-weight: bold;
-          border: 1px dashed #999;
-          border-radius: 4px;
-          background: #eee;
-          cursor: pointer;
-          color: #666;
-        `;
-        plusBar.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const shown = expandable.style.display === "flex";
-          expandable.style.display = shown ? "none" : "flex";
-          plusBar.textContent = shown ? "+" : "\u2212";
-        });
-        panel.appendChild(plusBar);
         panel.appendChild(expandable);
         const editRow = document.createElement("div");
         editRow.style.cssText = "display: inline;";
@@ -4055,23 +3927,25 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
         mf.focus();
         if (!didInitialSelect) {
           didInitialSelect = true;
-          requestAnimationFrame(() => {
-            try {
-              mf.executeCommand?.("selectAll");
-            } catch (_) {
-            }
-          });
+          if (placeholderLatex && latex === placeholderLatex) {
+            requestAnimationFrame(() => {
+              try {
+                mf.executeCommand?.("selectAll");
+              } catch (_) {
+              }
+            });
+          }
         }
       }
-      function handleClick(e) {
+      function handleWrapperPointerDown(e) {
         if (!editor.isEditable) return;
-        e.preventDefault();
-        e.stopPropagation();
+        if (e.target.closest("math-field")) return;
         if (!isEditing) {
+          e.preventDefault();
           enterEditMode();
         }
       }
-      wrapper.addEventListener("click", handleClick);
+      wrapper.addEventListener("pointerdown", handleWrapperPointerDown);
       renderKaTeX(node.attrs.latex);
       return {
         dom: wrapper,
@@ -4089,7 +3963,10 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
           return true;
         },
         destroy() {
-          wrapper.removeEventListener("click", handleClick);
+          if (pendingFinishTimeout !== null) {
+            window.clearTimeout(pendingFinishTimeout);
+          }
+          wrapper.removeEventListener("pointerdown", handleWrapperPointerDown);
           mathField?.removeEventListener("blur", () => {
           });
         }
@@ -4098,11 +3975,126 @@ var InlineMathWithMathLive = import_extension_mathematics.InlineMath.extend({
   }
 });
 
+// src/extensions/SmartMathPaste.ts
+var import_core2 = require("@tiptap/core");
+var SmartMathPaste = import_core2.Extension.create({
+  name: "smartMathPaste",
+  addProseMirrorPlugins() {
+    const editor = this.editor;
+    return [
+      new Plugin({
+        key: new PluginKey("smartMathPaste"),
+        props: {
+          handlePaste(_view, event) {
+            const plain = event.clipboardData?.getData("text/plain") ?? "";
+            if (!plain.includes("\\[") && !plain.includes("\\(")) return false;
+            const delimiterPattern = /\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)/g;
+            if (!delimiterPattern.test(plain)) return false;
+            event.preventDefault();
+            const blockMathNodeName = editor.schema.nodes.blockMath ? "blockMath" : editor.schema.nodes.math ? "math" : editor.schema.nodes.mathBlock ? "mathBlock" : null;
+            const inlineMathNodeName = editor.schema.nodes.inlineMath ? "inlineMath" : editor.schema.nodes.mathInline ? "mathInline" : null;
+            const hasBlockMath = /\\\[([\s\S]+?)\\\]/.test(plain);
+            const hasInlineMath = /\\\(([\s\S]+?)\\\)/.test(plain);
+            if (hasBlockMath && !blockMathNodeName || hasInlineMath && !inlineMathNodeName) {
+              editor.commands.insertContent(plain);
+              return true;
+            }
+            const hasAttr = (nodeName, attrName) => Object.prototype.hasOwnProperty.call(editor.schema.nodes[nodeName].spec.attrs ?? {}, attrName);
+            const makeMathAttrs = (nodeName, latex, displayMode) => {
+              const attrs = {};
+              if (hasAttr(nodeName, "content")) {
+                attrs.content = latex;
+              } else {
+                attrs.latex = latex;
+              }
+              if (displayMode !== void 0 && hasAttr(nodeName, "displayMode")) {
+                attrs.displayMode = displayMode;
+              }
+              return attrs;
+            };
+            const makeInlineMath = (latex) => ({
+              type: inlineMathNodeName,
+              attrs: makeMathAttrs(inlineMathNodeName, latex)
+            });
+            const makeMathBlock = (latex) => ({
+              type: blockMathNodeName,
+              attrs: makeMathAttrs(blockMathNodeName, latex, true)
+            });
+            const buildInlineContent = (text) => {
+              const inlinePattern = /\\\(([\s\S]+?)\\\)/g;
+              const inlineContent = [];
+              let lastInline = 0;
+              let inlineMatch;
+              while (inlineMatch = inlinePattern.exec(text)) {
+                const beforeInline = text.slice(lastInline, inlineMatch.index);
+                if (beforeInline) inlineContent.push({ type: "text", text: beforeInline });
+                const latex = inlineMatch[1].trim();
+                if (latex) {
+                  inlineContent.push(makeInlineMath(latex));
+                } else {
+                  inlineContent.push({ type: "text", text: inlineMatch[0] });
+                }
+                lastInline = inlinePattern.lastIndex;
+              }
+              const inlineTail = text.slice(lastInline);
+              if (inlineTail) inlineContent.push({ type: "text", text: inlineTail });
+              return inlineContent;
+            };
+            if (!hasBlockMath) {
+              const inlineContent = buildInlineContent(plain);
+              const ok2 = editor.chain().focus().insertContent(inlineContent).run();
+              if (!ok2) editor.commands.insertContent(plain);
+              return true;
+            }
+            const content = [];
+            let paragraphContent = [];
+            let last = 0;
+            delimiterPattern.lastIndex = 0;
+            let m;
+            const flushParagraph = () => {
+              if (paragraphContent.length > 0) {
+                content.push({ type: "paragraph", content: paragraphContent });
+                paragraphContent = [];
+              }
+            };
+            while (m = delimiterPattern.exec(plain)) {
+              const before = plain.slice(last, m.index);
+              if (before) paragraphContent.push(...buildInlineContent(before));
+              if (m[1] !== void 0) {
+                flushParagraph();
+                const latex = m[1].trim();
+                if (latex) content.push(makeMathBlock(latex));
+              } else {
+                const latex = (m[2] || "").trim();
+                if (latex) {
+                  paragraphContent.push(makeInlineMath(latex));
+                } else {
+                  paragraphContent.push({ type: "text", text: m[0] });
+                }
+              }
+              last = delimiterPattern.lastIndex;
+            }
+            const tail = plain.slice(last);
+            if (tail) paragraphContent.push(...buildInlineContent(tail));
+            flushParagraph();
+            const ok = editor.chain().focus().insertContent(content).run();
+            if (!ok) editor.commands.insertContent(plain);
+            return true;
+          }
+        }
+      })
+    ];
+  }
+});
+
 // src/extensions/MathematicsWithInlineEdit.ts
 var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
+  addPasteRules() {
+    return [];
+  },
   addInputRules() {
     return [
-      new import_core2.InputRule({
+      new import_core3.InputRule({
         find: /\\\[(.+?)\\\]$/,
         handler: ({ state, range, match }) => {
           const latex = (match[1] || "").trim();
@@ -4114,7 +4106,7 @@ var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
     ];
   }
 });
-var MathematicsWithInlineEdit = import_core2.Extension.create({
+var MathematicsWithInlineEdit = import_core3.Extension.create({
   name: "MathematicsWithInlineEdit",
   addOptions() {
     return {
@@ -4126,6 +4118,7 @@ var MathematicsWithInlineEdit = import_core2.Extension.create({
   },
   addExtensions() {
     return [
+      SmartMathPaste,
       BlockMathWithBrackets.configure({
         ...this.options.blockOptions,
         katexOptions: this.options.katexOptions
@@ -4396,10 +4389,46 @@ var MenuBar = ({
 };
 var MenuBar_default = MenuBar;
 
+// src/utils/mathBackspace.ts
+function handleMathBackspaceKeyDown(view, event) {
+  if (event.key !== "Backspace") return false;
+  const { state } = view;
+  const { selection } = state;
+  if (selection instanceof NodeSelection) {
+    const name = selection.node.type.name;
+    if (name === "inlineMath" || name === "blockMath") {
+      event.preventDefault();
+      view.dispatch(state.tr.deleteSelection());
+      return true;
+    }
+  }
+  if (!selection.empty) return false;
+  const { $from } = selection;
+  const nodeBefore = $from.nodeBefore;
+  if (nodeBefore?.type.name === "inlineMath") {
+    event.preventDefault();
+    view.dispatch(
+      state.tr.setSelection(NodeSelection.create(state.doc, $from.pos - nodeBefore.nodeSize))
+    );
+    return true;
+  }
+  if ($from.parent.type.name === "paragraph" && $from.parent.content.size === 0 && $from.parentOffset === 0) {
+    const paragraphStart = $from.before($from.depth);
+    const previousNode = state.doc.resolve(paragraphStart).nodeBefore;
+    if (previousNode?.type.name === "blockMath") {
+      event.preventDefault();
+      view.dispatch(
+        state.tr.setSelection(NodeSelection.create(state.doc, paragraphStart - previousNode.nodeSize))
+      );
+      return true;
+    }
+  }
+  return false;
+}
+
 // src/editors/ExplanationEditor.tsx
 var import_jsx_runtime4 = require("react/jsx-runtime");
 var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
-var migrateMathStrings2 = MathematicsPkg.migrateMathStrings;
 function ExplanationEditor({
   value,
   onChange,
@@ -4431,6 +4460,7 @@ function ExplanationEditor({
     ],
     content: value || "",
     editorProps: {
+      handleKeyDown: handleMathBackspaceKeyDown,
       attributes: {
         style: `min-height:${minHeightPx}px;max-height:${maxHeightPx}px;overflow-y:auto;border:1px solid #d0d7de;border-radius:8px;padding:10px;outline:none;font-size:1rem;`,
         placeholder: placeholder || "Enter your answer...",
@@ -4450,9 +4480,6 @@ function ExplanationEditor({
     const current = editor.getHTML();
     if (value !== current && value !== void 0) {
       editor.commands.setContent(value || "", { emitUpdate: false });
-      if (typeof migrateMathStrings2 === "function" && /\$(?!\$)/.test(value || "")) {
-        migrateMathStrings2(editor, /\$(?!\$)([^$]+?)\$(?!\$)/g);
-      }
     }
   }, [editor, value]);
   const insertInlineMath = (latex = PLACEHOLDER_LATEX) => {
@@ -4541,11 +4568,10 @@ var import_extension_table2 = require("@tiptap/extension-table");
 var import_extension_table_row2 = __toESM(require("@tiptap/extension-table-row"));
 var import_extension_table_cell2 = __toESM(require("@tiptap/extension-table-cell"));
 var import_extension_table_header2 = __toESM(require("@tiptap/extension-table-header"));
-var import_extension_mathematics3 = require("@tiptap/extension-mathematics");
 
 // src/extensions/OverleafPaste.ts
-var import_core3 = require("@tiptap/core");
-var OverleafPaste = import_core3.Extension.create({
+var import_core4 = require("@tiptap/core");
+var OverleafPaste = import_core4.Extension.create({
   name: "overleafPaste",
   addProseMirrorPlugins() {
     const editor = this.editor;
@@ -4588,62 +4614,6 @@ function tabularToHTML(tex) {
   return table;
 }
 
-// src/extensions/SmartMathPaste.ts
-var import_core4 = require("@tiptap/core");
-var SmartMathPaste = import_core4.Extension.create({
-  name: "smartMathPaste",
-  addProseMirrorPlugins() {
-    const editor = this.editor;
-    return [
-      new Plugin({
-        key: new PluginKey("smartMathPaste"),
-        props: {
-          handlePaste(_view, event) {
-            const plain = event.clipboardData?.getData("text/plain") ?? "";
-            if (!plain.includes("\\[")) return false;
-            const pattern = /\\\[([\s\S]+?)\\\]/g;
-            if (!pattern.test(plain)) return false;
-            event.preventDefault();
-            const mathNodeName = editor.schema.nodes.math ? "math" : editor.schema.nodes.mathBlock ? "mathBlock" : null;
-            if (!mathNodeName) {
-              editor.commands.insertContent(plain);
-              return true;
-            }
-            const nodeType = editor.schema.nodes[mathNodeName];
-            const expectsContent = !!nodeType.spec.attrs?.content;
-            const expectsLatex = !!nodeType.spec.attrs?.latex;
-            const makeMathBlock = (latex) => ({
-              type: mathNodeName,
-              attrs: expectsContent ? { content: latex, displayMode: true } : expectsLatex ? { latex, displayMode: true } : { content: latex, displayMode: true }
-              // sensible default
-            });
-            const toParagraph = (text) => ({
-              type: "paragraph",
-              content: text ? [{ type: "text", text }] : []
-            });
-            const content = [];
-            let last = 0;
-            pattern.lastIndex = 0;
-            let m;
-            while (m = pattern.exec(plain)) {
-              const before = plain.slice(last, m.index).trim();
-              if (before) content.push(toParagraph(before));
-              const latex = m[1].trim();
-              content.push(makeMathBlock(latex));
-              last = pattern.lastIndex;
-            }
-            const tail = plain.slice(last).trim();
-            if (tail) content.push(toParagraph(tail));
-            const ok = editor.chain().focus().insertContent(content).run();
-            if (!ok) editor.commands.insertContent(plain);
-            return true;
-          }
-        }
-      })
-    ];
-  }
-});
-
 // src/editors/TiptapEditor.tsx
 var import_extension_text_align2 = __toESM(require("@tiptap/extension-text-align"));
 var import_Box = __toESM(require("@mui/material/Box"));
@@ -4669,10 +4639,10 @@ var TiptapEditor = ({
       import_starter_kit2.default,
       /* images */
       import_tiptap_extension_resize_image.default,
-      /* smart‑paste for Overleaf tabular */
+      /* smart-paste for Overleaf tabular and math delimiters */
       OverleafPaste,
       SmartMathPaste,
-      import_extension_mathematics3.InlineMath.configure({ katexOptions: { throwOnError: false } }),
+      InlineMathWithParens.configure({ katexOptions: { throwOnError: false } }),
       BlockMathWithBrackets.configure({ katexOptions: { throwOnError: false } }),
       /* tables */
       import_extension_table2.Table.configure({
@@ -4709,12 +4679,14 @@ var TiptapEditor_default = TiptapEditor;
   EquationInsertPanel,
   ExplanationEditor,
   InlineMathWithMathLive,
+  InlineMathWithParens,
   MathLiveEditor,
   MathematicsWithInlineEdit,
   MenuBar,
   OverleafPaste,
   SmartMathPaste,
   TextStyleFontSize,
-  TiptapEditor
+  TiptapEditor,
+  handleMathBackspaceKeyDown
 });
 //# sourceMappingURL=index.js.map

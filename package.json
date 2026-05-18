@@ -1,6 +1,6 @@
 {
     "name": "@huoncroll/math-editors",
-    "version": "1.0.18",
+    "version": "1.0.21",
     "description": "MathLiveEditor, ExplanationEditor, and TiptapEditor with inline math - shared across Huons repos",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
@@ -10,13 +10,14 @@
             "import": "./dist/index.mjs",
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
-        }
+        },
+        "./dist/index.css": "./dist/index.css"
     },
     "files": [
         "dist"
     ],
     "scripts": {
-        "build": "tsup",
+        "build": "tsup && node -e \"require('fs').copyFileSync('src/styles/tiptap.css','dist/index.css')\"",
         "dev": "tsup src/index.tsx --format cjs,esm --dts --watch"
     },
     "peerDependencies": {

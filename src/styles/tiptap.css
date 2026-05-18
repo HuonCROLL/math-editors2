@@ -5,6 +5,34 @@
 .tiptap .ProseMirror-focused {
   outline: none;
   padding: 7px;
+  position: relative;
+}
+
+.tiptap .ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+  margin: 0;
+}
+
+.tiptap .ProseMirror-gapcursor:after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 28px;
+  border-top: 2px solid #1976d2;
+  animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+
+.tiptap .ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+
+@keyframes ProseMirror-cursor-blink {
+  to {
+    visibility: hidden;
+  }
 }
 
 /* ───────────────────────────────
@@ -120,6 +148,24 @@ question { display: block; }
   text-align: center;
 }
 
+.tiptap .ProseMirror-selectednode.tiptap-block-math-with-edit {
+  outline: 2px solid #1976d2;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.tiptap .ProseMirror-selectednode.tiptap-inline-math-wrapper {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 4px;
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.tiptap .ProseMirror-selectednode.tiptap-inline-math-wrapper:has(math-field) {
+  outline: none;
+  background: transparent;
+}
+
 /* Error styling (with fallbacks if CSS vars aren’t set) */
 .tiptap .inline-math-error,
 .tiptap .block-math-error {
@@ -197,4 +243,13 @@ question { display: block; }
   outline: 2px dashed rgba(0,0,0,.45);
   outline-offset: 3px;         /* keeps layout stable */
   border-radius: 6px;          /* slightly rounds outline corners */
+}
+
+/* MathLive: soft term selection in light UIs (mathlive 0.106+ dark-mode vars are too harsh) */
+math-field,
+math-field.mathlive-editor-standalone {
+  color-scheme: light;
+  --selection-background-color: hsl(210, 65%, 88%);
+  --contains-highlight-background-color: hsl(210, 40%, 94%);
+  --selection-color: #111827;
 }

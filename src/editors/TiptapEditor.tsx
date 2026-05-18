@@ -8,7 +8,7 @@ import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
-import { InlineMath } from '@tiptap/extension-mathematics';
+import { InlineMathWithParens } from '../extensions/InlineMathWithParens';
 import { BlockMathWithBrackets } from '../extensions/MathematicsWithInlineEdit';
 import { OverleafPaste } from '../extensions/OverleafPaste';
 import { SmartMathPaste } from '../extensions/SmartMathPaste';
@@ -57,11 +57,11 @@ const TiptapEditor: React.FC<Props> = ({
       /* images */
       ImageResize,
 
-      /* smart‑paste for Overleaf tabular */
+      /* smart-paste for Overleaf tabular and math delimiters */
       OverleafPaste,
       SmartMathPaste,
 
-      InlineMath.configure({ katexOptions: { throwOnError: false } }),
+      InlineMathWithParens.configure({ katexOptions: { throwOnError: false } }),
       BlockMathWithBrackets.configure({ katexOptions: { throwOnError: false } }),
 
       /* tables */

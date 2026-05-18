@@ -2,8 +2,13 @@ import { Extension, InputRule } from '@tiptap/core';
 import { BlockMath } from '@tiptap/extension-mathematics';
 import type { MathematicsOptions } from '@tiptap/extension-mathematics';
 import { InlineMathWithMathLive } from './InlineMathWithMathLive';
+import { SmartMathPaste } from './SmartMathPaste';
 
 export const BlockMathWithBrackets = BlockMath.extend({
+  addPasteRules() {
+    return [];
+  },
+
   addInputRules() {
     return [
       new InputRule({
@@ -42,6 +47,7 @@ export const MathematicsWithInlineEdit = Extension.create<MathematicsOptions>({
 
   addExtensions() {
     return [
+      SmartMathPaste,
       BlockMathWithBrackets.configure({
         ...this.options.blockOptions,
         katexOptions: this.options.katexOptions,
