@@ -144,7 +144,7 @@ const MathLiveEditor: React.FC<Props> = ({
             maxHeight: `${maxHeightPx}px`,
             border: '1px solid #ccc',
             borderRadius: 8,
-            padding: '6px 74px 6px 10px',
+            padding: '6px 62px 6px 10px',
             overflowX: 'auto',
             overflowY: 'auto',
           }}
