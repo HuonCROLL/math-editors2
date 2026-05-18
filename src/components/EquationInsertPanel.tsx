@@ -11,11 +11,10 @@ const SNIPPETS: Snippet[] = [
   { label: 'xⁿ', latex: 'x^{a}' },
   { label: '÷', latex: '\\div' },
   { label: '√', latex: '\\sqrt{}' },
+  { label: 'ⁿ√', latex: '\\sqrt[n]{}' },
   { label: 'a⁄b', latex: '\\frac{a}{b}' },
   { label: 'π', latex: '\\pi' },
   { label: 'θ', latex: '\\theta' },
-  { label: 'Δ', latex: '\\Delta' },
-  { label: 'Σ', latex: '\\Sigma' },
   { label: '≤', latex: '\\leq' },
   { label: '≥', latex: '\\geq' },
 ];

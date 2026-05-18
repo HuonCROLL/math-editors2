@@ -14,11 +14,10 @@ var SNIPPETS = [
   { label: "x\u207F", latex: "x^{a}" },
   { label: "\xF7", latex: "\\div" },
   { label: "\u221A", latex: "\\sqrt{}" },
+  { label: "\u207F\u221A", latex: "\\sqrt[n]{}" },
   { label: "a\u2044b", latex: "\\frac{a}{b}" },
   { label: "\u03C0", latex: "\\pi" },
   { label: "\u03B8", latex: "\\theta" },
-  { label: "\u0394", latex: "\\Delta" },
-  { label: "\u03A3", latex: "\\Sigma" },
   { label: "\u2264", latex: "\\leq" },
   { label: "\u2265", latex: "\\geq" }
 ];
@@ -3671,11 +3670,10 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
           { label: "x\u207F", latex: "x^{a}" },
           { label: "\xF7", latex: "\\div" },
           { label: "\u221A", latex: "\\sqrt{}" },
+          { label: "\u207F\u221A", latex: "\\sqrt[n]{}" },
           { label: "a\u2044b", latex: "\\frac{a}{b}" },
           { label: "\u03C0", latex: "\\pi" },
           { label: "\u03B8", latex: "\\theta" },
-          { label: "\u0394", latex: "\\Delta" },
-          { label: "\u03A3", latex: "\\Sigma" },
           { label: "\u2264", latex: "\\leq" },
           { label: "\u2265", latex: "\\geq" }
         ];
