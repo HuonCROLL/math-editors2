@@ -7,9 +7,11 @@ const SNIPPETS: Snippet[] = [
   { label: '+', latex: '+' },
   { label: '−', latex: '-' },
   { label: '×', latex: '\\times' },
+  { label: 'x²', latex: '\\x^2' },
+  { label: 'xⁿ', latex: '\\x^a' },
   { label: '÷', latex: '\\div' },
   { label: '√', latex: '\\sqrt{}' },
-  { label: 'a/b', latex: '\\frac{a}{b}' },
+  { label: '□⁄□', latex: '\\frac{}{}' },
   { label: 'π', latex: '\\pi' },
   { label: 'θ', latex: '\\theta' },
   { label: 'Δ', latex: '\\Delta' },
@@ -30,7 +32,6 @@ const TRIGONOMETRY: Snippet[] = [
 const CALCULUS: Snippet[] = [
   { label: 'd/dx', latex: '\\frac{d}{dx}' }, { label: '∂/∂x', latex: '\\frac{\\partial}{\\partial x}' },
   { label: '∫', latex: '\\int' }, { label: '∫∫', latex: '\\iint' },
-  { label: '∬∬', latex: '\\iiint' }, { label: '∏', latex: '\\prod_{i=1}^{n}' },
   { label: 'lim', latex: '\\lim_{x \\to \\infty}' }, { label: '∫_a^b', latex: '\\int_{a}^{b}' },
   { label: 'log', latex: '\\log' }, { label: 'ln', latex: '\\ln' },
   { label: 'exp', latex: '\\exp' },
@@ -45,24 +46,12 @@ const GREEK: Snippet[] = [
   { label: 'φ', latex: '\\phi' }, { label: 'ω', latex: '\\omega' },
   { label: 'Ω', latex: '\\Omega' }, { label: 'Δ', latex: '\\Delta' },
   { label: 'Σ', latex: '\\Sigma' }, { label: '∞', latex: '\\infty' },
-  { label: 'ℝ', latex: '\\mathbb{R}' }, { label: 'ℕ', latex: '\\mathbb{N}' },
-  { label: 'ℤ', latex: '\\mathbb{Z}' },
-];
-
-const CHEMISTRY: Snippet[] = [
-  { label: 'H₂O', latex: '\\mathrm{H_2O}' }, { label: 'CO₂', latex: '\\mathrm{CO_2}' },
-  { label: 'NaCl', latex: '\\mathrm{NaCl}' }, { label: 'O₂', latex: '\\mathrm{O_2}' },
-  { label: '→', latex: '\\rightarrow' }, { label: '⇌', latex: '\\rightleftharpoons' },
-  { label: 'ΔH', latex: '\\Delta H' }, { label: 'mol', latex: '\\mathrm{mol}' },
-  { label: 'aq', latex: '\\mathrm{(aq)}' }, { label: 's', latex: '\\mathrm{(s)}' },
-  { label: 'l', latex: '\\mathrm{(l)}' }, { label: 'g', latex: '\\mathrm{(g)}' },
 ];
 
 const CATEGORIES: { label: string; snippets: Snippet[] }[] = [
   { label: 'Trig', snippets: TRIGONOMETRY },
   { label: 'Calc', snippets: CALCULUS },
   { label: 'Greek', snippets: GREEK },
-  { label: 'Chem', snippets: CHEMISTRY },
 ];
 
 const btnStyle: React.CSSProperties = {

@@ -12,7 +12,7 @@ var SNIPPETS = [
   { label: "\xD7", latex: "\\times" },
   { label: "\xF7", latex: "\\div" },
   { label: "\u221A", latex: "\\sqrt{}" },
-  { label: "a/b", latex: "\\frac{a}{b}" },
+  { label: "a/b", latex: "\\frac{}{}" },
   { label: "\u03C0", latex: "\\pi" },
   { label: "\u03B8", latex: "\\theta" },
   { label: "\u0394", latex: "\\Delta" },
@@ -39,8 +39,6 @@ var CALCULUS = [
   { label: "\u2202/\u2202x", latex: "\\frac{\\partial}{\\partial x}" },
   { label: "\u222B", latex: "\\int" },
   { label: "\u222B\u222B", latex: "\\iint" },
-  { label: "\u222C\u222C", latex: "\\iiint" },
-  { label: "\u220F", latex: "\\prod_{i=1}^{n}" },
   { label: "lim", latex: "\\lim_{x \\to \\infty}" },
   { label: "\u222B_a^b", latex: "\\int_{a}^{b}" },
   { label: "log", latex: "\\log" },
@@ -63,30 +61,12 @@ var GREEK = [
   { label: "\u03A9", latex: "\\Omega" },
   { label: "\u0394", latex: "\\Delta" },
   { label: "\u03A3", latex: "\\Sigma" },
-  { label: "\u221E", latex: "\\infty" },
-  { label: "\u211D", latex: "\\mathbb{R}" },
-  { label: "\u2115", latex: "\\mathbb{N}" },
-  { label: "\u2124", latex: "\\mathbb{Z}" }
-];
-var CHEMISTRY = [
-  { label: "H\u2082O", latex: "\\mathrm{H_2O}" },
-  { label: "CO\u2082", latex: "\\mathrm{CO_2}" },
-  { label: "NaCl", latex: "\\mathrm{NaCl}" },
-  { label: "O\u2082", latex: "\\mathrm{O_2}" },
-  { label: "\u2192", latex: "\\rightarrow" },
-  { label: "\u21CC", latex: "\\rightleftharpoons" },
-  { label: "\u0394H", latex: "\\Delta H" },
-  { label: "mol", latex: "\\mathrm{mol}" },
-  { label: "aq", latex: "\\mathrm{(aq)}" },
-  { label: "s", latex: "\\mathrm{(s)}" },
-  { label: "l", latex: "\\mathrm{(l)}" },
-  { label: "g", latex: "\\mathrm{(g)}" }
+  { label: "\u221E", latex: "\\infty" }
 ];
 var CATEGORIES = [
   { label: "Trig", snippets: TRIGONOMETRY },
   { label: "Calc", snippets: CALCULUS },
-  { label: "Greek", snippets: GREEK },
-  { label: "Chem", snippets: CHEMISTRY }
+  { label: "Greek", snippets: GREEK }
 ];
 var btnStyle = {
   minWidth: 44,
@@ -332,7 +312,7 @@ var MathLiveEditor = ({
                     maxHeight: `${maxHeightPx}px`,
                     border: "1px solid #ccc",
                     borderRadius: 8,
-                    padding: "6px 58px 6px 10px",
+                    padding: "6px 90px 6px 10px",
                     overflowX: "auto",
                     overflowY: "auto"
                   }
@@ -3757,7 +3737,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
           { label: "\u2115", latex: "\\mathbb{N}" },
           { label: "\u2124", latex: "\\mathbb{Z}" }
         ];
-        const CHEMISTRY2 = [
+        const CHEMISTRY = [
           { label: "H\u2082O", latex: "\\mathrm{H_2O}" },
           { label: "CO\u2082", latex: "\\mathrm{CO_2}" },
           { label: "NaCl", latex: "\\mathrm{NaCl}" },
@@ -3775,7 +3755,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
           { label: "Trig", snippets: TRIGONOMETRY2 },
           { label: "Calc", snippets: CALCULUS2 },
           { label: "Greek", snippets: GREEK2 },
-          { label: "Chem", snippets: CHEMISTRY2 }
+          { label: "Chem", snippets: CHEMISTRY }
         ];
         const expandable = document.createElement("div");
         expandable.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
