@@ -7,8 +7,8 @@ const SNIPPETS: Snippet[] = [
   { label: '+', latex: '+' },
   { label: '−', latex: '-' },
   { label: '×', latex: '\\times' },
-  { label: 'x²', latex: '\\x^2' },
-  { label: 'xⁿ', latex: '\\x^a' },
+  { label: 'x²', latex: 'x^{2}' },
+  { label: 'xⁿ', latex: 'x^{a}' },
   { label: '÷', latex: '\\div' },
   { label: '√', latex: '\\sqrt{}' },
   { label: '□⁄□', latex: '\\frac{}{}' },
@@ -31,10 +31,10 @@ const TRIGONOMETRY: Snippet[] = [
 
 const CALCULUS: Snippet[] = [
   { label: 'd/dx', latex: '\\frac{d}{dx}' }, { label: '∂/∂x', latex: '\\frac{\\partial}{\\partial x}' },
-  { label: '∫', latex: '\\int' }, { label: '∫∫', latex: '\\iint' },
-  { label: 'lim', latex: '\\lim_{x \\to \\infty}' }, { label: '∫_a^b', latex: '\\int_{a}^{b}' },
-  { label: 'log', latex: '\\log' }, { label: 'ln', latex: '\\ln' },
-  { label: 'exp', latex: '\\exp' },
+  { label: '∫', latex: '\\int' }, { label: '∫ₐᵇ', latex: '\\int_{a}^{b}' },
+  { label: '[ ]ₐᵇ', latex: '\\left[\\right]_{a}^{b}' }, { label: 'lim', latex: '\\lim_{x \\to \\infty}' },
+  { label: 'log₁₀', latex: '\\log_{10}' }, { label: 'logₐ', latex: '\\log_{a}' },
+  { label: 'ln', latex: '\\ln' }, { label: 'exp', latex: '\\exp' },
 ];
 
 const GREEK: Snippet[] = [
