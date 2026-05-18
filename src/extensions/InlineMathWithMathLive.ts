@@ -146,6 +146,16 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
             mf.blur();
             return;
           }
+          if (e.key === ' ' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            if (placeholderLatex && (mf as any).value === placeholderLatex) {
+              (mf as any).value = '';
+            }
+            try {
+              (mf as any).insert?.('\\;') ?? (mf as any).executeCommand?.(['insert', '\\;']);
+            } catch (_) {}
+            return;
+          }
           // Single input replaces placeholder
           if (placeholderLatex && (mf as any).value === placeholderLatex) {
             if (e.key === 'Backspace' || e.key === 'Delete') {

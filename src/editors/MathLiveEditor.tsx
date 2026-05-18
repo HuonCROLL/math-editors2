@@ -82,12 +82,19 @@ const MathLiveEditor: React.FC<Props> = ({
     const mathField = mathFieldRef.current;
     if (!mathField) return undefined;
 
+    const insertMathSpace = (event: KeyboardEvent) => {
+      if (event.key !== ' ' || event.ctrlKey || event.metaKey || event.altKey) return;
+      event.preventDefault();
+      (mathField as any).insert?.('\\;') ?? (mathField as any).executeCommand?.(['insert', '\\;']);
+    };
     const handleInput = () => {
       onChange(mathField.value ?? '');
     };
 
+    mathField.addEventListener('keydown', insertMathSpace);
     mathField.addEventListener('input', handleInput);
     return () => {
+      mathField.removeEventListener('keydown', insertMathSpace);
       mathField.removeEventListener('input', handleInput);
     };
   }, [onChange]);

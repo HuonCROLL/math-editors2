@@ -297,11 +297,18 @@ var MathLiveEditor = ({
   (0, import_react2.useEffect)(() => {
     const mathField = mathFieldRef.current;
     if (!mathField) return void 0;
+    const insertMathSpace = (event) => {
+      if (event.key !== " " || event.ctrlKey || event.metaKey || event.altKey) return;
+      event.preventDefault();
+      mathField.insert?.("\\;") ?? mathField.executeCommand?.(["insert", "\\;"]);
+    };
     const handleInput = () => {
       onChange(mathField.value ?? "");
     };
+    mathField.addEventListener("keydown", insertMathSpace);
     mathField.addEventListener("input", handleInput);
     return () => {
+      mathField.removeEventListener("keydown", insertMathSpace);
       mathField.removeEventListener("input", handleInput);
     };
   }, [onChange]);
@@ -3653,6 +3660,17 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
             e.preventDefault();
             mf.value = node.attrs.latex || "";
             mf.blur();
+            return;
+          }
+          if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            if (placeholderLatex && mf.value === placeholderLatex) {
+              mf.value = "";
+            }
+            try {
+              mf.insert?.("\\;") ?? mf.executeCommand?.(["insert", "\\;"]);
+            } catch (_) {
+            }
             return;
           }
           if (placeholderLatex && mf.value === placeholderLatex) {
