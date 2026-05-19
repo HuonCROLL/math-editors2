@@ -112,10 +112,29 @@ var GREEK = [
   { label: "\u03A3", latex: "\\Sigma" },
   { label: "\u221E", latex: "\\infty" }
 ];
+var UNITS = [
+  { label: "$", latex: "\\$" },
+  { label: "%", latex: "\\%" },
+  { label: "\xB0", latex: "\\degree" },
+  { label: "\xB0C", latex: "\\degree\\mathrm{C}" },
+  { label: "mm\xB2", latex: "\\mathrm{mm}^2" },
+  { label: "cm\xB2", latex: "\\mathrm{cm}^2" },
+  { label: "m\xB2", latex: "\\mathrm{m}^2" },
+  { label: "km\xB2", latex: "\\mathrm{km}^2" },
+  { label: "mm\xB3", latex: "\\mathrm{mm}^3" },
+  { label: "cm\xB3", latex: "\\mathrm{cm}^3" },
+  { label: "m\xB3", latex: "\\mathrm{m}^3" },
+  { label: "km\xB3", latex: "\\mathrm{km}^3" },
+  { label: "m/s\xB2", latex: "\\mathrm{m}/\\mathrm{s}^2" },
+  { label: "\u03A9", latex: "\\Omega" },
+  { label: "\u03BCm", latex: "\\mu\\mathrm{m}" },
+  { label: "\u03BCL", latex: "\\mu\\mathrm{L}" }
+];
 var CATEGORIES = [
   { label: "Trig", snippets: TRIGONOMETRY },
   { label: "Calc", snippets: CALCULUS },
-  { label: "Greek", snippets: GREEK }
+  { label: "Greek", snippets: GREEK },
+  { label: "Units", snippets: UNITS }
 ];
 var btnStyle = {
   minWidth: 44,

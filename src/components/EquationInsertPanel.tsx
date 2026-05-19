@@ -47,10 +47,30 @@ const GREEK: Snippet[] = [
   { label: 'Σ', latex: '\\Sigma' }, { label: '∞', latex: '\\infty' },
 ];
 
+const UNITS: Snippet[] = [
+  { label: '$', latex: '\\$' },
+  { label: '%', latex: '\\%' },
+  { label: '°', latex: '\\degree' },
+  { label: '°C', latex: '\\degree\\mathrm{C}' },
+  { label: 'mm²', latex: '\\mathrm{mm}^2' },
+  { label: 'cm²', latex: '\\mathrm{cm}^2' },
+  { label: 'm²', latex: '\\mathrm{m}^2' },
+  { label: 'km²', latex: '\\mathrm{km}^2' },
+  { label: 'mm³', latex: '\\mathrm{mm}^3' },
+  { label: 'cm³', latex: '\\mathrm{cm}^3' },
+  { label: 'm³', latex: '\\mathrm{m}^3' },
+  { label: 'km³', latex: '\\mathrm{km}^3' },
+  { label: 'm/s²', latex: '\\mathrm{m}/\\mathrm{s}^2' },
+  { label: 'Ω', latex: '\\Omega' },
+  { label: 'μm', latex: '\\mu\\mathrm{m}' },
+  { label: 'μL', latex: '\\mu\\mathrm{L}' },
+];
+
 const CATEGORIES: { label: string; snippets: Snippet[] }[] = [
   { label: 'Trig', snippets: TRIGONOMETRY },
   { label: 'Calc', snippets: CALCULUS },
   { label: 'Greek', snippets: GREEK },
+  { label: 'Units', snippets: UNITS },
 ];
 
 const btnStyle: React.CSSProperties = {
