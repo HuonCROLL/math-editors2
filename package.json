@@ -1,6 +1,6 @@
 {
     "name": "@huoncroll/math-editors",
-    "version": "1.0.32",
+    "version": "1.0.35",
     "description": "MathLiveEditor, ExplanationEditor, and TiptapEditor with inline math - shared across Huons repos",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
@@ -10,6 +10,16 @@
             "import": "./dist/index.mjs",
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
+        },
+        "./preview": {
+            "import": "./dist/preview.mjs",
+            "require": "./dist/preview.js",
+            "types": "./dist/preview.d.ts"
+        },
+        "./chem-teaching-diagram": {
+            "import": "./dist/chemTeachingDiagram.mjs",
+            "require": "./dist/chemTeachingDiagram.js",
+            "types": "./dist/chemTeachingDiagram.d.ts"
         },
         "./dist/index.css": "./dist/index.css"
     },
@@ -35,13 +45,23 @@
         "@tiptap/extension-text-style": "^2.0.0 || ^3.0.0",
         "@tiptap/react": "^2.0.0 || ^3.0.0",
         "@tiptap/starter-kit": "^2.0.0 || ^3.0.0",
+        "dompurify": "^3.0.0",
         "katex": "^0.16.0",
+        "ketcher-core": "^3.12.0",
+        "ketcher-react": "^3.12.0",
+        "ketcher-standalone": "^3.12.0",
+        "jsxgraph": "^1.10.1",
         "mathlive": ">=0.100.0 <1.0.0",
-        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
-        "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0",
         "tiptap-extension-resize-image": "^1.0.0"
     },
     "devDependencies": {
+        "ketcher-core": "^3.12.0",
+        "ketcher-react": "^3.12.0",
+        "ketcher-standalone": "^3.12.0",
+        "dompurify": "^3.2.6",
+        "jsxgraph": "^1.10.1",
         "@types/katex": "^0.16.0",
         "@types/react": "^18.0.0 || ^19.0.0",
         "@types/react-dom": "^18.0.0 || ^19.0.0",

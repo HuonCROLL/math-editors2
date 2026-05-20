@@ -15,6 +15,127 @@
   margin: 0;
 }
 
+/* Chemical structure inline nodes */
+.chem-structure-node {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 2px;
+  line-height: 0;
+}
+
+.chem-structure-preview svg {
+  max-height: 120px;
+  width: auto;
+  vertical-align: middle;
+}
+
+.richtext-with-math .chem-structure-preview svg,
+.chem-structure-preview svg {
+  max-width: 100%;
+}
+
+.chem-structure-node--missing {
+  color: #888;
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+/* Graph embed inline nodes (sized from viewport + scale ratio) */
+.graph-embed-node {
+  display: inline-block;
+  vertical-align: top;
+  margin: 8px 6px 8px 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+.graph-embed-node__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.graph-embed-node__label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.graph-embed-node__edit {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.graph-embed-node__edit:hover {
+  background: #eee;
+}
+
+.graph-embed-node__body {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.graph-embed-node__mount,
+.graph-embed-preview__mount {
+  width: 100%;
+  height: 100%;
+}
+
+/* Hydrated graph placeholders in read-only rich text / previews */
+.richtext-with-math .graph-embed-preview,
+.graph-embed-preview {
+  display: block;
+  max-width: 100%;
+  margin: 8px 0;
+}
+
+.richtext-with-math .graph-embed-preview__mount,
+.graph-embed-preview__mount {
+  min-height: 120px;
+}
+
+.richtext-with-math .graph-embed-renderer,
+.graph-embed-preview .graph-embed-renderer {
+  max-width: 100%;
+}
+
+.graph-embed-node__resize-handle {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-right: 2px solid #999;
+  border-bottom: 2px solid #999;
+  border-radius: 0 0 2px 0;
+  z-index: 2;
+}
+
+.graph-embed-node__resize-handle:hover {
+  border-color: #333;
+}
+
+.graph-embed-node--missing,
+.graph-embed-preview--missing {
+  color: #888;
+  font-style: italic;
+  padding: 16px;
+  text-align: center;
+  line-height: normal;
+}
+
 .tiptap .ProseMirror-gapcursor:after {
   content: "";
   display: block;

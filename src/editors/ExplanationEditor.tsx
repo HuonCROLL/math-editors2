@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { MathematicsWithInlineEdit } from '../extensions/MathematicsWithInlineEdit.js';
+import { ChemStructure } from '../extensions/ChemStructure.js';
 import TextAlign from '@tiptap/extension-text-align';
 import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
@@ -12,6 +13,9 @@ import { TextStyleFontSize } from '../extensions/TextStyleFontSize.js';
 import 'katex/dist/katex.min.css';
 import 'mathlive/static.css';
 import MenuBar from '../components/MenuBar.js';
+import ChemStructureDialog from '../components/ChemStructureDialogLazy.js';
+import { useChemStructureEditor } from '../hooks/useChemStructureEditor.js';
+import type { EditorEmbeds } from '../types/embeds.js';
 import { handleMathBackspaceKeyDown } from '../utils/mathBackspace.js';
 
 type Props = {
@@ -21,6 +25,8 @@ type Props = {
   toolbarMode?: 'studentSimple' | 'tutorFull';
   minHeightPx?: number;
   maxHeightPx?: number;
+  embeds?: EditorEmbeds;
+  onEmbedsChange?: (embeds: EditorEmbeds) => void;
 };
 
 const PLACEHOLDER_LATEX = '\\text{Enter Equation here}';
@@ -32,8 +38,20 @@ export default function ExplanationEditor({
   toolbarMode = 'tutorFull',
   minHeightPx = 120,
   maxHeightPx = 320,
+  embeds,
+  onEmbedsChange,
 }: Props) {
   const [, forceUpdate] = useState({});
+  const chemEditorRef = React.useRef<ReturnType<typeof useChemStructureEditor> | null>(null);
+
+  const chemExtension = useMemo(
+    () =>
+      ChemStructure.configure({
+        getEmbeds: () => chemEditorRef.current?.getEmbeds(),
+        onOpenEditor: (request) => chemEditorRef.current?.openChemEditor(request),
+      }),
+    [],
+  );
 
   const editor = useEditor({
     extensions: [
@@ -54,6 +72,7 @@ export default function ExplanationEditor({
       TableRow,
       TableHeader,
       TableCell,
+      chemExtension,
     ],
     content: value || '',
     editorProps: {
@@ -75,6 +94,19 @@ export default function ExplanationEditor({
       forceUpdate({});
     },
   });
+
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange,
+  });
+  chemEditorRef.current = chemEditor;
+
+  useEffect(() => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
 
   // Keep TipTap in sync if parent value changes externally
   useEffect(() => {
@@ -157,6 +189,21 @@ export default function ExplanationEditor({
         .tiptap-math-placeholder .katex {
           color: #999 !important;
         }
+        .chem-structure-node {
+          display: inline-block;
+          vertical-align: middle;
+          margin: 0 2px;
+        }
+        .chem-structure-preview svg {
+          max-height: 120px;
+          width: auto;
+          vertical-align: middle;
+        }
+        .chem-structure-node--missing {
+          color: #999;
+          font-style: italic;
+          font-size: 0.9em;
+        }
       `}</style>
       {/* Compact toolbar */}
       {editor && (
@@ -164,10 +211,20 @@ export default function ExplanationEditor({
           editor={editor}
           toolbarMode={toolbarMode}
           onInsertEquation={() => insertInlineMath()}
+          onInsertChemStructure={chemEditor.chemEnabled ? chemEditor.insertNewStructure : undefined}
         />
       )}
 
       <EditorContent editor={editor} />
+      {chemEditor.dialog.open && (
+        <ChemStructureDialog
+          open
+          mode={chemEditor.dialog.mode}
+          initialSourceValue={chemEditor.dialog.initialSourceValue}
+          onClose={chemEditor.closeDialog}
+          onSave={chemEditor.handleDialogSave}
+        />
+      )}
     </Box>
   );
 }

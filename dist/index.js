@@ -1,58 +1,63 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  EquationInsertPanel: () => EquationInsertPanel,
-  ExplanationEditor: () => ExplanationEditor,
-  InlineMathWithMathLive: () => InlineMathWithMathLive,
-  InlineMathWithParens: () => InlineMathWithParens,
-  MathLiveEditor: () => MathLiveEditor_default,
-  MathematicsWithInlineEdit: () => MathematicsWithInlineEdit,
-  MenuBar: () => MenuBar_default,
-  OverleafPaste: () => OverleafPaste,
-  SmartMathPaste: () => SmartMathPaste,
-  TextStyleFontSize: () => TextStyleFontSize,
-  TiptapEditor: () => TiptapEditor_default,
-  handleMathBackspaceKeyDown: () => handleMathBackspaceKeyDown
-});
-module.exports = __toCommonJS(index_exports);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var _chunkJJSHIBONjs = require('./chunk-JJSHIBON.js');
+
+
+
+
+
+
+var _chunk7H5JQALUjs = require('./chunk-7H5JQALU.js');
 
 // src/editors/MathLiveEditor.tsx
-var import_react2 = require("react");
-var import_material = require("@mui/material");
-var import_mathlive = require("mathlive");
+var _react = require('react'); var _react2 = _interopRequireDefault(_react);
+var _material = require('@mui/material');
+require('mathlive');
 
 // src/components/EquationInsertPanel.tsx
-var import_react = __toESM(require("react"));
-var import_jsx_runtime = require("react/jsx-runtime");
+
+var _jsxruntime = require('react/jsx-runtime');
 var SNIPPETS = [
   { label: "+", latex: "+" },
   { label: "\u2212", latex: "-" },
@@ -148,8 +153,8 @@ var btnStyle = {
   whiteSpace: "nowrap"
 };
 function EquationInsertPanel({ mathFieldRef, open, onClose }) {
-  const [tabIndex, setTabIndex] = (0, import_react.useState)(null);
-  (0, import_react.useEffect)(() => {
+  const [tabIndex, setTabIndex] = _react.useState.call(void 0, null);
+  _react.useEffect.call(void 0, () => {
     if (!open) return;
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -166,15 +171,15 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
       if (typeof mf.insert === "function") {
         mf.insert(latex);
       } else {
-        mf.executeCommand?.(["insert", latex]);
+        _optionalChain([mf, 'access', _2 => _2.executeCommand, 'optionalCall', _3 => _3(["insert", latex])]);
       }
-      mf.focus?.();
+      _optionalChain([mf, 'access', _4 => _4.focus, 'optionalCall', _5 => _5()]);
     } catch (_) {
     }
   };
   if (!open) return null;
-  const snippets = tabIndex === null ? [] : CATEGORIES[tabIndex]?.snippets ?? [];
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+  const snippets = tabIndex === null ? [] : _nullishCoalesce(_optionalChain([CATEGORIES, 'access', _6 => _6[tabIndex], 'optionalAccess', _7 => _7.snippets]), () => ( []));
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     "div",
     {
       className: "inline-math-insert-panel",
@@ -192,7 +197,7 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
       },
       onMouseDown: (e) => e.stopPropagation(),
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "grid", gridTemplateColumns: "repeat(6, minmax(40px, 1fr))", gap: 4 }, children: SNIPPETS.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { style: { display: "grid", gridTemplateColumns: "repeat(6, minmax(40px, 1fr))", gap: 4 }, children: SNIPPETS.map(({ label, latex }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
           "button",
           {
             type: "button",
@@ -205,9 +210,9 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
           },
           `${label}-${latex}`
         )) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap" }, children: CATEGORIES.map((cat, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.default.Fragment, { children: [
-          i > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { color: "#999", fontSize: 12 }, children: "|" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap" }, children: CATEGORIES.map((cat, i) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _react2.default.Fragment, { children: [
+          i > 0 && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { style: { color: "#999", fontSize: 12 }, children: "|" }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
             "button",
             {
               type: "button",
@@ -228,7 +233,7 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
             }
           )
         ] }, cat.label)) }),
-        tabIndex !== null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        tabIndex !== null && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
           "div",
           {
             style: {
@@ -238,7 +243,7 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
               maxHeight: 120,
               overflowY: "auto"
             },
-            children: snippets.map(({ label, latex }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            children: snippets.map(({ label, latex }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
               "button",
               {
                 type: "button",
@@ -259,7 +264,7 @@ function EquationInsertPanel({ mathFieldRef, open, onClose }) {
 }
 
 // src/editors/MathLiveEditor.tsx
-var import_jsx_runtime2 = require("react/jsx-runtime");
+
 var MathLiveEditor = ({
   value,
   onChange,
@@ -268,15 +273,15 @@ var MathLiveEditor = ({
   minHeightPx = 48,
   maxHeightPx = 120
 }) => {
-  const mathFieldRef = (0, import_react2.useRef)(null);
-  const containerRef = (0, import_react2.useRef)(null);
-  const panelWrapperRef = (0, import_react2.useRef)(null);
-  const insertButtonRef = (0, import_react2.useRef)(null);
-  const [panelOpen, setPanelOpen] = (0, import_react2.useState)(false);
-  const [mathFieldWidth, setMathFieldWidth] = (0, import_react2.useState)(null);
-  const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (value ?? "").length * 11));
+  const mathFieldRef = _react.useRef.call(void 0, null);
+  const containerRef = _react.useRef.call(void 0, null);
+  const panelWrapperRef = _react.useRef.call(void 0, null);
+  const insertButtonRef = _react.useRef.call(void 0, null);
+  const [panelOpen, setPanelOpen] = _react.useState.call(void 0, false);
+  const [mathFieldWidth, setMathFieldWidth] = _react.useState.call(void 0, null);
+  const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (_nullishCoalesce(value, () => ( ""))).length * 11));
   const resolvedMathFieldWidth = mathFieldWidth ? Math.min(mathFieldWidth, estimatedContentWidth) : estimatedContentWidth;
-  (0, import_react2.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     if (!panelOpen) return void 0;
     const handleClickOutside = (event) => {
       const container = containerRef.current;
@@ -287,7 +292,7 @@ var MathLiveEditor = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [panelOpen]);
-  (0, import_react2.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     const container = containerRef.current;
     if (!container) return void 0;
     const updateEditorWidth = () => {
@@ -305,24 +310,24 @@ var MathLiveEditor = ({
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
   }, [minWidthPercent, minWidthPx]);
-  (0, import_react2.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     const mathField = mathFieldRef.current;
     if (!mathField) return;
-    const nextVal = value ?? "";
+    const nextVal = _nullishCoalesce(value, () => ( ""));
     if (mathField.value !== nextVal) {
       mathField.value = nextVal;
     }
   }, [value]);
-  (0, import_react2.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     const mathField = mathFieldRef.current;
     if (!mathField) return void 0;
     const insertMathSpace = (event) => {
       if (event.key !== " " || event.ctrlKey || event.metaKey || event.altKey) return;
       event.preventDefault();
-      mathField.insert?.("\\;") ?? mathField.executeCommand?.(["insert", "\\;"]);
+      _nullishCoalesce(_optionalChain([mathField, 'access', _8 => _8.insert, 'optionalCall', _9 => _9("\\;")]), () => ( _optionalChain([mathField, 'access', _10 => _10.executeCommand, 'optionalCall', _11 => _11(["insert", "\\;"])])));
     };
     const handleInput = () => {
-      onChange(mathField.value ?? "");
+      onChange(_nullishCoalesce(mathField.value, () => ( "")));
     };
     mathField.addEventListener("keydown", insertMathSpace);
     mathField.addEventListener("input", handleInput);
@@ -331,8 +336,8 @@ var MathLiveEditor = ({
       mathField.removeEventListener("input", handleInput);
     };
   }, [onChange]);
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
-    import_material.Box,
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+    _material.Box,
     {
       ref: containerRef,
       sx: {
@@ -343,7 +348,7 @@ var MathLiveEditor = ({
         maxWidth: "100%"
       },
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("style", { children: `
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "style", { children: `
         .mathlive-editor-standalone::part(virtual-keyboard-toggle) {
           display: none;
         }
@@ -361,8 +366,8 @@ var MathLiveEditor = ({
           align-items: center;
         }
       ` }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
-          import_material.Box,
+        /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+          _material.Box,
           {
             sx: {
               position: "relative",
@@ -372,7 +377,7 @@ var MathLiveEditor = ({
               flex: "0 1 auto"
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                 "math-field",
                 {
                   ref: mathFieldRef,
@@ -393,8 +398,8 @@ var MathLiveEditor = ({
                   }
                 }
               ),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_material.Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-                import_material.Box,
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: "Insert equation symbols", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _material.Box,
                 {
                   component: "button",
                   ref: insertButtonRef,
@@ -427,8 +432,8 @@ var MathLiveEditor = ({
                   children: "f(x)"
                 }
               ) }),
-              panelOpen && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-                import_material.Box,
+              panelOpen && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _material.Box,
                 {
                   ref: panelWrapperRef,
                   sx: {
@@ -439,7 +444,7 @@ var MathLiveEditor = ({
                     width: "100%",
                     minWidth: 280
                   },
-                  children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+                  children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                     EquationInsertPanel,
                     {
                       mathFieldRef,
@@ -459,20 +464,20 @@ var MathLiveEditor = ({
 var MathLiveEditor_default = MathLiveEditor;
 
 // src/editors/ExplanationEditor.tsx
-var import_react4 = require("react");
-var import_material3 = require("@mui/material");
-var import_react5 = require("@tiptap/react");
-var import_starter_kit = __toESM(require("@tiptap/starter-kit"));
+
+
+var _react3 = require('@tiptap/react');
+var _starterkit = require('@tiptap/starter-kit'); var _starterkit2 = _interopRequireDefault(_starterkit);
 
 // src/extensions/MathematicsWithInlineEdit.ts
-var import_core3 = require("@tiptap/core");
-var import_extension_mathematics2 = require("@tiptap/extension-mathematics");
+var _core = require('@tiptap/core');
+var _extensionmathematics = require('@tiptap/extension-mathematics');
 
 // src/extensions/InlineMathWithMathLive.ts
-var import_katex = __toESM(require("katex"));
+var _katex = require('katex'); var _katex2 = _interopRequireDefault(_katex);
 
 // src/extensions/InlineMathWithParens.ts
-var import_core = require("@tiptap/core");
+
 
 // node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a, b, pos) {
@@ -3541,14 +3546,14 @@ var PluginKey = class {
 };
 
 // src/extensions/InlineMathWithParens.ts
-var import_extension_mathematics = require("@tiptap/extension-mathematics");
-var InlineMathWithParens = import_extension_mathematics.InlineMath.extend({
+
+var InlineMathWithParens = _extensionmathematics.InlineMath.extend({
   addPasteRules() {
     return [];
   },
   addInputRules() {
     return [
-      new import_core.InputRule({
+      new (0, _core.InputRule)({
         find: /\\\((.+?)\\\)$/,
         handler: ({ state, range, match }) => {
           const latex = (match[1] || "").trim();
@@ -3565,11 +3570,11 @@ var InlineMathWithParens = import_extension_mathematics.InlineMath.extend({
 });
 
 // src/extensions/InlineMathWithMathLive.ts
-var import_mathlive2 = require("mathlive");
+
 var InlineMathWithMathLive = InlineMathWithParens.extend({
   addOptions() {
     return {
-      ...this.parent?.(),
+      ..._optionalChain([this, 'access', _12 => _12.parent, 'optionalCall', _13 => _13()]),
       placeholderLatex: void 0
     };
   },
@@ -3597,11 +3602,11 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
           span.classList.add("tiptap-math-placeholder");
         }
         try {
-          import_katex.default.render(latex || "\\ ", span, {
+          _katex2.default.render(latex || "\\ ", span, {
             ...katexOptions,
             throwOnError: false
           });
-        } catch {
+        } catch (e3) {
           span.textContent = latex || "?";
           span.classList.add("inline-math-error");
         }
@@ -3687,7 +3692,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
               mf.value = "";
             }
             try {
-              mf.insert?.("\\;") ?? mf.executeCommand?.(["insert", "\\;"]);
+              _nullishCoalesce(_optionalChain([mf, 'access', _14 => _14.insert, 'optionalCall', _15 => _15("\\;")]), () => ( _optionalChain([mf, 'access', _16 => _16.executeCommand, 'optionalCall', _17 => _17(["insert", "\\;"])])));
             } catch (_) {
             }
             return;
@@ -3702,7 +3707,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
               e.preventDefault();
               mf.value = "";
               try {
-                mf.insert?.(e.key) ?? mf.executeCommand?.(["insert", e.key]);
+                _nullishCoalesce(_optionalChain([mf, 'access', _18 => _18.insert, 'optionalCall', _19 => _19(e.key)]), () => ( _optionalChain([mf, 'access', _20 => _20.executeCommand, 'optionalCall', _21 => _21(["insert", e.key])])));
               } catch (_) {
               }
               return;
@@ -3729,7 +3734,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
             if (typeof mf.insert === "function") {
               mf.insert(latex2);
             } else {
-              mf.executeCommand?.(["insert", latex2]);
+              _optionalChain([mf, 'access', _22 => _22.executeCommand, 'optionalCall', _23 => _23(["insert", latex2])]);
             }
             mf.focus();
           } catch (_) {
@@ -3926,21 +3931,21 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
         };
         const scrollParent = wrapper.closest(".tiptap-editor");
         const handleReposition = () => positionPanel();
-        scrollParent?.addEventListener("scroll", handleReposition);
+        _optionalChain([scrollParent, 'optionalAccess', _24 => _24.addEventListener, 'call', _25 => _25("scroll", handleReposition)]);
         window.addEventListener("scroll", handleReposition, true);
         window.addEventListener("resize", handleReposition);
         mf.addEventListener("input", handleReposition);
         const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => positionPanel()) : null;
-        resizeObserver?.observe(mf);
+        _optionalChain([resizeObserver, 'optionalAccess', _26 => _26.observe, 'call', _27 => _27(mf)]);
         positionPanel();
         requestAnimationFrame(positionPanel);
         panelCleanup = () => {
           panel.remove();
-          scrollParent?.removeEventListener("scroll", handleReposition);
+          _optionalChain([scrollParent, 'optionalAccess', _28 => _28.removeEventListener, 'call', _29 => _29("scroll", handleReposition)]);
           window.removeEventListener("scroll", handleReposition, true);
           window.removeEventListener("resize", handleReposition);
           mf.removeEventListener("input", handleReposition);
-          resizeObserver?.disconnect();
+          _optionalChain([resizeObserver, 'optionalAccess', _30 => _30.disconnect, 'call', _31 => _31()]);
         };
         mathField = mf;
         mf.focus();
@@ -3949,7 +3954,7 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
           if (placeholderLatex && latex === placeholderLatex) {
             requestAnimationFrame(() => {
               try {
-                mf.executeCommand?.("selectAll");
+                _optionalChain([mf, 'access', _32 => _32.executeCommand, 'optionalCall', _33 => _33("selectAll")]);
               } catch (_) {
               }
             });
@@ -3986,8 +3991,8 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
             window.clearTimeout(pendingFinishTimeout);
           }
           wrapper.removeEventListener("pointerdown", handleWrapperPointerDown);
-          mathField?.removeEventListener("blur", () => {
-          });
+          _optionalChain([mathField, 'optionalAccess', _34 => _34.removeEventListener, 'call', _35 => _35("blur", () => {
+          })]);
         }
       };
     };
@@ -3995,8 +4000,8 @@ var InlineMathWithMathLive = InlineMathWithParens.extend({
 });
 
 // src/extensions/SmartMathPaste.ts
-var import_core2 = require("@tiptap/core");
-var SmartMathPaste = import_core2.Extension.create({
+
+var SmartMathPaste = _core.Extension.create({
   name: "smartMathPaste",
   addProseMirrorPlugins() {
     const editor = this.editor;
@@ -4005,7 +4010,7 @@ var SmartMathPaste = import_core2.Extension.create({
         key: new PluginKey("smartMathPaste"),
         props: {
           handlePaste(_view, event) {
-            const plain = event.clipboardData?.getData("text/plain") ?? "";
+            const plain = _nullishCoalesce(_optionalChain([event, 'access', _36 => _36.clipboardData, 'optionalAccess', _37 => _37.getData, 'call', _38 => _38("text/plain")]), () => ( ""));
             if (!plain.includes("\\[") && !plain.includes("\\(")) return false;
             const delimiterPattern = /\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)/g;
             if (!delimiterPattern.test(plain)) return false;
@@ -4018,7 +4023,7 @@ var SmartMathPaste = import_core2.Extension.create({
               editor.commands.insertContent(plain);
               return true;
             }
-            const hasAttr = (nodeName, attrName) => Object.prototype.hasOwnProperty.call(editor.schema.nodes[nodeName].spec.attrs ?? {}, attrName);
+            const hasAttr = (nodeName, attrName) => Object.prototype.hasOwnProperty.call(_nullishCoalesce(editor.schema.nodes[nodeName].spec.attrs, () => ( {})), attrName);
             const makeMathAttrs = (nodeName, latex, displayMode) => {
               const attrs = {};
               if (hasAttr(nodeName, "content")) {
@@ -4107,13 +4112,13 @@ var SmartMathPaste = import_core2.Extension.create({
 });
 
 // src/extensions/MathematicsWithInlineEdit.ts
-var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
+var BlockMathWithBrackets = _extensionmathematics.BlockMath.extend({
   addPasteRules() {
     return [];
   },
   addInputRules() {
     return [
-      new import_core3.InputRule({
+      new (0, _core.InputRule)({
         find: /\\\[(.+?)\\\]$/,
         handler: ({ state, range, match }) => {
           const latex = (match[1] || "").trim();
@@ -4125,7 +4130,7 @@ var BlockMathWithBrackets = import_extension_mathematics2.BlockMath.extend({
     ];
   }
 });
-var MathematicsWithInlineEdit = import_core3.Extension.create({
+var MathematicsWithInlineEdit = _core.Extension.create({
   name: "MathematicsWithInlineEdit",
   addOptions() {
     return {
@@ -4151,20 +4156,129 @@ var MathematicsWithInlineEdit = import_core3.Extension.create({
   }
 });
 
+// src/extensions/ChemStructure.ts
+
+var ChemStructure = _core.Node.create({
+  name: "chemStructure",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addOptions() {
+    return {
+      getEmbeds: () => void 0,
+      onOpenEditor: () => {
+      }
+    };
+  },
+  addAttributes() {
+    return {
+      structureId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-structure-id"),
+        renderHTML: (attributes) => {
+          if (!attributes.structureId) return {};
+          return { "data-structure-id": attributes.structureId };
+        }
+      }
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'span[data-type="chem-structure"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-structure-id");
+          return id ? { structureId: id } : false;
+        }
+      }
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "span",
+      _core.mergeAttributes.call(void 0, HTMLAttributes, {
+        "data-type": "chem-structure",
+        class: "chem-structure-node"
+      })
+    ];
+  },
+  addCommands() {
+    return {
+      insertChemStructure: (structureId) => ({ commands }) => commands.insertContent({
+        type: this.name,
+        attrs: { structureId }
+      })
+    };
+  },
+  addNodeView() {
+    const { getEmbeds, onOpenEditor } = this.options;
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement("span");
+      dom.className = "chem-structure-node";
+      dom.dataset.type = "chem-structure";
+      dom.contentEditable = "false";
+      const renderPreview = () => {
+        const structureId = node.attrs.structureId;
+        dom.dataset.structureId = structureId;
+        const embed = _chunkJJSHIBONjs.getChemStructureEmbed.call(void 0, getEmbeds(), structureId);
+        dom.innerHTML = "";
+        dom.classList.remove("chem-structure-node--missing");
+        const previewSvg = _nullishCoalesce(_optionalChain([embed, 'optionalAccess', _39 => _39.previewSvg]), () => ( _optionalChain([embed, 'optionalAccess', _40 => _40.preview_svg])));
+        if (previewSvg) {
+          const wrap = document.createElement("span");
+          wrap.className = "chem-structure-preview";
+          wrap.innerHTML = _chunkJJSHIBONjs.namespaceChemPreviewSvg.call(void 0, previewSvg, structureId);
+          dom.appendChild(wrap);
+        } else {
+          dom.classList.add("chem-structure-node--missing");
+          dom.textContent = "Chemical structure";
+        }
+      };
+      renderPreview();
+      if (editor.isEditable) {
+        dom.style.cursor = "pointer";
+        dom.title = "Click to edit structure";
+        dom.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const pos = getPos();
+          if (typeof pos !== "number") return;
+          onOpenEditor({
+            mode: "edit",
+            structureId: node.attrs.structureId,
+            pos
+          });
+        });
+      }
+      return {
+        dom,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "chemStructure") return false;
+          node = updatedNode;
+          renderPreview();
+          return true;
+        }
+      };
+    };
+  }
+});
+
 // src/editors/ExplanationEditor.tsx
-var import_extension_text_align = __toESM(require("@tiptap/extension-text-align"));
-var import_extension_table = require("@tiptap/extension-table");
-var import_extension_table_row = __toESM(require("@tiptap/extension-table-row"));
-var import_extension_table_cell = __toESM(require("@tiptap/extension-table-cell"));
-var import_extension_table_header = __toESM(require("@tiptap/extension-table-header"));
+var _extensiontextalign = require('@tiptap/extension-text-align'); var _extensiontextalign2 = _interopRequireDefault(_extensiontextalign);
+var _extensiontable = require('@tiptap/extension-table');
+var _extensiontablerow = require('@tiptap/extension-table-row'); var _extensiontablerow2 = _interopRequireDefault(_extensiontablerow);
+var _extensiontablecell = require('@tiptap/extension-table-cell'); var _extensiontablecell2 = _interopRequireDefault(_extensiontablecell);
+var _extensiontableheader = require('@tiptap/extension-table-header'); var _extensiontableheader2 = _interopRequireDefault(_extensiontableheader);
 
 // src/extensions/TextStyleFontSize.ts
-var import_extension_text_style = require("@tiptap/extension-text-style");
-var TextStyleFontSize = import_extension_text_style.TextStyle.extend({
+var _extensiontextstyle = require('@tiptap/extension-text-style');
+var TextStyleFontSize = _extensiontextstyle.TextStyle.extend({
   // keep name as "textStyle" (inherited) so removeEmptyTextStyle works
   addAttributes() {
     return {
-      ...this.parent?.() ?? {},
+      ..._nullishCoalesce(_optionalChain([this, 'access', _41 => _41.parent, 'optionalCall', _42 => _42()]), () => ( {})),
       fontSize: {
         default: null,
         // read inline style="font-size: 16px" -> "16px"
@@ -4183,7 +4297,7 @@ var TextStyleFontSize = import_extension_text_style.TextStyle.extend({
   },
   addCommands() {
     return {
-      ...this.parent?.() ?? {},
+      ..._nullishCoalesce(_optionalChain([this, 'access', _43 => _43.parent, 'optionalCall', _44 => _44()]), () => ( {})),
       setFontSize: (fontSize) => ({ commands }) => {
         return commands.setMark(this.name, { fontSize });
       },
@@ -4195,47 +4309,60 @@ var TextStyleFontSize = import_extension_text_style.TextStyle.extend({
 });
 
 // src/editors/ExplanationEditor.tsx
-var import_katex_min = require("katex/dist/katex.min.css");
-var import_static = require("mathlive/static.css");
+require('katex/dist/katex.min.css');
+require('mathlive/static.css');
 
 // src/components/MenuBar.tsx
-var import_react3 = require("react");
-var import_material2 = require("@mui/material");
-var import_FormatBold = __toESM(require("@mui/icons-material/FormatBold"));
-var import_FormatItalic = __toESM(require("@mui/icons-material/FormatItalic"));
-var import_FormatStrikethrough = __toESM(require("@mui/icons-material/FormatStrikethrough"));
-var import_FormatListBulleted = __toESM(require("@mui/icons-material/FormatListBulleted"));
-var import_FormatListNumbered = __toESM(require("@mui/icons-material/FormatListNumbered"));
-var import_Undo = __toESM(require("@mui/icons-material/Undo"));
-var import_Redo = __toESM(require("@mui/icons-material/Redo"));
-var import_TableChart = __toESM(require("@mui/icons-material/TableChart"));
-var import_TableRows = __toESM(require("@mui/icons-material/TableRows"));
-var import_ViewColumn = __toESM(require("@mui/icons-material/ViewColumn"));
-var import_DeleteForever = __toESM(require("@mui/icons-material/DeleteForever"));
-var import_ArrowUpward = __toESM(require("@mui/icons-material/ArrowUpward"));
-var import_ArrowDownward = __toESM(require("@mui/icons-material/ArrowDownward"));
-var import_ArrowBack = __toESM(require("@mui/icons-material/ArrowBack"));
-var import_ArrowForward = __toESM(require("@mui/icons-material/ArrowForward"));
-var import_CallMerge = __toESM(require("@mui/icons-material/CallMerge"));
-var import_CallSplit = __toESM(require("@mui/icons-material/CallSplit"));
-var import_Quiz = __toESM(require("@mui/icons-material/Quiz"));
-var import_FormatAlignLeft = __toESM(require("@mui/icons-material/FormatAlignLeft"));
-var import_FormatAlignCenter = __toESM(require("@mui/icons-material/FormatAlignCenter"));
-var import_FormatAlignRight = __toESM(require("@mui/icons-material/FormatAlignRight"));
-var import_Functions = __toESM(require("@mui/icons-material/Functions"));
-var import_jsx_runtime3 = require("react/jsx-runtime");
+
+
+
+
+
+
+
+
+
+
+
+var _FormatBold = require('@mui/icons-material/FormatBold'); var _FormatBold2 = _interopRequireDefault(_FormatBold);
+var _FormatItalic = require('@mui/icons-material/FormatItalic'); var _FormatItalic2 = _interopRequireDefault(_FormatItalic);
+var _FormatStrikethrough = require('@mui/icons-material/FormatStrikethrough'); var _FormatStrikethrough2 = _interopRequireDefault(_FormatStrikethrough);
+var _FormatListBulleted = require('@mui/icons-material/FormatListBulleted'); var _FormatListBulleted2 = _interopRequireDefault(_FormatListBulleted);
+var _FormatListNumbered = require('@mui/icons-material/FormatListNumbered'); var _FormatListNumbered2 = _interopRequireDefault(_FormatListNumbered);
+var _Undo = require('@mui/icons-material/Undo'); var _Undo2 = _interopRequireDefault(_Undo);
+var _Redo = require('@mui/icons-material/Redo'); var _Redo2 = _interopRequireDefault(_Redo);
+var _TableChart = require('@mui/icons-material/TableChart'); var _TableChart2 = _interopRequireDefault(_TableChart);
+var _TableRows = require('@mui/icons-material/TableRows'); var _TableRows2 = _interopRequireDefault(_TableRows);
+var _ViewColumn = require('@mui/icons-material/ViewColumn'); var _ViewColumn2 = _interopRequireDefault(_ViewColumn);
+var _DeleteForever = require('@mui/icons-material/DeleteForever'); var _DeleteForever2 = _interopRequireDefault(_DeleteForever);
+var _ArrowUpward = require('@mui/icons-material/ArrowUpward'); var _ArrowUpward2 = _interopRequireDefault(_ArrowUpward);
+var _ArrowDownward = require('@mui/icons-material/ArrowDownward'); var _ArrowDownward2 = _interopRequireDefault(_ArrowDownward);
+var _ArrowBack = require('@mui/icons-material/ArrowBack'); var _ArrowBack2 = _interopRequireDefault(_ArrowBack);
+var _ArrowForward = require('@mui/icons-material/ArrowForward'); var _ArrowForward2 = _interopRequireDefault(_ArrowForward);
+var _CallMerge = require('@mui/icons-material/CallMerge'); var _CallMerge2 = _interopRequireDefault(_CallMerge);
+var _CallSplit = require('@mui/icons-material/CallSplit'); var _CallSplit2 = _interopRequireDefault(_CallSplit);
+var _Quiz = require('@mui/icons-material/Quiz'); var _Quiz2 = _interopRequireDefault(_Quiz);
+var _FormatAlignLeft = require('@mui/icons-material/FormatAlignLeft'); var _FormatAlignLeft2 = _interopRequireDefault(_FormatAlignLeft);
+var _FormatAlignCenter = require('@mui/icons-material/FormatAlignCenter'); var _FormatAlignCenter2 = _interopRequireDefault(_FormatAlignCenter);
+var _FormatAlignRight = require('@mui/icons-material/FormatAlignRight'); var _FormatAlignRight2 = _interopRequireDefault(_FormatAlignRight);
+var _Functions = require('@mui/icons-material/Functions'); var _Functions2 = _interopRequireDefault(_Functions);
+var _Science = require('@mui/icons-material/Science'); var _Science2 = _interopRequireDefault(_Science);
+var _ShowChart = require('@mui/icons-material/ShowChart'); var _ShowChart2 = _interopRequireDefault(_ShowChart);
+
 var MenuBar = ({
   editor,
   showQuestionButton = false,
   onInsertEquation,
+  onInsertChemStructure,
+  onInsertGraph,
   toolbarMode = "tutorFull"
 }) => {
-  const [, forceRerender] = (0, import_react3.useState)(0);
-  const [insertTableAnchorEl, setInsertTableAnchorEl] = (0, import_react3.useState)(null);
-  const [rows, setRows] = (0, import_react3.useState)(3);
-  const [cols, setCols] = (0, import_react3.useState)(3);
+  const [, forceRerender] = _react.useState.call(void 0, 0);
+  const [insertTableAnchorEl, setInsertTableAnchorEl] = _react.useState.call(void 0, null);
+  const [rows, setRows] = _react.useState.call(void 0, 3);
+  const [cols, setCols] = _react.useState.call(void 0, 3);
   const e = editor;
-  (0, import_react3.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     if (!editor) return;
     const rerender = () => forceRerender((x) => x + 1);
     editor.on("selectionUpdate", rerender);
@@ -4245,21 +4372,21 @@ var MenuBar = ({
       editor.off("transaction", rerender);
     };
   }, [editor]);
-  const hasQuestionExt = (0, import_react3.useMemo)(
+  const hasQuestionExt = _react.useMemo.call(void 0, 
     () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "question") : false,
     [editor]
   );
-  const hasMathExt = (0, import_react3.useMemo)(
+  const hasMathExt = _react.useMemo.call(void 0, 
     () => editor ? !!editor.extensionManager.extensions.find((en) => en.name === "mathematics") : false,
     [editor]
   );
   if (!editor) return null;
   const FONT_SIZES = ["10px", "12px", "14px", "18px", "24px", "32px"];
-  const currentFontSize = editor.getAttributes("textStyle").fontSize ?? "";
+  const currentFontSize = _nullishCoalesce(editor.getAttributes("textStyle").fontSize, () => ( ""));
   const openInsertPopover = Boolean(insertTableAnchorEl);
   const closeInsertPopover = () => setInsertTableAnchorEl(null);
-  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: label, arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-    import_material2.IconButton,
+  const btn = (label, icon, onClick, active = false, disabled = false) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: label, arrow: true, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+    _material.IconButton,
     {
       size: "small",
       onClick,
@@ -4275,7 +4402,7 @@ var MenuBar = ({
   };
   const insertQuestionPlaceholder = () => {
     if (!hasQuestionExt) return;
-    editor.commands.insertQuestion?.(null);
+    _optionalChain([editor, 'access', _45 => _45.commands, 'access', _46 => _46.insertQuestion, 'optionalCall', _47 => _47(null)]);
   };
   const handleEquationClick = () => {
     if (onInsertEquation) {
@@ -4283,101 +4410,121 @@ var MenuBar = ({
       return;
     }
     if (!hasMathExt) return;
-    editor.chain().focus().insertMath?.("")?.run?.() ?? editor.commands.insertMath?.("");
+    _nullishCoalesce(_optionalChain([editor, 'access', _48 => _48.chain, 'call', _49 => _49(), 'access', _50 => _50.focus, 'call', _51 => _51(), 'access', _52 => _52.insertMath, 'optionalCall', _53 => _53(""), 'optionalAccess', _54 => _54.run, 'optionalCall', _55 => _55()]), () => ( _optionalChain([editor, 'access', _56 => _56.commands, 'access', _57 => _57.insertMath, 'optionalCall', _58 => _58("")])));
   };
   const equationDisabled = !onInsertEquation && !hasMathExt;
   const isStudentSimple = toolbarMode === "studentSimple";
   const showAdvancedFormatting = !isStudentSimple;
   const isInTable = editor.isActive("table");
-  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-      import_material2.Stack,
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _material.Stack,
       {
         direction: "row",
         spacing: 0.5,
         sx: { borderBottom: "1px solid #ddd", p: "4px 8px", bgcolor: "#fafafa", flexWrap: "wrap" },
         children: [
-          btn("Bold", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatBold.default, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
-          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatItalic.default, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
-          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatStrikethrough.default, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
-          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignLeft.default, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
-          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignCenter.default, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
-          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatAlignRight.default, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
-          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListBulleted.default, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
-          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_FormatListNumbered.default, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: "Equation", arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            import_material2.IconButton,
+          btn("Bold", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatBold2.default, {}), () => e.chain().focus().toggleBold().run(), editor.isActive("bold")),
+          showAdvancedFormatting && btn("Italic", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatItalic2.default, {}), () => e.chain().focus().toggleItalic().run(), editor.isActive("italic")),
+          showAdvancedFormatting && btn("Strike", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatStrikethrough2.default, {}), () => e.chain().focus().toggleStrike().run(), editor.isActive("strike")),
+          showAdvancedFormatting && btn("Align Left", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatAlignLeft2.default, {}), () => e.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" })),
+          showAdvancedFormatting && btn("Align Center", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatAlignCenter2.default, {}), () => e.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" })),
+          showAdvancedFormatting && btn("Align Right", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatAlignRight2.default, {}), () => e.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" })),
+          showAdvancedFormatting && btn("Bullet", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatListBulleted2.default, {}), () => e.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")),
+          showAdvancedFormatting && btn("Numbered", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _FormatListNumbered2.default, {}), () => e.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList")),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: "Equation", arrow: true, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.IconButton,
             {
               size: "small",
               onClick: handleEquationClick,
               disabled: equationDisabled,
               color: "default",
               sx: { borderRadius: 1 },
-              children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Functions.default, {})
+              children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Functions2.default, {})
             }
           ) }) }, "Equation"),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-            import_material2.TextField,
+          onInsertChemStructure && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: "Chemical structure", arrow: true, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.IconButton,
+            {
+              size: "small",
+              onClick: onInsertChemStructure,
+              color: "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Science2.default, {})
+            }
+          ) }) }, "ChemStructure"),
+          onInsertGraph && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: "Graph", arrow: true, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.IconButton,
+            {
+              size: "small",
+              onClick: onInsertGraph,
+              color: "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ShowChart2.default, {})
+            }
+          ) }) }, "GraphEmbed"),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+            _material.TextField,
             {
               select: true,
               size: "small",
               value: currentFontSize,
               onChange: (e2) => {
                 const value = e2.target.value;
-                if (!value) editor.chain().focus().unsetFontSize?.().run?.();
-                else editor.chain().focus().setFontSize?.(value).run?.();
+                if (!value) _optionalChain([editor, 'access', _59 => _59.chain, 'call', _60 => _60(), 'access', _61 => _61.focus, 'call', _62 => _62(), 'access', _63 => _63.unsetFontSize, 'optionalCall', _64 => _64(), 'access', _65 => _65.run, 'optionalCall', _66 => _66()]);
+                else _optionalChain([editor, 'access', _67 => _67.chain, 'call', _68 => _68(), 'access', _69 => _69.focus, 'call', _70 => _70(), 'access', _71 => _71.setFontSize, 'optionalCall', _72 => _72(value), 'access', _73 => _73.run, 'optionalCall', _74 => _74()]);
               },
               sx: { width: 95 },
               SelectProps: { native: true },
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: "", children: "16px" }),
-                FONT_SIZES.map((s) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: s, children: s }, s))
+                /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "option", { value: "", children: "16px" }),
+                FONT_SIZES.map((s) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "option", { value: s, children: s }, s))
               ]
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Quiz.default, {}), insertQuestionPlaceholder),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Tooltip, { title: "Insert table", arrow: true, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            import_material2.IconButton,
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+          showQuestionButton && hasQuestionExt && btn("Insert question", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Quiz2.default, {}), insertQuestionPlaceholder),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Tooltip, { title: "Insert table", arrow: true, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.IconButton,
             {
               size: "small",
               onClick: (event) => setInsertTableAnchorEl(event.currentTarget),
               color: isInTable ? "primary" : "default",
               sx: { borderRadius: 1 },
-              children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableChart.default, {})
+              children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _TableChart2.default, {})
             }
           ) }) }),
-          isInTable && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
-            btn("Row \u2191", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowUpward.default, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
-            btn("Row \u2193", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowDownward.default, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
-            btn("Row \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_TableRows.default, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-            btn("Col \u2190", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowBack.default, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
-            btn("Col \u2192", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ArrowForward.default, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
-            btn("Col \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_ViewColumn.default, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-            btn("Merge", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallMerge.default, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
-            btn("Split", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_CallSplit.default, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
-            btn("Table \xD7", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_DeleteForever.default, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
+          isInTable && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+            btn("Row \u2191", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ArrowUpward2.default, { fontSize: "small" }), () => e.chain().focus().addRowBefore().run(), false, !e.can().addRowBefore()),
+            btn("Row \u2193", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ArrowDownward2.default, { fontSize: "small" }), () => e.chain().focus().addRowAfter().run(), false, !e.can().addRowAfter()),
+            btn("Row \xD7", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _TableRows2.default, { fontSize: "small" }), () => e.chain().focus().deleteRow().run(), false, !e.can().deleteRow()),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+            btn("Col \u2190", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ArrowBack2.default, { fontSize: "small" }), () => e.chain().focus().addColumnBefore().run(), false, !e.can().addColumnBefore()),
+            btn("Col \u2192", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ArrowForward2.default, { fontSize: "small" }), () => e.chain().focus().addColumnAfter().run(), false, !e.can().addColumnAfter()),
+            btn("Col \xD7", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _ViewColumn2.default, { fontSize: "small" }), () => e.chain().focus().deleteColumn().run(), false, !e.can().deleteColumn()),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+            btn("Merge", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _CallMerge2.default, { fontSize: "small" }), () => e.chain().focus().mergeCells().run(), false, !e.can().mergeCells()),
+            btn("Split", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _CallSplit2.default, { fontSize: "small" }), () => e.chain().focus().splitCell().run(), false, !e.can().splitCell()),
+            btn("Table \xD7", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _DeleteForever2.default, {}), () => e.chain().focus().deleteTable().run(), false, !e.can().deleteTable())
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Divider, { orientation: "vertical", flexItem: true }),
-          btn("Undo", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Undo.default, {}), () => e.chain().focus().undo().run()),
-          btn("Redo", /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_Redo.default, {}), () => e.chain().focus().redo().run())
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Divider, { orientation: "vertical", flexItem: true }),
+          btn("Undo", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Undo2.default, {}), () => e.chain().focus().undo().run()),
+          btn("Redo", /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Redo2.default, {}), () => e.chain().focus().redo().run())
         ]
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-      import_material2.Popover,
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      _material.Popover,
       {
         open: openInsertPopover,
         anchorEl: insertTableAnchorEl,
         onClose: closeInsertPopover,
         anchorOrigin: { vertical: "bottom", horizontal: "left" },
-        children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_material2.Box, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            import_material2.TextField,
+        children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _material.Box, { sx: { p: 2, display: "flex", flexDirection: "column", gap: 1 }, children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.TextField,
             {
               label: "Rows",
               type: "number",
@@ -4388,8 +4535,8 @@ var MenuBar = ({
               sx: { width: 120 }
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-            import_material2.TextField,
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _material.TextField,
             {
               label: "Cols",
               type: "number",
@@ -4400,13 +4547,111 @@ var MenuBar = ({
               sx: { width: 120 }
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_material2.Button, { variant: "contained", size: "small", onClick: handleInsertTable, children: "Insert" })
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _material.Button, { variant: "contained", size: "small", onClick: handleInsertTable, children: "Insert" })
         ] })
       }
     )
   ] });
 };
 var MenuBar_default = MenuBar;
+
+// src/components/ChemStructureDialogLazy.tsx
+
+var _Box = require('@mui/material/Box'); var _Box2 = _interopRequireDefault(_Box);
+var _CircularProgress = require('@mui/material/CircularProgress'); var _CircularProgress2 = _interopRequireDefault(_CircularProgress);
+
+var LazyChemStructureDialog = _react2.default.lazy(() => Promise.resolve().then(() => _interopRequireWildcard(require("./ChemStructureDialog-66Z7L7YH.js"))));
+var ChemStructureDialogLazy = (props) => {
+  if (!props.open) return null;
+  return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+    _react.Suspense,
+    {
+      fallback: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Box2.default, { sx: { display: "flex", justifyContent: "center", p: 4 }, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _CircularProgress2.default, {}) }),
+      children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, LazyChemStructureDialog, { ...props })
+    }
+  );
+};
+var ChemStructureDialogLazy_default = ChemStructureDialogLazy;
+
+// src/hooks/useChemStructureEditor.ts
+
+
+// src/utils/chemStructureIds.ts
+function createChemStructureId() {
+  const suffix = Math.random().toString(36).slice(2, 10);
+  return `mol_${Date.now().toString(36)}_${suffix}`;
+}
+
+// src/hooks/useChemStructureEditor.ts
+function useChemStructureEditor({
+  editor,
+  embeds,
+  onEmbedsChange,
+  enabled = true
+}) {
+  const embedsRef = _react.useRef.call(void 0, embeds);
+  embedsRef.current = embeds;
+  const [dialog, setDialog] = _react.useState.call(void 0, { open: false });
+  const getEmbeds = _react.useCallback.call(void 0, () => embedsRef.current, []);
+  const patchEmbeds = _react.useCallback.call(void 0, 
+    (structureId, embed) => {
+      const next = _chunkJJSHIBONjs.upsertChemStructure.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), structureId, embed);
+      _optionalChain([onEmbedsChange, 'optionalCall', _75 => _75(next)]);
+      return next;
+    },
+    [onEmbedsChange]
+  );
+  const openChemEditor = _react.useCallback.call(void 0, 
+    (request) => {
+      if (!enabled || !onEmbedsChange) return;
+      if (request.mode === "insert") {
+        setDialog({
+          open: true,
+          mode: "insert",
+          structureId: createChemStructureId(),
+          initialSourceValue: ""
+        });
+        return;
+      }
+      const existing = _chunkJJSHIBONjs.getChemStructureEmbed.call(void 0, embedsRef.current, request.structureId);
+      setDialog({
+        open: true,
+        mode: "edit",
+        structureId: request.structureId,
+        initialSourceValue: _nullishCoalesce(_optionalChain([existing, 'optionalAccess', _76 => _76.sourceValue]), () => ( "")),
+        editPos: request.pos
+      });
+    },
+    [enabled, onEmbedsChange]
+  );
+  const closeDialog = _react.useCallback.call(void 0, () => setDialog({ open: false }), []);
+  const handleDialogSave = _react.useCallback.call(void 0, 
+    async (embed) => {
+      if (!dialog.open || !editor) return;
+      const structureId = dialog.structureId;
+      patchEmbeds(structureId, embed);
+      if (dialog.mode === "insert") {
+        editor.chain().focus().insertChemStructure(structureId).run();
+      } else if (typeof dialog.editPos === "number") {
+        editor.chain().focus().setNodeSelection(dialog.editPos).run();
+      }
+      editor.view.dispatch(editor.state.tr);
+    },
+    [dialog, editor, patchEmbeds]
+  );
+  const insertNewStructure = _react.useCallback.call(void 0, () => {
+    openChemEditor({ mode: "insert" });
+  }, [openChemEditor]);
+  return {
+    chemEnabled: enabled && !!onEmbedsChange,
+    getEmbeds,
+    openChemEditor,
+    insertNewStructure,
+    dialog,
+    closeDialog,
+    handleDialogSave
+  };
+}
 
 // src/utils/mathBackspace.ts
 function handleMathBackspaceKeyDown(view, event) {
@@ -4424,7 +4669,7 @@ function handleMathBackspaceKeyDown(view, event) {
   if (!selection.empty) return false;
   const { $from } = selection;
   const nodeBefore = $from.nodeBefore;
-  if (nodeBefore?.type.name === "inlineMath") {
+  if (_optionalChain([nodeBefore, 'optionalAccess', _77 => _77.type, 'access', _78 => _78.name]) === "inlineMath") {
     event.preventDefault();
     view.dispatch(
       state.tr.setSelection(NodeSelection.create(state.doc, $from.pos - nodeBefore.nodeSize))
@@ -4434,7 +4679,7 @@ function handleMathBackspaceKeyDown(view, event) {
   if ($from.parent.type.name === "paragraph" && $from.parent.content.size === 0 && $from.parentOffset === 0) {
     const paragraphStart = $from.before($from.depth);
     const previousNode = state.doc.resolve(paragraphStart).nodeBefore;
-    if (previousNode?.type.name === "blockMath") {
+    if (_optionalChain([previousNode, 'optionalAccess', _79 => _79.type, 'access', _80 => _80.name]) === "blockMath") {
       event.preventDefault();
       view.dispatch(
         state.tr.setSelection(NodeSelection.create(state.doc, paragraphStart - previousNode.nodeSize))
@@ -4446,7 +4691,7 @@ function handleMathBackspaceKeyDown(view, event) {
 }
 
 // src/editors/ExplanationEditor.tsx
-var import_jsx_runtime4 = require("react/jsx-runtime");
+
 var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
 function ExplanationEditor({
   value,
@@ -4454,14 +4699,24 @@ function ExplanationEditor({
   placeholder,
   toolbarMode = "tutorFull",
   minHeightPx = 120,
-  maxHeightPx = 320
+  maxHeightPx = 320,
+  embeds,
+  onEmbedsChange
 }) {
-  const [, forceUpdate] = (0, import_react4.useState)({});
-  const editor = (0, import_react5.useEditor)({
+  const [, forceUpdate] = _react.useState.call(void 0, {});
+  const chemEditorRef = _react2.default.useRef(null);
+  const chemExtension = _react.useMemo.call(void 0, 
+    () => ChemStructure.configure({
+      getEmbeds: () => _optionalChain([chemEditorRef, 'access', _81 => _81.current, 'optionalAccess', _82 => _82.getEmbeds, 'call', _83 => _83()]),
+      onOpenEditor: (request) => _optionalChain([chemEditorRef, 'access', _84 => _84.current, 'optionalAccess', _85 => _85.openChemEditor, 'call', _86 => _86(request)])
+    }),
+    []
+  );
+  const editor = _react3.useEditor.call(void 0, {
     extensions: [
-      import_starter_kit.default,
+      _starterkit2.default,
       TextStyleFontSize,
-      import_extension_text_align.default.configure({
+      _extensiontextalign2.default.configure({
         types: ["heading", "paragraph"]
       }),
       MathematicsWithInlineEdit.configure({
@@ -4470,12 +4725,13 @@ function ExplanationEditor({
         },
         placeholderLatex: PLACEHOLDER_LATEX
       }),
-      import_extension_table.Table.configure({
+      _extensiontable.Table.configure({
         resizable: true
       }),
-      import_extension_table_row.default,
-      import_extension_table_header.default,
-      import_extension_table_cell.default
+      _extensiontablerow2.default,
+      _extensiontableheader2.default,
+      _extensiontablecell2.default,
+      chemExtension
     ],
     content: value || "",
     editorProps: {
@@ -4494,7 +4750,18 @@ function ExplanationEditor({
       forceUpdate({});
     }
   });
-  (0, import_react4.useEffect)(() => {
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange
+  });
+  chemEditorRef.current = chemEditor;
+  _react.useEffect.call(void 0, () => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
+  _react.useEffect.call(void 0, () => {
     if (!editor) return;
     const current = editor.getHTML();
     if (value !== current && value !== void 0) {
@@ -4508,8 +4775,8 @@ function ExplanationEditor({
       attrs: { latex }
     }).run();
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(import_material3.Box, { sx: { width: "100%" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _material.Box, { sx: { width: "100%" }, children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "style", { children: `
         .tiptap-editor table {
           border-collapse: collapse;
           margin: 0;
@@ -4565,32 +4832,58 @@ function ExplanationEditor({
         .tiptap-math-placeholder .katex {
           color: #999 !important;
         }
+        .chem-structure-node {
+          display: inline-block;
+          vertical-align: middle;
+          margin: 0 2px;
+        }
+        .chem-structure-preview svg {
+          max-height: 120px;
+          width: auto;
+          vertical-align: middle;
+        }
+        .chem-structure-node--missing {
+          color: #999;
+          font-style: italic;
+          font-size: 0.9em;
+        }
       ` }),
-    editor && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+    editor && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
       MenuBar_default,
       {
         editor,
         toolbarMode,
-        onInsertEquation: () => insertInlineMath()
+        onInsertEquation: () => insertInlineMath(),
+        onInsertChemStructure: chemEditor.chemEnabled ? chemEditor.insertNewStructure : void 0
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(import_react5.EditorContent, { editor })
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _react3.EditorContent, { editor }),
+    chemEditor.dialog.open && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      ChemStructureDialogLazy_default,
+      {
+        open: true,
+        mode: chemEditor.dialog.mode,
+        initialSourceValue: chemEditor.dialog.initialSourceValue,
+        onClose: chemEditor.closeDialog,
+        onSave: chemEditor.handleDialogSave
+      }
+    )
   ] });
 }
 
 // src/editors/TiptapEditor.tsx
-var import_react6 = require("react");
-var import_react7 = require("@tiptap/react");
-var import_starter_kit2 = __toESM(require("@tiptap/starter-kit"));
-var import_tiptap_extension_resize_image = __toESM(require("tiptap-extension-resize-image"));
-var import_extension_table2 = require("@tiptap/extension-table");
-var import_extension_table_row2 = __toESM(require("@tiptap/extension-table-row"));
-var import_extension_table_cell2 = __toESM(require("@tiptap/extension-table-cell"));
-var import_extension_table_header2 = __toESM(require("@tiptap/extension-table-header"));
+
+
+
+var _tiptapextensionresizeimage = require('tiptap-extension-resize-image'); var _tiptapextensionresizeimage2 = _interopRequireDefault(_tiptapextensionresizeimage);
+
+
+
+
 
 // src/extensions/OverleafPaste.ts
-var import_core4 = require("@tiptap/core");
-var OverleafPaste = import_core4.Extension.create({
+
+var OverleafPaste = _core.Extension.create({
   name: "overleafPaste",
   addProseMirrorPlugins() {
     const editor = this.editor;
@@ -4599,7 +4892,7 @@ var OverleafPaste = import_core4.Extension.create({
         key: new PluginKey("overleafPaste"),
         props: {
           handlePaste(_view, event) {
-            const text = event.clipboardData?.getData("text/plain") ?? "";
+            const text = _nullishCoalesce(_optionalChain([event, 'access', _87 => _87.clipboardData, 'optionalAccess', _88 => _88.getData, 'call', _89 => _89("text/plain")]), () => ( ""));
             if (!/\\begin{tabular}/.test(text)) return false;
             event.preventDefault();
             const html = tabularToHTML(text);
@@ -4634,46 +4927,69 @@ function tabularToHTML(tex) {
 }
 
 // src/editors/TiptapEditor.tsx
-var import_extension_text_align2 = __toESM(require("@tiptap/extension-text-align"));
-var import_Box = __toESM(require("@mui/material/Box"));
-var import_katex_min2 = require("katex/dist/katex.min.css");
-var import_jsx_runtime5 = require("react/jsx-runtime");
+
+
+
+
 var TiptapEditor = ({
   value,
   onChange,
   readOnly,
   questions = false,
+  embeds,
+  onEmbedsChange,
   menuBarWrapperSx,
   toolbarMode = "tutorFull"
 }) => {
-  const editor = (0, import_react7.useEditor)({
+  const chemEditorRef = _react2.default.useRef(null);
+  const chemExtension = _react.useMemo.call(void 0, 
+    () => ChemStructure.configure({
+      getEmbeds: () => _optionalChain([chemEditorRef, 'access', _90 => _90.current, 'optionalAccess', _91 => _91.getEmbeds, 'call', _92 => _92()]),
+      onOpenEditor: (request) => _optionalChain([chemEditorRef, 'access', _93 => _93.current, 'optionalAccess', _94 => _94.openChemEditor, 'call', _95 => _95(request)])
+    }),
+    []
+  );
+  const editor = _react3.useEditor.call(void 0, {
     content: value || "<p></p>",
     editable: !readOnly,
     extensions: [
       TextStyleFontSize,
-      import_extension_text_align2.default.configure({
+      _extensiontextalign2.default.configure({
         types: ["heading", "paragraph"]
       }),
       /* base */
-      import_starter_kit2.default,
+      _starterkit2.default,
       /* images */
-      import_tiptap_extension_resize_image.default,
+      _tiptapextensionresizeimage2.default,
       /* smart-paste for Overleaf tabular and math delimiters */
       OverleafPaste,
       SmartMathPaste,
       InlineMathWithParens.configure({ katexOptions: { throwOnError: false } }),
       BlockMathWithBrackets.configure({ katexOptions: { throwOnError: false } }),
       /* tables */
-      import_extension_table2.Table.configure({
+      _extensiontable.Table.configure({
         resizable: true,
         HTMLAttributes: { class: "tiptap-table" }
       }),
-      import_extension_table_row2.default,
-      import_extension_table_cell2.default,
-      import_extension_table_header2.default
+      _extensiontablerow2.default,
+      _extensiontablecell2.default,
+      _extensiontableheader2.default,
+      chemExtension
     ]
   });
-  (0, import_react6.useEffect)(() => {
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange,
+    enabled: !readOnly
+  });
+  chemEditorRef.current = chemEditor;
+  _react.useEffect.call(void 0, () => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
+  _react.useEffect.call(void 0, () => {
     if (!editor) return;
     const handler = () => onChange(editor.getHTML());
     editor.on("update", handler);
@@ -4681,31 +4997,2086 @@ var TiptapEditor = ({
       editor.off("update", handler);
     };
   }, [editor, onChange]);
-  (0, import_react6.useEffect)(() => {
+  _react.useEffect.call(void 0, () => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
     }
   }, [editor, value]);
   if (!editor) return null;
-  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_Box.default, { sx: menuBarWrapperSx, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MenuBar_default, { editor, showQuestionButton: false, toolbarMode }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_react7.EditorContent, { editor, className: "tiptap" })
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Box2.default, { sx: menuBarWrapperSx, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      MenuBar_default,
+      {
+        editor,
+        showQuestionButton: false,
+        toolbarMode,
+        onInsertChemStructure: chemEditor.chemEnabled ? chemEditor.insertNewStructure : void 0
+      }
+    ) }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _react3.EditorContent, { editor, className: "tiptap" }),
+    chemEditor.dialog.open && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      ChemStructureDialogLazy_default,
+      {
+        open: true,
+        mode: chemEditor.dialog.mode,
+        initialSourceValue: chemEditor.dialog.initialSourceValue,
+        onClose: chemEditor.closeDialog,
+        onSave: chemEditor.handleDialogSave
+      }
+    )
   ] });
 };
 var TiptapEditor_default = TiptapEditor;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  EquationInsertPanel,
-  ExplanationEditor,
-  InlineMathWithMathLive,
-  InlineMathWithParens,
-  MathLiveEditor,
-  MathematicsWithInlineEdit,
-  MenuBar,
-  OverleafPaste,
-  SmartMathPaste,
-  TextStyleFontSize,
-  TiptapEditor,
-  handleMathBackspaceKeyDown
+
+// src/components/GraphEmbedDialog.tsx
+
+var _Dialog = require('@mui/material/Dialog'); var _Dialog2 = _interopRequireDefault(_Dialog);
+var _DialogTitle = require('@mui/material/DialogTitle'); var _DialogTitle2 = _interopRequireDefault(_DialogTitle);
+var _DialogContent = require('@mui/material/DialogContent'); var _DialogContent2 = _interopRequireDefault(_DialogContent);
+var _DialogActions = require('@mui/material/DialogActions'); var _DialogActions2 = _interopRequireDefault(_DialogActions);
+var _Button = require('@mui/material/Button'); var _Button2 = _interopRequireDefault(_Button);
+var _TextField = require('@mui/material/TextField'); var _TextField2 = _interopRequireDefault(_TextField);
+var _FormControl = require('@mui/material/FormControl'); var _FormControl2 = _interopRequireDefault(_FormControl);
+var _InputLabel = require('@mui/material/InputLabel'); var _InputLabel2 = _interopRequireDefault(_InputLabel);
+var _Select = require('@mui/material/Select'); var _Select2 = _interopRequireDefault(_Select);
+var _MenuItem = require('@mui/material/MenuItem'); var _MenuItem2 = _interopRequireDefault(_MenuItem);
+var _FormControlLabel = require('@mui/material/FormControlLabel'); var _FormControlLabel2 = _interopRequireDefault(_FormControlLabel);
+var _Checkbox = require('@mui/material/Checkbox'); var _Checkbox2 = _interopRequireDefault(_Checkbox);
+var _Stack = require('@mui/material/Stack'); var _Stack2 = _interopRequireDefault(_Stack);
+
+var _Typography = require('@mui/material/Typography'); var _Typography2 = _interopRequireDefault(_Typography);
+var _IconButton = require('@mui/material/IconButton'); var _IconButton2 = _interopRequireDefault(_IconButton);
+var _ButtonBase = require('@mui/material/ButtonBase'); var _ButtonBase2 = _interopRequireDefault(_ButtonBase);
+var _Popover = require('@mui/material/Popover'); var _Popover2 = _interopRequireDefault(_Popover);
+var _Paper = require('@mui/material/Paper'); var _Paper2 = _interopRequireDefault(_Paper);
+var _Tabs = require('@mui/material/Tabs'); var _Tabs2 = _interopRequireDefault(_Tabs);
+var _Tab = require('@mui/material/Tab'); var _Tab2 = _interopRequireDefault(_Tab);
+var _Delete = require('@mui/icons-material/Delete'); var _Delete2 = _interopRequireDefault(_Delete);
+var _Add = require('@mui/icons-material/Add'); var _Add2 = _interopRequireDefault(_Add);
+
+// src/utils/graphEquationVariables.ts
+var IDENTIFIER_RE = /^[A-Za-z][A-Za-z0-9_]*$/;
+function isValidGraphVariableName(name) {
+  return IDENTIFIER_RE.test(name.trim());
+}
+var RESERVED = /* @__PURE__ */ new Set([
+  "x",
+  "y",
+  "e",
+  "pi",
+  "sin",
+  "cos",
+  "tan",
+  "sec",
+  "csc",
+  "cot",
+  "log",
+  "ln",
+  "exp",
+  "sqrt",
+  "abs",
+  "asin",
+  "acos",
+  "atan",
+  "sinh",
+  "cosh",
+  "tanh",
+  "operatorname"
+]);
+var LATEX_FN = /\\(sin|cos|tan|sec|csc|cot|ln|log|exp|sqrt|abs|arcsin|arccos|arctan|sinh|cosh|tanh|frac|cdot|times|left|right|mathrm|operatorname)\b/gi;
+var ALWAYS_EXCLUDED_AXES = /* @__PURE__ */ new Set(["x", "y"]);
+function expandImplicitAxisOperands(tokens, independentAxis) {
+  const axis = independentAxis.trim();
+  if (!axis || !isValidGraphVariableName(axis)) return tokens;
+  const out = [];
+  for (const id of tokens) {
+    if (id.length > axis.length && id.endsWith(axis) && id !== axis) {
+      const prefix = id.slice(0, -axis.length);
+      if (prefix && isValidGraphVariableName(prefix) && !RESERVED.has(prefix.toLowerCase())) {
+        out.push(prefix);
+      }
+      continue;
+    }
+    out.push(id);
+  }
+  return out;
+}
+function extractGraphVariableNamesFromLatex(latex, options) {
+  if (!latex.trim()) return [];
+  const independentAxis = _optionalChain([options, 'optionalAccess', _96 => _96.independentAxis, 'optionalAccess', _97 => _97.trim, 'call', _98 => _98()]) || "x";
+  const dependentAxis = _optionalChain([options, 'optionalAccess', _99 => _99.dependentAxis, 'optionalAccess', _100 => _100.trim, 'call', _101 => _101()]) || "y";
+  let s = latex.replace(/\s+/g, "");
+  s = s.replace(LATEX_FN, " ");
+  s = s.replace(/\\[a-zA-Z]+/g, " ");
+  s = s.replace(/[{}()[\],;=+\-^]/g, " ");
+  const raw = [];
+  const re = /[A-Za-z][A-Za-z0-9_]*/g;
+  let m = re.exec(s);
+  while (m) {
+    raw.push(m[0]);
+    m = re.exec(s);
+  }
+  const expanded = expandImplicitAxisOperands(raw, independentAxis);
+  const found2 = /* @__PURE__ */ new Set();
+  for (const id of expanded) {
+    const lower = id.toLowerCase();
+    if (RESERVED.has(lower)) continue;
+    if (ALWAYS_EXCLUDED_AXES.has(lower)) continue;
+    if (id === independentAxis || id === dependentAxis) continue;
+    if (isValidGraphVariableName(id)) {
+      found2.add(id);
+    }
+  }
+  return [...found2];
+}
+function findUndefinedGraphVariables(latex, definedNames, axisLabels) {
+  const defined = new Set(definedNames.map((n) => n.trim()).filter(Boolean));
+  const xAxis = _optionalChain([axisLabels, 'access', _102 => _102.x, 'optionalAccess', _103 => _103.trim, 'call', _104 => _104()]) || "x";
+  const yAxis = _optionalChain([axisLabels, 'access', _105 => _105.y, 'optionalAccess', _106 => _106.trim, 'call', _107 => _107()]) || "y";
+  defined.add(xAxis);
+  defined.add(yAxis);
+  for (const axis of ALWAYS_EXCLUDED_AXES) {
+    defined.add(axis);
+  }
+  return extractGraphVariableNamesFromLatex(latex, {
+    independentAxis: xAxis,
+    dependentAxis: yAxis
+  }).filter((name) => !defined.has(name));
+}
+
+// src/components/GraphEmbedDialog.tsx
+
+var MARKER_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "filled", label: "Filled dot" },
+  { value: "hollow", label: "Hollow dot" },
+  { value: "arrow", label: "Arrow" }
+];
+function exprDomainKey(expr, index) {
+  return _nullishCoalesce(expr.id, () => ( `expr-${index}`));
+}
+function parseDomainFieldCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : void 0;
+}
+function parseGraphPixelCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? Math.round(n) : void 0;
+}
+function parseCoordinateCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : void 0;
+}
+function parsePositiveDecimalCommit(raw, previous) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return previous;
+  const n = Number(t);
+  return Number.isFinite(n) && n > 0 ? n : previous;
+}
+function sanitizeGraphVariableName(raw) {
+  const stripped = raw.replace(/[^A-Za-z0-9_]/g, "");
+  return stripped.replace(/^[^A-Za-z]+/, "");
+}
+function collectPaths(objects) {
+  if (!_optionalChain([objects, 'optionalAccess', _108 => _108.length])) return [];
+  const out = [];
+  objects.forEach((o, i) => {
+    if (o.type === "line") out.push({ objectIndex: i, variant: "line", obj: o });
+    else if (o.type === "curve") out.push({ objectIndex: i, variant: "curve", obj: o });
+  });
+  return out;
+}
+function pathPoints(p) {
+  if (p.variant === "line") return [p.obj.start, p.obj.end];
+  return p.obj.controlPoints.map((q) => [...q]);
+}
+function pathInterpolation(p) {
+  if (p.variant === "line") return "linear";
+  return _nullishCoalesce(p.obj.interpolation, () => ( "smooth"));
+}
+function pathToObject(points, interpolation, id, color) {
+  if (points.length < 2) {
+    return { type: "line", id, start: [0, 0], end: [1, 0], color };
+  }
+  if (points.length === 2 && interpolation === "linear") {
+    return { type: "line", id, start: points[0], end: points[1], color };
+  }
+  return {
+    type: "curve",
+    id,
+    controlPoints: points,
+    interpolation,
+    color
+  };
+}
+function normalizeEmbedMode(embed) {
+  const normalized = _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, { ...embed, mode: "display", tools: void 0 });
+  return {
+    ...normalized,
+    autoDisplaySize: false,
+    options: {
+      ...normalized.options,
+      stretchToFit: false,
+      showGrid: _nullishCoalesce(_optionalChain([normalized, 'access', _109 => _109.options, 'optionalAccess', _110 => _110.showGrid]), () => ( true)),
+      gridStep: _nullishCoalesce(_optionalChain([normalized, 'access', _111 => _111.options, 'optionalAccess', _112 => _112.gridStep]), () => ( 1))
+    }
+  };
+}
+var GraphEmbedDialog = ({
+  open,
+  initialEmbed,
+  onClose,
+  onSave
+}) => {
+  const [embed, setEmbed] = _react.useState.call(void 0, () => normalizeEmbedMode(initialEmbed));
+  const [viewportText, setViewportText] = _react.useState.call(void 0, 
+    () => _chunkJJSHIBONjs.viewportFieldsFromEmbed.call(void 0, _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport))
+  );
+  const [previewViewport, setPreviewViewport] = _react.useState.call(void 0, 
+    () => _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport)
+  );
+  const [objectsTab, setObjectsTab] = _react.useState.call(void 0, 0);
+  const [axisPopover, setAxisPopover] = _react.useState.call(void 0, null);
+  const [axisDraft, setAxisDraft] = _react.useState.call(void 0, "");
+  const [expressionDomainTexts, setExpressionDomainTexts] = _react.useState.call(void 0, {});
+  const [graphWText, setGraphWText] = _react.useState.call(void 0, null);
+  const [graphHText, setGraphHText] = _react.useState.call(void 0, null);
+  const [pointCoordDrafts, setPointCoordDrafts] = _react.useState.call(void 0, 
+    {}
+  );
+  const [pathCoordDrafts, setPathCoordDrafts] = _react.useState.call(void 0, {});
+  const [gridStepText, setGridStepText] = _react.useState.call(void 0, null);
+  const [scaleRatioXText, setScaleRatioXText] = _react.useState.call(void 0, null);
+  const [scaleRatioYText, setScaleRatioYText] = _react.useState.call(void 0, null);
+  const [variablePrompt, setVariablePrompt] = _react.useState.call(void 0, null);
+  const declinedVariableKeys = _react.useRef.call(void 0, /* @__PURE__ */ new Set());
+  _react.useEffect.call(void 0, () => {
+    if (!axisPopover) return;
+    setAxisDraft(
+      axisPopover.axis === "x" ? _optionalChain([embed, 'access', _113 => _113.options, 'optionalAccess', _114 => _114.xAxisLabel, 'optionalAccess', _115 => _115.trim, 'call', _116 => _116()]) || "x" : _optionalChain([embed, 'access', _117 => _117.options, 'optionalAccess', _118 => _118.yAxisLabel, 'optionalAccess', _119 => _119.trim, 'call', _120 => _120()]) || "y"
+    );
+  }, [axisPopover, _optionalChain([embed, 'access', _121 => _121.options, 'optionalAccess', _122 => _122.xAxisLabel]), _optionalChain([embed, 'access', _123 => _123.options, 'optionalAccess', _124 => _124.yAxisLabel])]);
+  _react.useEffect.call(void 0, () => {
+    if (!open) return;
+    const normalized = normalizeEmbedMode({
+      ...initialEmbed,
+      viewport: _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport)
+    });
+    setEmbed(normalized);
+    setViewportText(_chunkJJSHIBONjs.viewportFieldsFromEmbed.call(void 0, normalized.viewport));
+    setPreviewViewport(normalized.viewport);
+    setObjectsTab((t) => t > 3 ? 0 : t);
+    const exs = _nullishCoalesce(normalized.expressions, () => ( []));
+    const domainMap = {};
+    exs.forEach((ex, i) => {
+      const id = exprDomainKey(ex, i);
+      domainMap[id] = {
+        min: ex.domainMin !== void 0 ? String(ex.domainMin) : "",
+        max: ex.domainMax !== void 0 ? String(ex.domainMax) : ""
+      };
+    });
+    setExpressionDomainTexts(domainMap);
+    setGraphWText(null);
+    setGraphHText(null);
+    setPointCoordDrafts({});
+    setPathCoordDrafts({});
+  }, [open, initialEmbed]);
+  const previewEmbed = _react.useMemo.call(void 0, 
+    () => normalizeEmbedMode({ ...embed, viewport: previewViewport }),
+    [embed, previewViewport]
+  );
+  const previewDisplaySize = _react.useMemo.call(void 0, 
+    () => _chunkJJSHIBONjs.resolveGraphDisplaySize.call(void 0, previewEmbed),
+    [previewEmbed]
+  );
+  const previewAspect = _react.useMemo.call(void 0, () => {
+    const h = previewDisplaySize.height || 1;
+    return previewDisplaySize.width / h;
+  }, [previewDisplaySize.width, previewDisplaySize.height]);
+  const paths = _react.useMemo.call(void 0, () => collectPaths(embed.objects), [embed.objects]);
+  _react.useEffect.call(void 0, () => {
+    if (embed.autoDisplaySize !== false) {
+      setGraphWText(null);
+      setGraphHText(null);
+    }
+  }, [embed.autoDisplaySize]);
+  const applyViewportToPreview = () => {
+    const next = _chunkJJSHIBONjs.viewportFromFields.call(void 0, viewportText, previewViewport);
+    setPreviewViewport(next);
+    setEmbed((prev) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, { ...prev, viewport: next }, next));
+  };
+  const sliders = (_nullishCoalesce(embed.objects, () => ( []))).filter(
+    (o) => o.type === "slider"
+  );
+  const expressions = _nullishCoalesce(embed.expressions, () => ( []));
+  const textLabels = (_nullishCoalesce(embed.objects, () => ( []))).filter(
+    (o) => o.type === "label"
+  );
+  const points = (_nullishCoalesce(embed.objects, () => ( []))).filter(
+    (o) => o.type === "point"
+  );
+  _react.useEffect.call(void 0, () => {
+    setExpressionDomainTexts((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      const valid = new Set(expressions.map((ex, i) => exprDomainKey(ex, i)));
+      for (const k of Object.keys(next)) {
+        if (!valid.has(k)) {
+          delete next[k];
+          changed = true;
+        }
+      }
+      for (let i = 0; i < expressions.length; i += 1) {
+        const ex = expressions[i];
+        const id = exprDomainKey(ex, i);
+        if (!next[id]) {
+          next[id] = {
+            min: ex.domainMin !== void 0 ? String(ex.domainMin) : "",
+            max: ex.domainMax !== void 0 ? String(ex.domainMax) : ""
+          };
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [expressions]);
+  const updateSlider = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const sliderIndices = objects.map((o, i) => o.type === "slider" ? i : -1).filter((i) => i >= 0);
+      const objIndex = sliderIndices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addSliderWithName = (name) => {
+    const varName = sanitizeGraphVariableName(name);
+    if (!varName) return;
+    const exists = sliders.some(
+      (s) => (_optionalChain([s, 'access', _125 => _125.bindsTo, 'optionalAccess', _126 => _126.trim, 'call', _127 => _127()]) || _optionalChain([s, 'access', _128 => _128.name, 'optionalAccess', _129 => _129.trim, 'call', _130 => _130()])) === varName
+    );
+    if (exists) return;
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ..._nullishCoalesce(prev.objects, () => ( [])),
+        {
+          type: "slider",
+          id: `slider_${Date.now()}`,
+          name: varName,
+          min: -5,
+          max: 5,
+          step: 0.1,
+          initial: 1,
+          integer: false,
+          bindsTo: varName
+        }
+      ]
+    }));
+  };
+  const addSlider = () => addSliderWithName("a");
+  const definedVariableNames = _react.useMemo.call(void 0, 
+    () => sliders.flatMap((s) => [_optionalChain([s, 'access', _131 => _131.bindsTo, 'optionalAccess', _132 => _132.trim, 'call', _133 => _133()]), _optionalChain([s, 'access', _134 => _134.name, 'optionalAccess', _135 => _135.trim, 'call', _136 => _136()])]).filter((n) => !!n),
+    [sliders]
+  );
+  const checkEquationForMissingVariables = (exprIndex, latex) => {
+    const missing = findUndefinedGraphVariables(latex, definedVariableNames, {
+      x: _optionalChain([embed, 'access', _137 => _137.options, 'optionalAccess', _138 => _138.xAxisLabel]),
+      y: _optionalChain([embed, 'access', _139 => _139.options, 'optionalAccess', _140 => _140.yAxisLabel])
+    });
+    if (!missing.length) {
+      setVariablePrompt((p) => _optionalChain([p, 'optionalAccess', _141 => _141.exprIndex]) === exprIndex ? null : p);
+      return;
+    }
+    const name = missing[0];
+    const key = `${exprIndex}:${name}`;
+    if (declinedVariableKeys.current.has(key)) return;
+    setVariablePrompt({ exprIndex, name });
+  };
+  const dismissVariablePrompt = (exprIndex, name) => {
+    declinedVariableKeys.current.add(`${exprIndex}:${name}`);
+    setVariablePrompt(null);
+  };
+  const confirmCreateVariable = (exprIndex, name) => {
+    addSliderWithName(name);
+    declinedVariableKeys.current.delete(`${exprIndex}:${name}`);
+    setVariablePrompt(null);
+    setObjectsTab(1);
+  };
+  const removeSlider = (index) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const sliderIndices = objects.map((o, i) => o.type === "slider" ? i : -1).filter((i) => i >= 0);
+      const objIndex = sliderIndices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const updateExpression = (index, patch) => {
+    setEmbed((prev) => {
+      const next = [..._nullishCoalesce(prev.expressions, () => ( []))];
+      next[index] = { ...next[index], ...patch };
+      return { ...prev, expressions: next };
+    });
+  };
+  const addExpression = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      expressions: [
+        ..._nullishCoalesce(prev.expressions, () => ( [])),
+        {
+          id: `expr_${Date.now()}`,
+          latex: "y = x^2",
+          visible: true,
+          startMarker: "none",
+          endMarker: "none"
+        }
+      ]
+    }));
+  };
+  const removeExpression = (index) => {
+    setEmbed((prev) => ({
+      ...prev,
+      expressions: (_nullishCoalesce(prev.expressions, () => ( []))).filter((_, i) => i !== index)
+    }));
+  };
+  const updateTextLabel = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const labelIndices = objects.map((o, i) => o.type === "label" ? i : -1).filter((i) => i >= 0);
+      const objIndex = labelIndices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addTextLabel = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ..._nullishCoalesce(prev.objects, () => ( [])),
+        { type: "label", id: `label_${Date.now()}`, x: 0, y: 0, text: "Label" }
+      ]
+    }));
+  };
+  const removeTextLabel = (index) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const labelIndices = objects.map((o, i) => o.type === "label" ? i : -1).filter((i) => i >= 0);
+      const objIndex = labelIndices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const updatePoint = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const indices = objects.map((o, i) => o.type === "point" ? i : -1).filter((i) => i >= 0);
+      const objIndex = indices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addPoint = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ..._nullishCoalesce(prev.objects, () => ( [])),
+        { type: "point", id: `point_${Date.now()}`, x: 0, y: 0, label: "" }
+      ]
+    }));
+  };
+  const removePoint = (index) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const indices = objects.map((o, i) => o.type === "point" ? i : -1).filter((i) => i >= 0);
+      const objIndex = indices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const addPath = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ..._nullishCoalesce(prev.objects, () => ( [])),
+        {
+          type: "line",
+          id: `path_${Date.now()}`,
+          start: [-2, 0],
+          end: [2, 0]
+        }
+      ]
+    }));
+  };
+  const removePath = (objectIndex) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const o = objects[objectIndex];
+      if (!o || o.type !== "line" && o.type !== "curve") return prev;
+      objects.splice(objectIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const replacePath = (objectIndex, points2, interpolation) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const old = objects[objectIndex];
+      const id = _optionalChain([old, 'optionalAccess', _142 => _142.type]) === "line" || _optionalChain([old, 'optionalAccess', _143 => _143.type]) === "curve" ? old.id : `path_${Date.now()}`;
+      const color = _optionalChain([old, 'optionalAccess', _144 => _144.type]) === "line" || _optionalChain([old, 'optionalAccess', _145 => _145.type]) === "curve" ? old.color : void 0;
+      objects[objectIndex] = pathToObject(points2, interpolation, id, color);
+      return { ...prev, objects };
+    });
+  };
+  const updatePathPoint = (objectIndex, pointIndex, coord, raw) => {
+    const p = paths.find((x) => x.objectIndex === objectIndex);
+    if (!p) return;
+    const pts = pathPoints(p);
+    const prevPt = _nullishCoalesce(pts[pointIndex], () => ( [0, 0]));
+    pts[pointIndex] = [
+      coord === "x" ? _chunkJJSHIBONjs.parseViewportField.call(void 0, raw, prevPt[0]) : prevPt[0],
+      coord === "y" ? _chunkJJSHIBONjs.parseViewportField.call(void 0, raw, prevPt[1]) : prevPt[1]
+    ];
+    replacePath(objectIndex, pts, pathInterpolation(p));
+  };
+  const setPathInterpolation = (objectIndex, interpolation) => {
+    const p = paths.find((x) => x.objectIndex === objectIndex);
+    if (!p) return;
+    let pts = pathPoints(p);
+    if (interpolation === "smooth" && pts.length === 2) {
+      pts = [pts[0], [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2], pts[1]];
+    }
+    replacePath(objectIndex, pts, interpolation);
+  };
+  const addPathControlPoint = (objectIndex) => {
+    setEmbed((prev) => {
+      const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
+      const o = objects[objectIndex];
+      if (!o || o.type !== "line" && o.type !== "curve") return prev;
+      const id = o.id;
+      if (o.type === "line") {
+        const pts = [o.start, o.end, [o.end[0] + 1, o.end[1]]];
+        objects[objectIndex] = {
+          type: "curve",
+          id,
+          controlPoints: pts,
+          interpolation: "linear"
+        };
+        return { ...prev, objects };
+      }
+      const last = _nullishCoalesce(o.controlPoints[o.controlPoints.length - 1], () => ( [0, 0]));
+      objects[objectIndex] = {
+        ...o,
+        controlPoints: [...o.controlPoints, [last[0] + 1, last[1]]]
+      };
+      return { ...prev, objects };
+    });
+  };
+  const handleSave = () => {
+    const viewport = _chunkJJSHIBONjs.viewportFromFields.call(void 0, viewportText, previewViewport);
+    onSave(
+      normalizeEmbedMode({
+        ...embed,
+        viewport,
+        type: "graph",
+        renderer: "jsxgraph"
+      })
+    );
+    onClose();
+  };
+  const sectionTitle = (t) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "overline", color: "text.secondary", sx: { letterSpacing: 0.08 }, children: t });
+  const viewSection = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 1.5, children: [
+    sectionTitle("View"),
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, flexWrap: "wrap", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+        _TextField2.default,
+        {
+          label: "x-min",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.xMin,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, xMin: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+        _TextField2.default,
+        {
+          label: "x-max",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.xMax,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, xMax: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+        _TextField2.default,
+        {
+          label: "y-min",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.yMin,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, yMin: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+        _TextField2.default,
+        {
+          label: "y-max",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.yMax,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, yMax: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      )
+    ] })
+  ] });
+  const equationsPanel = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 2, children: [
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", children: "Equations" }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", startIcon: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Add2.default, {}), onClick: addExpression, children: "Add equation" })
+    ] }),
+    expressions.map((expr, index) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _Stack2.default,
+      {
+        spacing: 1,
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        onBlur: (e) => {
+          const next = e.relatedTarget;
+          if (next && e.currentTarget.contains(next)) return;
+          checkEquationForMissingVariables(index, expr.latex);
+        },
+        children: [
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, alignItems: "flex-start", children: [
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Box2.default, { sx: { flex: 1, minWidth: 0 }, children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+              MathLiveEditor_default,
+              {
+                value: expr.latex,
+                onChange: (latex) => {
+                  updateExpression(index, { latex });
+                  if (_optionalChain([variablePrompt, 'optionalAccess', _146 => _146.exprIndex]) === index) {
+                    setVariablePrompt(null);
+                  }
+                },
+                minWidthPx: 200,
+                minWidthPercent: 100,
+                minHeightPx: 44,
+                maxHeightPx: 88
+              }
+            ) }),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _IconButton2.default, { size: "small", onClick: () => removeExpression(index), "aria-label": "Remove", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" }) })
+          ] }),
+          _optionalChain([variablePrompt, 'optionalAccess', _147 => _147.exprIndex]) === index && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Paper2.default, { variant: "outlined", sx: { p: 1.25, bgcolor: "action.hover" }, children: [
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Typography2.default, { variant: "body2", sx: { mb: 1 }, children: [
+              'Variable "',
+              variablePrompt.name,
+              '" is not defined. Create it?'
+            ] }),
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, children: [
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _Button2.default,
+                {
+                  size: "small",
+                  variant: "contained",
+                  onClick: () => confirmCreateVariable(index, variablePrompt.name),
+                  children: "Yes"
+                }
+              ),
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _Button2.default,
+                {
+                  size: "small",
+                  onClick: () => dismissVariablePrompt(index, variablePrompt.name),
+                  children: "No"
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Graph label (at origin)",
+              size: "small",
+              fullWidth: true,
+              value: _nullishCoalesce(expr.label, () => ( "")),
+              placeholder: "Optional \u2014 only shown when set",
+              onChange: (e) => updateExpression(index, {
+                label: e.target.value.trim() === "" ? void 0 : e.target.value
+              })
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, flexWrap: "wrap", alignItems: "center", children: [
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+              _TextField2.default,
+              {
+                label: "Domain x min",
+                size: "small",
+                type: "text",
+                inputMode: "decimal",
+                value: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _148 => _148[exprDomainKey(expr, index)], 'optionalAccess', _149 => _149.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+                placeholder: "auto",
+                onChange: (e) => {
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: e.target.value,
+                      max: _nullishCoalesce(_optionalChain([p, 'access', _150 => _150[id], 'optionalAccess', _151 => _151.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
+                    }
+                  }));
+                },
+                onBlur: (e) => {
+                  const v = parseDomainFieldCommit(e.target.value);
+                  updateExpression(index, { domainMin: v });
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: v !== void 0 ? String(v) : "",
+                      max: _nullishCoalesce(_optionalChain([p, 'access', _152 => _152[id], 'optionalAccess', _153 => _153.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
+                    }
+                  }));
+                },
+                onKeyDown: (e) => {
+                  if (e.key !== "Enter") return;
+                  e.target.blur();
+                },
+                sx: { width: 100 }
+              }
+            ),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+              _TextField2.default,
+              {
+                label: "Domain x max",
+                size: "small",
+                type: "text",
+                inputMode: "decimal",
+                value: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _154 => _154[exprDomainKey(expr, index)], 'optionalAccess', _155 => _155.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : ""))),
+                placeholder: "auto",
+                onChange: (e) => {
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: _nullishCoalesce(_optionalChain([p, 'access', _156 => _156[id], 'optionalAccess', _157 => _157.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+                      max: e.target.value
+                    }
+                  }));
+                },
+                onBlur: (e) => {
+                  const v = parseDomainFieldCommit(e.target.value);
+                  updateExpression(index, { domainMax: v });
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: _nullishCoalesce(_optionalChain([p, 'access', _158 => _158[id], 'optionalAccess', _159 => _159.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+                      max: v !== void 0 ? String(v) : ""
+                    }
+                  }));
+                },
+                onKeyDown: (e) => {
+                  if (e.key !== "Enter") return;
+                  e.target.blur();
+                },
+                sx: { width: 100 }
+              }
+            ),
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _FormControl2.default, { size: "small", sx: { minWidth: 100 }, children: [
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _InputLabel2.default, { id: `es-${exprDomainKey(expr, index)}`, children: "Start" }),
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _Select2.default,
+                {
+                  labelId: `es-${exprDomainKey(expr, index)}`,
+                  label: "Start",
+                  value: _nullishCoalesce(expr.startMarker, () => ( "none")),
+                  onChange: (e) => updateExpression(index, { startMarker: e.target.value }),
+                  children: MARKER_OPTIONS.map((opt) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _MenuItem2.default, { value: opt.value, children: opt.label }, opt.value))
+                }
+              )
+            ] }),
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _FormControl2.default, { size: "small", sx: { minWidth: 100 }, children: [
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _InputLabel2.default, { id: `ee-${exprDomainKey(expr, index)}`, children: "End" }),
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _Select2.default,
+                {
+                  labelId: `ee-${exprDomainKey(expr, index)}`,
+                  label: "End",
+                  value: _nullishCoalesce(expr.endMarker, () => ( "none")),
+                  onChange: (e) => updateExpression(index, { endMarker: e.target.value }),
+                  children: MARKER_OPTIONS.map((opt) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _MenuItem2.default, { value: opt.value, children: opt.label }, opt.value))
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Domain / markers apply to function plots." })
+        ]
+      },
+      exprDomainKey(expr, index)
+    ))
+  ] });
+  const slidersPanel = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 2, children: [
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", children: "Variables" }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", startIcon: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Add2.default, {}), onClick: addSlider, children: "Add variable" })
+    ] }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "Variables appear on the graph; students can adjust them when the graph is interactive." }),
+    sliders.map((slider, index) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      _Stack2.default,
+      {
+        spacing: 1,
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, flexWrap: "wrap", alignItems: "center", children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Variable",
+              size: "small",
+              value: slider.name,
+              onChange: (e) => {
+                const name = sanitizeGraphVariableName(e.target.value);
+                updateSlider(index, { name, bindsTo: name });
+              },
+              inputProps: { title: "Letters, numbers, underscore" },
+              sx: { width: 92 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Min",
+              size: "small",
+              value: String(slider.min),
+              onChange: (e) => updateSlider(index, { min: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.min) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Max",
+              size: "small",
+              value: String(slider.max),
+              onChange: (e) => updateSlider(index, { max: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.max) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Initial",
+              size: "small",
+              value: String(slider.initial),
+              onChange: (e) => updateSlider(index, {
+                initial: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.initial)
+              }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _FormControlLabel2.default,
+            {
+              control: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _Checkbox2.default,
+                {
+                  checked: !!slider.integer,
+                  onChange: (e) => {
+                    const integer = e.target.checked;
+                    updateSlider(index, {
+                      integer,
+                      step: integer ? 1 : 0.1,
+                      min: integer ? Math.round(slider.min) : slider.min,
+                      max: integer ? Math.round(slider.max) : slider.max,
+                      initial: integer ? Math.round(slider.initial) : slider.initial
+                    });
+                  }
+                }
+              ),
+              label: "Integer",
+              sx: { m: 0, ml: 0.25 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _IconButton2.default, { size: "small", onClick: () => removeSlider(index), "aria-label": "Remove", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" }) })
+        ] })
+      },
+      _nullishCoalesce(slider.id, () => ( index))
+    ))
+  ] });
+  const geometryPanel = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 2, children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      _FormControlLabel2.default,
+      {
+        control: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+          _Checkbox2.default,
+          {
+            checked: !!_optionalChain([embed, 'access', _160 => _160.options, 'optionalAccess', _161 => _161.snapToGrid]),
+            onChange: (e) => setEmbed((prev) => ({
+              ...prev,
+              options: { ...prev.options, snapToGrid: e.target.checked }
+            }))
+          }
+        ),
+        label: "Snap to grid"
+      }
+    ),
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: { xs: "column", md: "row" }, spacing: 2, alignItems: "stretch", children: [
+      /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+        _Box2.default,
+        {
+          sx: {
+            flex: 1,
+            minWidth: 0,
+            pr: { md: 2 },
+            borderRight: { md: "1px solid" },
+            borderColor: { md: "divider" }
+          },
+          children: [
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", alignItems: "center", justifyContent: "space-between", sx: { mb: 1 }, children: [
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", children: "Points" }),
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", startIcon: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Add2.default, {}), onClick: addPoint, children: "Add point" })
+            ] }),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Stack2.default, { spacing: 1.5, children: points.map((point, index) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+              _Stack2.default,
+              {
+                direction: "row",
+                spacing: 1,
+                alignItems: "center",
+                flexWrap: "wrap",
+                sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+                children: [
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "x",
+                      size: "small",
+                      value: _nullishCoalesce(_optionalChain([pointCoordDrafts, 'access', _162 => _162[_nullishCoalesce(point.id, () => ( `point-${index}`))], 'optionalAccess', _163 => _163.x]), () => ( String(point.x))),
+                      onChange: (e) => {
+                        const key = _nullishCoalesce(point.id, () => ( `point-${index}`));
+                        setPointCoordDrafts((prev) => ({
+                          ...prev,
+                          [key]: { x: e.target.value, y: _nullishCoalesce(_optionalChain([prev, 'access', _164 => _164[key], 'optionalAccess', _165 => _165.y]), () => ( String(point.y))) }
+                        }));
+                      },
+                      onBlur: (e) => {
+                        const key = _nullishCoalesce(point.id, () => ( `point-${index}`));
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) updatePoint(index, { x: next });
+                        setPointCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "y",
+                      size: "small",
+                      value: _nullishCoalesce(_optionalChain([pointCoordDrafts, 'access', _166 => _166[_nullishCoalesce(point.id, () => ( `point-${index}`))], 'optionalAccess', _167 => _167.y]), () => ( String(point.y))),
+                      onChange: (e) => {
+                        const key = _nullishCoalesce(point.id, () => ( `point-${index}`));
+                        setPointCoordDrafts((prev) => ({
+                          ...prev,
+                          [key]: { x: _nullishCoalesce(_optionalChain([prev, 'access', _168 => _168[key], 'optionalAccess', _169 => _169.x]), () => ( String(point.x))), y: e.target.value }
+                        }));
+                      },
+                      onBlur: (e) => {
+                        const key = _nullishCoalesce(point.id, () => ( `point-${index}`));
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) updatePoint(index, { y: next });
+                        setPointCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "Label",
+                      size: "small",
+                      value: _nullishCoalesce(point.label, () => ( "")),
+                      onChange: (e) => updatePoint(index, { label: e.target.value }),
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _IconButton2.default, { size: "small", onClick: () => removePoint(index), "aria-label": "Remove", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" }) })
+                ]
+              },
+              _nullishCoalesce(point.id, () => ( index))
+            )) })
+          ]
+        }
+      ),
+      /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Box2.default, { sx: { flex: 1, minWidth: 0 }, children: [
+        /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", alignItems: "center", justifyContent: "space-between", sx: { mb: 1 }, children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", children: "Lines & curves" }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", startIcon: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Add2.default, {}), onClick: addPath, children: "Add path" })
+        ] }),
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", display: "block", sx: { mb: 1 }, children: "Two points + linear = segment; more points or smooth = spline." }),
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Stack2.default, { spacing: 1.5, children: paths.map((path, listIndex) => {
+          const pts = pathPoints(path);
+          const interp = pathInterpolation(path);
+          return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+            _Stack2.default,
+            {
+              spacing: 1,
+              sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+              children: [
+                /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, alignItems: "center", flexWrap: "wrap", children: [
+                  /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _FormControl2.default, { size: "small", sx: { minWidth: 120 }, children: [
+                    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _InputLabel2.default, { id: `path-style-${path.objectIndex}`, children: "Style" }),
+                    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                      _Select2.default,
+                      {
+                        labelId: `path-style-${path.objectIndex}`,
+                        label: "Style",
+                        value: interp,
+                        onChange: (e) => setPathInterpolation(
+                          path.objectIndex,
+                          e.target.value
+                        ),
+                        children: [
+                          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _MenuItem2.default, { value: "linear", children: "Linear" }),
+                          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _MenuItem2.default, { value: "smooth", children: "Smooth" })
+                        ]
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", onClick: () => addPathControlPoint(path.objectIndex), children: "Add point" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Box2.default, { sx: { flex: 1 } }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _IconButton2.default,
+                    {
+                      size: "small",
+                      onClick: () => removePath(path.objectIndex),
+                      "aria-label": "Remove path",
+                      children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" })
+                    }
+                  )
+                ] }),
+                pts.map((pt, ptIndex) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, alignItems: "center", children: [
+                  /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", sx: { width: 28 }, children: [
+                    "P",
+                    ptIndex + 1
+                  ] }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "x",
+                      size: "small",
+                      value: _nullishCoalesce(pathCoordDrafts[`path-${path.objectIndex}-${ptIndex}-x`], () => ( String(pt[0]))),
+                      onChange: (e) => setPathCoordDrafts((prev) => ({
+                        ...prev,
+                        [`path-${path.objectIndex}-${ptIndex}-x`]: e.target.value
+                      })),
+                      onBlur: (e) => {
+                        const key = `path-${path.objectIndex}-${ptIndex}-x`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) {
+                          updatePathPoint(path.objectIndex, ptIndex, "x", String(next));
+                        }
+                        setPathCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "y",
+                      size: "small",
+                      value: _nullishCoalesce(pathCoordDrafts[`path-${path.objectIndex}-${ptIndex}-y`], () => ( String(pt[1]))),
+                      onChange: (e) => setPathCoordDrafts((prev) => ({
+                        ...prev,
+                        [`path-${path.objectIndex}-${ptIndex}-y`]: e.target.value
+                      })),
+                      onBlur: (e) => {
+                        const key = `path-${path.objectIndex}-${ptIndex}-y`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) {
+                          updatePathPoint(path.objectIndex, ptIndex, "y", String(next));
+                        }
+                        setPathCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  )
+                ] }, ptIndex))
+              ]
+            },
+            `${path.objectIndex}-${listIndex}`
+          );
+        }) })
+      ] })
+    ] })
+  ] });
+  const labelsPanel = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 2, children: [
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", children: "Text labels" }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", startIcon: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Add2.default, {}), onClick: addTextLabel, children: "Add label" })
+    ] }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "Free text at coordinates. Equation labels use the equation panel." }),
+    textLabels.map((label, index) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _Stack2.default,
+      {
+        direction: "row",
+        spacing: 1,
+        alignItems: "center",
+        flexWrap: "wrap",
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "Text",
+              size: "small",
+              value: label.text,
+              onChange: (e) => updateTextLabel(index, { text: e.target.value }),
+              sx: { flex: 1, minWidth: 120 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "x",
+              size: "small",
+              value: String(label.x),
+              onChange: (e) => updateTextLabel(index, { x: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, label.x) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              label: "y",
+              size: "small",
+              value: String(label.y),
+              onChange: (e) => updateTextLabel(index, { y: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, label.y) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _IconButton2.default, { size: "small", onClick: () => removeTextLabel(index), "aria-label": "Remove", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" }) })
+        ]
+      },
+      _nullishCoalesce(label.id, () => ( index))
+    ))
+  ] });
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Dialog2.default, { open, onClose, maxWidth: "xl", fullWidth: true, scroll: "paper", children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _DialogTitle2.default, { children: "Graph settings" }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _DialogContent2.default, { dividers: true, sx: { pt: 2 }, children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _Stack2.default,
+      {
+        direction: { xs: "column", md: "row" },
+        spacing: 3,
+        alignItems: { xs: "stretch", md: "flex-start" },
+        children: [
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+            _Box2.default,
+            {
+              sx: {
+                flex: { md: "0 0 auto" },
+                width: { md: Math.min(previewDisplaySize.width + 48, 580) },
+                maxWidth: "100%"
+              },
+              children: [
+                /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", gutterBottom: true, children: "Preview" }),
+                /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                  _Stack2.default,
+                  {
+                    direction: "row",
+                    spacing: 2,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    sx: {
+                      mb: 1,
+                      py: 0.75,
+                      px: 1,
+                      bgcolor: "action.hover",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider"
+                    },
+                    children: [
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _FormControlLabel2.default,
+                        {
+                          control: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                            _Checkbox2.default,
+                            {
+                              size: "small",
+                              checked: _optionalChain([embed, 'access', _170 => _170.options, 'optionalAccess', _171 => _171.showAxes]) !== false,
+                              onChange: (e) => setEmbed((prev) => ({
+                                ...prev,
+                                options: { ...prev.options, showAxes: e.target.checked }
+                              }))
+                            }
+                          ),
+                          label: "Show axes"
+                        }
+                      ),
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _FormControlLabel2.default,
+                        {
+                          control: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                            _Checkbox2.default,
+                            {
+                              size: "small",
+                              checked: _optionalChain([embed, 'access', _172 => _172.options, 'optionalAccess', _173 => _173.showGrid]) === true,
+                              onChange: (e) => setEmbed((prev) => ({
+                                ...prev,
+                                options: { ...prev.options, showGrid: e.target.checked }
+                              }))
+                            }
+                          ),
+                          label: "Show grid"
+                        }
+                      ),
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _TextField2.default,
+                        {
+                          size: "small",
+                          label: "Step",
+                          type: "text",
+                          inputMode: "decimal",
+                          disabled: _optionalChain([embed, 'access', _174 => _174.options, 'optionalAccess', _175 => _175.showGrid]) !== true,
+                          value: _nullishCoalesce(gridStepText, () => ( String(_nullishCoalesce(_optionalChain([embed, 'access', _176 => _176.options, 'optionalAccess', _177 => _177.gridStep]), () => ( 1))))),
+                          onFocus: (e) => setGridStepText(e.target.value),
+                          onChange: (e) => setGridStepText(e.target.value),
+                          onBlur: (e) => {
+                            const prev = _nullishCoalesce(_optionalChain([embed, 'access', _178 => _178.options, 'optionalAccess', _179 => _179.gridStep]), () => ( 1));
+                            const step = parsePositiveDecimalCommit(e.target.value, prev);
+                            setGridStepText(null);
+                            setEmbed((p) => ({
+                              ...p,
+                              options: { ...p.options, gridStep: step }
+                            }));
+                          },
+                          onKeyDown: (e) => {
+                            if (e.key === "Enter") e.target.blur();
+                          },
+                          sx: { width: 92 }
+                        }
+                      )
+                    ]
+                  }
+                ),
+                open && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                  _Box2.default,
+                  {
+                    sx: {
+                      position: "relative",
+                      width: previewDisplaySize.width,
+                      maxWidth: "100%",
+                      mx: "auto",
+                      height: previewDisplaySize.height,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      overflow: "hidden"
+                    },
+                    children: [
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _chunkJJSHIBONjs.GraphPreview_default,
+                        {
+                          embed: previewEmbed,
+                          height: previewDisplaySize.height,
+                          width: `${previewDisplaySize.width}px`
+                        },
+                        _chunkJJSHIBONjs.graphPreviewKey.call(void 0, previewEmbed)
+                      ),
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _ButtonBase2.default,
+                        {
+                          type: "button",
+                          disableRipple: true,
+                          "aria-label": "Edit horizontal axis label",
+                          onClick: (e) => setAxisPopover({ axis: "y", anchor: e.currentTarget }),
+                          sx: {
+                            position: "absolute",
+                            bottom: 2,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: Math.min(200, previewDisplaySize.width * 0.55),
+                            height: 40,
+                            borderRadius: 1,
+                            zIndex: 2,
+                            opacity: 0,
+                            "&:hover": { opacity: 0.15, bgcolor: "primary.main" }
+                          }
+                        }
+                      ),
+                      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                        _ButtonBase2.default,
+                        {
+                          type: "button",
+                          disableRipple: true,
+                          "aria-label": "Edit vertical axis label",
+                          onClick: (e) => setAxisPopover({ axis: "x", anchor: e.currentTarget }),
+                          sx: {
+                            position: "absolute",
+                            left: 2,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 44,
+                            height: Math.min(160, previewDisplaySize.height * 0.5),
+                            borderRadius: 1,
+                            zIndex: 2,
+                            opacity: 0,
+                            "&:hover": { opacity: 0.15, bgcolor: "primary.main" }
+                          }
+                        }
+                      ),
+                      /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                        _Paper2.default,
+                        {
+                          elevation: 2,
+                          sx: {
+                            position: "absolute",
+                            right: 8,
+                            bottom: 8,
+                            p: 1,
+                            zIndex: 2,
+                            bgcolor: "background.paper"
+                          },
+                          children: [
+                            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", display: "block", gutterBottom: true, children: "Scale ratio" }),
+                            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 0.5, alignItems: "center", flexWrap: "wrap", children: [
+                              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", children: "x" }),
+                              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                                _TextField2.default,
+                                {
+                                  size: "small",
+                                  type: "text",
+                                  inputMode: "decimal",
+                                  value: _nullishCoalesce(scaleRatioXText, () => ( String(_nullishCoalesce(_optionalChain([embed, 'access', _180 => _180.options, 'optionalAccess', _181 => _181.scaleRatio, 'optionalAccess', _182 => _182.x]), () => ( 1))))),
+                                  onFocus: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioXText(e.target.value);
+                                  },
+                                  onChange: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioXText(e.target.value);
+                                  },
+                                  onBlur: (e) => {
+                                    e.stopPropagation();
+                                    const prevX = _nullishCoalesce(_optionalChain([embed, 'access', _183 => _183.options, 'optionalAccess', _184 => _184.scaleRatio, 'optionalAccess', _185 => _185.x]), () => ( 1));
+                                    const prevY = _nullishCoalesce(_optionalChain([embed, 'access', _186 => _186.options, 'optionalAccess', _187 => _187.scaleRatio, 'optionalAccess', _188 => _188.y]), () => ( 1));
+                                    const x = parsePositiveDecimalCommit(e.target.value, prevX);
+                                    setScaleRatioXText(null);
+                                    setEmbed(
+                                      (p) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, 
+                                        {
+                                          ...p,
+                                          options: {
+                                            ...p.options,
+                                            stretchToFit: false,
+                                            scaleRatio: { x, y: prevY }
+                                          }
+                                        },
+                                        previewViewport
+                                      )
+                                    );
+                                  },
+                                  onKeyDown: (e) => {
+                                    if (e.key === "Enter") e.target.blur();
+                                  },
+                                  onClick: (e) => e.stopPropagation(),
+                                  sx: { width: 68 }
+                                }
+                              ),
+                              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", children: "y" }),
+                              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                                _TextField2.default,
+                                {
+                                  size: "small",
+                                  type: "text",
+                                  inputMode: "decimal",
+                                  value: _nullishCoalesce(scaleRatioYText, () => ( String(_nullishCoalesce(_optionalChain([embed, 'access', _189 => _189.options, 'optionalAccess', _190 => _190.scaleRatio, 'optionalAccess', _191 => _191.y]), () => ( 1))))),
+                                  onFocus: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioYText(e.target.value);
+                                  },
+                                  onChange: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioYText(e.target.value);
+                                  },
+                                  onBlur: (e) => {
+                                    e.stopPropagation();
+                                    const prevX = _nullishCoalesce(_optionalChain([embed, 'access', _192 => _192.options, 'optionalAccess', _193 => _193.scaleRatio, 'optionalAccess', _194 => _194.x]), () => ( 1));
+                                    const prevY = _nullishCoalesce(_optionalChain([embed, 'access', _195 => _195.options, 'optionalAccess', _196 => _196.scaleRatio, 'optionalAccess', _197 => _197.y]), () => ( 1));
+                                    const y = parsePositiveDecimalCommit(e.target.value, prevY);
+                                    setScaleRatioYText(null);
+                                    setEmbed(
+                                      (p) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, 
+                                        {
+                                          ...p,
+                                          options: {
+                                            ...p.options,
+                                            stretchToFit: false,
+                                            scaleRatio: { x: prevX, y }
+                                          }
+                                        },
+                                        previewViewport
+                                      )
+                                    );
+                                  },
+                                  onKeyDown: (e) => {
+                                    if (e.key === "Enter") e.target.blur();
+                                  },
+                                  onClick: (e) => e.stopPropagation(),
+                                  sx: { width: 68 }
+                                }
+                              )
+                            ] })
+                          ]
+                        }
+                      )
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", spacing: 1, alignItems: "center", flexWrap: "wrap", sx: { mt: 1.5 }, children: [
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "body2", color: "text.secondary", children: "Graph size" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "W",
+                      type: "text",
+                      inputMode: "numeric",
+                      size: "small",
+                      value: _nullishCoalesce(graphWText, () => ( String(previewDisplaySize.width))),
+                      disabled: embed.autoDisplaySize !== false,
+                      onFocus: (e) => setGraphWText(e.target.value),
+                      onChange: (e) => setGraphWText(e.target.value),
+                      onBlur: (e) => {
+                        const n = parseGraphPixelCommit(e.target.value);
+                        setGraphWText(null);
+                        if (n === void 0) return;
+                        const w = Math.min(
+                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH, n)
+                        );
+                        const h = Math.min(
+                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT, Math.round(w / Math.max(1e-4, previewAspect)))
+                        );
+                        setEmbed((prev) => ({
+                          ...prev,
+                          autoDisplaySize: false,
+                          displayWidth: w,
+                          displayHeight: h
+                        }));
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key !== "Enter") return;
+                        e.target.blur();
+                      },
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "body2", color: "text.secondary", children: "\xD7" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                    _TextField2.default,
+                    {
+                      label: "H",
+                      type: "text",
+                      inputMode: "numeric",
+                      size: "small",
+                      value: _nullishCoalesce(graphHText, () => ( String(previewDisplaySize.height))),
+                      disabled: embed.autoDisplaySize !== false,
+                      onFocus: (e) => setGraphHText(e.target.value),
+                      onChange: (e) => setGraphHText(e.target.value),
+                      onBlur: (e) => {
+                        const n = parseGraphPixelCommit(e.target.value);
+                        setGraphHText(null);
+                        if (n === void 0) return;
+                        const h = Math.min(
+                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT, n)
+                        );
+                        const w = Math.min(
+                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH, Math.round(h * previewAspect))
+                        );
+                        setEmbed((prev) => ({
+                          ...prev,
+                          autoDisplaySize: false,
+                          displayHeight: h,
+                          displayWidth: w
+                        }));
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key !== "Enter") return;
+                        e.target.blur();
+                      },
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "px" })
+                ] }),
+                /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", display: "block", sx: { mt: 0.5 }, children: "Click the bottom or left edge of the graph to edit axis names." })
+              ]
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { spacing: 2.5, sx: { flex: 1, minWidth: 0 }, children: [
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "h6", component: "h2", children: "Graph settings" }),
+            viewSection,
+            sectionTitle("Objects"),
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+              _Tabs2.default,
+              {
+                value: objectsTab,
+                onChange: (_, v) => setObjectsTab(v),
+                variant: "scrollable",
+                scrollButtons: "auto",
+                sx: { borderBottom: 1, borderColor: "divider" },
+                children: [
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Tab2.default, { label: "Equations" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Tab2.default, { label: "Variables" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Tab2.default, { label: "Points & lines" }),
+                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Tab2.default, { label: "Labels" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+              _Box2.default,
+              {
+                sx: {
+                  minHeight: 240,
+                  maxHeight: "min(55vh, 520px)",
+                  overflow: "auto",
+                  pr: 0.5
+                },
+                children: [
+                  objectsTab === 0 && equationsPanel,
+                  objectsTab === 1 && slidersPanel,
+                  objectsTab === 2 && geometryPanel,
+                  objectsTab === 3 && labelsPanel
+                ]
+              }
+            )
+          ] })
+        ]
+      }
+    ) }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+      _Popover2.default,
+      {
+        open: Boolean(axisPopover),
+        anchorEl: _nullishCoalesce(_optionalChain([axisPopover, 'optionalAccess', _198 => _198.anchor]), () => ( null)),
+        onClose: () => setAxisPopover(null),
+        anchorOrigin: { vertical: "top", horizontal: "center" },
+        transformOrigin: { vertical: "bottom", horizontal: "center" },
+        children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Paper2.default, { sx: { p: 2, width: 280 }, children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "subtitle2", gutterBottom: true, children: _optionalChain([axisPopover, 'optionalAccess', _199 => _199.axis]) === "x" ? "Horizontal axis label" : "Vertical axis label" }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+            _TextField2.default,
+            {
+              size: "small",
+              fullWidth: true,
+              autoFocus: true,
+              value: axisDraft,
+              onChange: (e) => setAxisDraft(e.target.value),
+              onKeyDown: (e) => {
+                if (e.key !== "Enter") return;
+                if (!axisPopover) return;
+                const def = axisPopover.axis === "x" ? "x" : "y";
+                const v = axisDraft.trim();
+                setEmbed((prev) => ({
+                  ...prev,
+                  options: {
+                    ...prev.options,
+                    [axisPopover.axis === "x" ? "xAxisLabel" : "yAxisLabel"]: v === "" || v === def ? void 0 : v
+                  }
+                }));
+                setAxisPopover(null);
+              }
+            }
+          ),
+          /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Stack2.default, { direction: "row", justifyContent: "flex-end", spacing: 1, sx: { mt: 1.5 }, children: [
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { size: "small", onClick: () => setAxisPopover(null), children: "Cancel" }),
+            /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+              _Button2.default,
+              {
+                size: "small",
+                variant: "contained",
+                onClick: () => {
+                  if (!axisPopover) return;
+                  const def = axisPopover.axis === "x" ? "x" : "y";
+                  const v = axisDraft.trim();
+                  setEmbed((prev) => ({
+                    ...prev,
+                    options: {
+                      ...prev.options,
+                      [axisPopover.axis === "x" ? "xAxisLabel" : "yAxisLabel"]: v === "" || v === def ? void 0 : v
+                    }
+                  }));
+                  setAxisPopover(null);
+                },
+                children: "OK"
+              }
+            )
+          ] })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _DialogActions2.default, { children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { onClick: onClose, children: "Cancel" }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Button2.default, { variant: "contained", onClick: handleSave, children: "Save" })
+    ] })
+  ] });
+};
+var GraphEmbedDialog_default = GraphEmbedDialog;
+
+// src/utils/graphIds.ts
+function createGraphEmbedId() {
+  const suffix = Math.random().toString(36).slice(2, 10);
+  return `graph_${Date.now().toString(36)}_${suffix}`;
+}
+
+// src/hooks/useGraphEmbedEditor.ts
+
+var defaultGraphEmbed = () => ({
+  type: "graph",
+  renderer: "jsxgraph",
+  mode: "display",
+  viewport: { xMin: -10, xMax: 10, yMin: -10, yMax: 10 },
+  options: {
+    showAxes: true,
+    showGrid: true,
+    gridStep: 1,
+    showLabels: true,
+    scaleRatio: { x: 1, y: 1 },
+    snapToGrid: false
+  },
+  autoDisplaySize: true,
+  expressions: [],
+  objects: []
 });
+function useGraphEmbedEditor({
+  editor,
+  embeds,
+  onEmbedsChange,
+  enabled = true
+}) {
+  const embedsRef = _react.useRef.call(void 0, embeds);
+  embedsRef.current = embeds;
+  const [dialog, setDialog] = _react.useState.call(void 0, { open: false });
+  const getEmbeds = _react.useCallback.call(void 0, () => embedsRef.current, []);
+  const patchEmbeds = _react.useCallback.call(void 0, 
+    (embedId, embed) => {
+      const next = _chunkJJSHIBONjs.upsertGraphEmbed.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), embedId, embed);
+      embedsRef.current = next;
+      _optionalChain([onEmbedsChange, 'optionalCall', _200 => _200(next)]);
+      return next;
+    },
+    [onEmbedsChange]
+  );
+  const openGraphEditor = _react.useCallback.call(void 0, 
+    (request) => {
+      if (!enabled || !onEmbedsChange) return;
+      if (request.mode === "insert") {
+        setDialog({
+          open: true,
+          mode: "insert",
+          embedId: createGraphEmbedId(),
+          initialEmbed: _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, defaultGraphEmbed())
+        });
+        return;
+      }
+      const existing = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, embedsRef.current, request.embedId);
+      setDialog({
+        open: true,
+        mode: "edit",
+        embedId: request.embedId,
+        initialEmbed: _nullishCoalesce(existing, () => ( defaultGraphEmbed())),
+        editPos: request.pos
+      });
+    },
+    [enabled, onEmbedsChange]
+  );
+  const closeDialog = _react.useCallback.call(void 0, () => setDialog({ open: false }), []);
+  const handleDialogSave = _react.useCallback.call(void 0, 
+    (embed) => {
+      if (!dialog.open || !editor) return;
+      const embedId = dialog.embedId;
+      patchEmbeds(embedId, embed);
+      if (dialog.mode === "insert") {
+        editor.chain().focus().insertGraphEmbed(embedId).run();
+      } else if (typeof dialog.editPos === "number") {
+        editor.chain().focus().setNodeSelection(dialog.editPos).run();
+      }
+      editor.view.dispatch(editor.state.tr);
+    },
+    [dialog, editor, patchEmbeds]
+  );
+  const insertNewGraph = _react.useCallback.call(void 0, () => {
+    openGraphEditor({ mode: "insert" });
+  }, [openGraphEditor]);
+  const resizeGraphEmbed = _react.useCallback.call(void 0, 
+    (embedId, size) => {
+      if (!enabled || !onEmbedsChange) return;
+      const existing = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, embedsRef.current, embedId);
+      if (!existing) return;
+      patchEmbeds(embedId, {
+        ...existing,
+        autoDisplaySize: false,
+        displayWidth: size.width,
+        displayHeight: size.height
+      });
+    },
+    [enabled, onEmbedsChange, patchEmbeds]
+  );
+  return {
+    graphEnabled: enabled && !!onEmbedsChange,
+    getEmbeds,
+    openGraphEditor,
+    insertNewGraph,
+    resizeGraphEmbed,
+    dialog,
+    closeDialog,
+    handleDialogSave
+  };
+}
+
+// src/extensions/GraphEmbed.ts
+
+var MIN_GRAPH_WIDTH = 200;
+var MAX_GRAPH_WIDTH = 960;
+var MIN_GRAPH_HEIGHT = 120;
+var MAX_GRAPH_HEIGHT = 800;
+function applyGraphNodeLayout(dom, body, embed) {
+  const { width, height } = embed ? _chunkJJSHIBONjs.resolveGraphDisplaySize.call(void 0, embed) : { width: 400, height: 400 };
+  dom.style.display = "inline-block";
+  dom.style.verticalAlign = "top";
+  dom.style.maxWidth = "100%";
+  dom.style.width = `${width}px`;
+  body.style.width = "100%";
+  body.style.height = `${height}px`;
+  body.style.boxSizing = "border-box";
+}
+var GraphEmbedNode = _core.Node.create({
+  name: "graphEmbed",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addOptions() {
+    return {
+      getEmbeds: () => void 0,
+      onOpenEditor: () => {
+      },
+      onResizeEmbed: void 0,
+      allowResize: true
+    };
+  },
+  addAttributes() {
+    return {
+      embedId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-embed-id"),
+        renderHTML: (attributes) => {
+          if (!attributes.embedId) return {};
+          return { "data-embed-id": attributes.embedId };
+        }
+      }
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'motionless[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      },
+      {
+        tag: 'motion[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      },
+      {
+        tag: 'div[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      }
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      _core.mergeAttributes.call(void 0, HTMLAttributes, {
+        "data-type": "graph",
+        class: "graph-embed-node"
+      })
+    ];
+  },
+  addCommands() {
+    return {
+      insertGraphEmbed: (embedId) => ({ commands }) => commands.insertContent({
+        type: this.name,
+        attrs: { embedId }
+      })
+    };
+  },
+  addNodeView() {
+    const { getEmbeds, onOpenEditor, onResizeEmbed, allowResize } = this.options;
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement("div");
+      dom.className = "graph-embed-node";
+      dom.dataset.type = "graph";
+      dom.contentEditable = "false";
+      const header = document.createElement("div");
+      header.className = "graph-embed-node__header";
+      const label = document.createElement("span");
+      label.className = "graph-embed-node__label";
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "graph-embed-node__edit";
+      editBtn.textContent = "Edit graph";
+      header.appendChild(label);
+      header.appendChild(editBtn);
+      const body = document.createElement("div");
+      body.className = "graph-embed-node__body";
+      const mount = document.createElement("div");
+      mount.className = "graph-embed-node__mount";
+      mount.dataset.graphPreviewMount = "true";
+      body.appendChild(mount);
+      let resizeHandle = null;
+      if (allowResize !== false && onResizeEmbed) {
+        resizeHandle = document.createElement("div");
+        resizeHandle.className = "graph-embed-node__resize-handle";
+        resizeHandle.title = "Drag to resize graph";
+        resizeHandle.setAttribute("aria-label", "Resize graph");
+        body.appendChild(resizeHandle);
+      }
+      dom.appendChild(header);
+      dom.appendChild(body);
+      const openEditor = () => {
+        const embedId = node.attrs.embedId;
+        let pos = getPos();
+        if (typeof pos !== "number") {
+          editor.state.doc.descendants((n, p) => {
+            if (n.type.name === "graphEmbed" && n.attrs.embedId === embedId) {
+              pos = p;
+              return false;
+            }
+          });
+        }
+        onOpenEditor({
+          mode: "edit",
+          embedId,
+          pos: typeof pos === "number" ? pos : void 0
+        });
+      };
+      const syncNode = (updatedNode) => {
+        node = updatedNode;
+        const embedId = node.attrs.embedId;
+        dom.dataset.embedId = embedId;
+        mount.dataset.graphEmbedId = embedId;
+        const embed = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, getEmbeds(), embedId);
+        dom.classList.toggle("graph-embed-node--missing", !embed);
+        if (embed) {
+          label.textContent = `Graph (${_chunkJJSHIBONjs.graphModeLabel.call(void 0, embed)})`;
+        } else {
+          label.textContent = "Graph (missing definition)";
+        }
+        applyGraphNodeLayout(dom, body, embed);
+      };
+      syncNode(node);
+      if (resizeHandle && onResizeEmbed) {
+        resizeHandle.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const embedId = node.attrs.embedId;
+          const startX = event.clientX;
+          const startY = event.clientY;
+          const startW = body.offsetWidth;
+          const startH = body.offsetHeight;
+          const onMove = (moveEvent) => {
+            const width = Math.min(
+              MAX_GRAPH_WIDTH,
+              Math.max(MIN_GRAPH_WIDTH, startW + moveEvent.clientX - startX)
+            );
+            const height = Math.min(
+              MAX_GRAPH_HEIGHT,
+              Math.max(MIN_GRAPH_HEIGHT, startH + moveEvent.clientY - startY)
+            );
+            dom.style.width = `${width}px`;
+            body.style.width = "100%";
+            body.style.height = `${height}px`;
+          };
+          const onUp = (upEvent) => {
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+            const width = Math.min(
+              MAX_GRAPH_WIDTH,
+              Math.max(MIN_GRAPH_WIDTH, startW + upEvent.clientX - startX)
+            );
+            const height = Math.min(
+              MAX_GRAPH_HEIGHT,
+              Math.max(MIN_GRAPH_HEIGHT, startH + upEvent.clientY - startY)
+            );
+            onResizeEmbed(embedId, { width, height });
+          };
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+        });
+      }
+      editBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openEditor();
+      });
+      header.addEventListener("click", (event) => {
+        if (event.target === editBtn) return;
+        openEditor();
+      });
+      return {
+        dom,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "graphEmbed") return false;
+          syncNode(updatedNode);
+          return true;
+        },
+        ignoreMutation(mutation) {
+          const target = mutation.target;
+          if (!(target instanceof HTMLElement)) return false;
+          return body.contains(target);
+        }
+      };
+    };
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.CHEM_STRUCTURE_ALLOWED_ATTR = _chunkJJSHIBONjs.CHEM_STRUCTURE_ALLOWED_ATTR; exports.CHEM_STRUCTURE_ALLOWED_TAGS = _chunkJJSHIBONjs.CHEM_STRUCTURE_ALLOWED_TAGS; exports.ChemStructure = ChemStructure; exports.ChemStructureDialog = ChemStructureDialogLazy_default; exports.EquationInsertPanel = EquationInsertPanel; exports.ExplanationEditor = ExplanationEditor; exports.GRAPH_DISPLAY_BASE_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_BASE_WIDTH; exports.GRAPH_DISPLAY_MAX_HEIGHT = _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT; exports.GRAPH_DISPLAY_MAX_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH; exports.GRAPH_DISPLAY_MIN_HEIGHT = _chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT; exports.GRAPH_DISPLAY_MIN_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH; exports.GraphAnswerInput = _chunkJJSHIBONjs.GraphAnswerInput_default; exports.GraphEmbedDialog = GraphEmbedDialog_default; exports.GraphEmbedNode = GraphEmbedNode; exports.GraphPreview = _chunkJJSHIBONjs.GraphPreview_default; exports.GraphRenderer = _chunkJJSHIBONjs.GraphRenderer_default; exports.InlineMathWithMathLive = InlineMathWithMathLive; exports.InlineMathWithParens = InlineMathWithParens; exports.MathLiveEditor = MathLiveEditor_default; exports.MathPreview = _chunkJJSHIBONjs.MathPreview_default; exports.MathematicsWithInlineEdit = MathematicsWithInlineEdit; exports.MenuBar = MenuBar_default; exports.OverleafPaste = OverleafPaste; exports.RichTextWithMath = _chunkJJSHIBONjs.RichTextWithMath; exports.SmartMathPaste = SmartMathPaste; exports.TextStyleFontSize = TextStyleFontSize; exports.TiptapEditor = TiptapEditor_default; exports.chemAwareSanitizeConfig = _chunkJJSHIBONjs.chemAwareSanitizeConfig; exports.collectChemStructureIds = _chunkJJSHIBONjs.collectChemStructureIds; exports.collectGraphEmbedIds = _chunkJJSHIBONjs.collectGraphEmbedIds; exports.computeGraphDisplaySize = _chunkJJSHIBONjs.computeGraphDisplaySize; exports.createChemStructureId = createChemStructureId; exports.createGraphEmbedId = createGraphEmbedId; exports.denormalizeTeachingDiagramKetForEditing = _chunk7H5JQALUjs.denormalizeTeachingDiagramKetForEditing; exports.extractGraphVariableNamesFromLatex = extractGraphVariableNamesFromLatex; exports.findUndefinedGraphVariables = findUndefinedGraphVariables; exports.formatGraphOriginLabelLatex = _chunkJJSHIBONjs.formatGraphOriginLabelLatex; exports.getChemStructureEmbed = _chunkJJSHIBONjs.getChemStructureEmbed; exports.getGraphEmbed = _chunkJJSHIBONjs.getGraphEmbed; exports.graphHasSliders = _chunkJJSHIBONjs.graphHasSliders; exports.graphModeLabel = _chunkJJSHIBONjs.graphModeLabel; exports.graphPreviewKey = _chunkJJSHIBONjs.graphPreviewKey; exports.handleMathBackspaceKeyDown = handleMathBackspaceKeyDown; exports.hydrateChemStructuresInHtml = _chunkJJSHIBONjs.hydrateChemStructuresInHtml; exports.hydrateGraphsInHtml = _chunkJJSHIBONjs.hydrateGraphsInHtml; exports.isDisplayInteractive = _chunkJJSHIBONjs.isDisplayInteractive; exports.mountGraphPreviewsInElement = _chunkJJSHIBONjs.mountGraphPreviewsInElement; exports.namespaceChemPreviewSvg = _chunkJJSHIBONjs.namespaceChemPreviewSvg; exports.normalizeChemStructureSource = _chunk7H5JQALUjs.normalizeChemStructureSource; exports.normalizeGraphMode = _chunkJJSHIBONjs.normalizeGraphMode; exports.normalizeStructurePreviewKet = _chunk7H5JQALUjs.normalizeStructurePreviewKet; exports.normalizeTeachingDiagramKet = _chunk7H5JQALUjs.normalizeTeachingDiagramKet; exports.normalizeViewport = _chunkJJSHIBONjs.normalizeViewport; exports.parseViewportField = _chunkJJSHIBONjs.parseViewportField; exports.prepareChemAwareHtml = _chunkJJSHIBONjs.prepareChemAwareHtml; exports.pruneUnusedChemStructures = _chunkJJSHIBONjs.pruneUnusedChemStructures; exports.pruneUnusedGraphs = _chunkJJSHIBONjs.pruneUnusedGraphs; exports.removeChemStructure = _chunkJJSHIBONjs.removeChemStructure; exports.removeGraphEmbed = _chunkJJSHIBONjs.removeGraphEmbed; exports.renderTeachingDiagramSvg = _chunk7H5JQALUjs.renderTeachingDiagramSvg; exports.resolveGraphDisplaySize = _chunkJJSHIBONjs.resolveGraphDisplaySize; exports.unmountGraphPreviewsInElement = _chunkJJSHIBONjs.unmountGraphPreviewsInElement; exports.upsertChemStructure = _chunkJJSHIBONjs.upsertChemStructure; exports.upsertGraphEmbed = _chunkJJSHIBONjs.upsertGraphEmbed; exports.useChemStructureEditor = useChemStructureEditor; exports.useGraphEmbedEditor = useGraphEmbedEditor; exports.viewportFieldsFromEmbed = _chunkJJSHIBONjs.viewportFieldsFromEmbed; exports.viewportFromFields = _chunkJJSHIBONjs.viewportFromFields; exports.withAutoDisplaySize = _chunkJJSHIBONjs.withAutoDisplaySize;
 //# sourceMappingURL=index.js.map

@@ -1,8 +1,9 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/preview.ts', 'src/chemTeachingDiagram.ts'],
   format: ['cjs', 'esm'],
+  splitting: true,
   dts: true,
   sourcemap: true,
   clean: true,
@@ -14,7 +15,12 @@ export default defineConfig({
     '@emotion/react',
     '@emotion/styled',
     '@tiptap/*',
+    'dompurify',
     'katex',
-    'mathlive'
+    'mathlive',
+    'ketcher-react',
+    'ketcher-core',
+    'ketcher-standalone',
+    'jsxgraph',
   ]
 })

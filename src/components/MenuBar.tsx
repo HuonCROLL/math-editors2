@@ -29,6 +29,8 @@ import FormatAlignRightIcon from '@mui/icons-material/FormatAlignRight'
 
 // NEW icon for equation
 import FunctionsIcon from '@mui/icons-material/Functions';
+import ScienceIcon from '@mui/icons-material/Science';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 
 interface Props {
@@ -36,6 +38,10 @@ interface Props {
   showQuestionButton?: boolean;
   /** When provided, Equation button inserts inline math (e.g. empty placeholder) */
   onInsertEquation?: () => void;
+  /** When provided, opens Ketcher dialog to insert a chemical structure */
+  onInsertChemStructure?: () => void;
+  /** When provided, opens graph dialog to insert a graph embed */
+  onInsertGraph?: () => void;
   toolbarMode?: 'studentSimple' | 'tutorFull';
 }
 
@@ -43,6 +49,8 @@ const MenuBar: React.FC<Props> = ({
   editor,
   showQuestionButton = false,
   onInsertEquation,
+  onInsertChemStructure,
+  onInsertGraph,
   toolbarMode = 'tutorFull',
 }) => {
   // Move ALL hooks to the top, before any early returns
@@ -178,6 +186,34 @@ const MenuBar: React.FC<Props> = ({
             </IconButton>
           </span>
         </Tooltip>
+        {onInsertChemStructure && (
+          <Tooltip key="ChemStructure" title="Chemical structure" arrow>
+            <span>
+              <IconButton
+                size="small"
+                onClick={onInsertChemStructure}
+                color="default"
+                sx={{ borderRadius: 1 }}
+              >
+                <ScienceIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        {onInsertGraph && (
+          <Tooltip key="GraphEmbed" title="Graph" arrow>
+            <span>
+              <IconButton
+                size="small"
+                onClick={onInsertGraph}
+                color="default"
+                sx={{ borderRadius: 1 }}
+              >
+                <ShowChartIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
         <Divider orientation="vertical" flexItem />
 
         <TextField

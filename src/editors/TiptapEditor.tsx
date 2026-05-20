@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 
 /* ───────── extensions ───────── */
@@ -12,12 +12,16 @@ import { InlineMathWithParens } from '../extensions/InlineMathWithParens';
 import { BlockMathWithBrackets } from '../extensions/MathematicsWithInlineEdit';
 import { OverleafPaste } from '../extensions/OverleafPaste';
 import { SmartMathPaste } from '../extensions/SmartMathPaste';
+import { ChemStructure } from '../extensions/ChemStructure';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyleFontSize } from '../extensions/TextStyleFontSize';
 import Box from '@mui/material/Box';
 import 'katex/dist/katex.min.css';
 import '../styles/tiptap.css';
 import MenuBar from '../components/MenuBar';
+import ChemStructureDialog from '../components/ChemStructureDialogLazy';
+import { useChemStructureEditor } from '../hooks/useChemStructureEditor';
+import type { EditorEmbeds } from '../types/embeds';
 
 type QuestionOpts =
   | boolean
@@ -29,6 +33,9 @@ interface Props {
   readOnly?: boolean;
   /** Enable question placeholders + picker (pass subject/category to scope results) */
   questions?: QuestionOpts;
+  /** Chemical structure embeds manifest (paired with chem-structure spans in HTML). */
+  embeds?: EditorEmbeds;
+  onEmbedsChange?: (embeds: EditorEmbeds) => void;
   menuBarWrapperSx?: any;
   toolbarMode?: 'studentSimple' | 'tutorFull';
 }
@@ -38,9 +45,22 @@ const TiptapEditor: React.FC<Props> = ({
   onChange,
   readOnly,
   questions = false,
+  embeds,
+  onEmbedsChange,
   menuBarWrapperSx,
   toolbarMode = 'tutorFull',
 }) => {
+  const chemEditorRef = React.useRef<ReturnType<typeof useChemStructureEditor> | null>(null);
+
+  const chemExtension = useMemo(
+    () =>
+      ChemStructure.configure({
+        getEmbeds: () => chemEditorRef.current?.getEmbeds(),
+        onOpenEditor: (request) => chemEditorRef.current?.openChemEditor(request),
+      }),
+    [],
+  );
+
   /* -------------------------------- editor -------------------------------- */
   const editor = useEditor({
     content: value || '<p></p>',
@@ -73,8 +93,24 @@ const TiptapEditor: React.FC<Props> = ({
       TableRow,
       TableCell,
       TableHeader,
+
+      chemExtension,
     ],
   });
+
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange,
+    enabled: !readOnly,
+  });
+  chemEditorRef.current = chemEditor;
+
+  useEffect(() => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
 
   useEffect(() => {
     if (!editor) return;
@@ -95,9 +131,23 @@ const TiptapEditor: React.FC<Props> = ({
   return (
     <>
       <Box sx={menuBarWrapperSx}>
-        <MenuBar editor={editor} showQuestionButton={false} toolbarMode={toolbarMode} />
+        <MenuBar
+          editor={editor}
+          showQuestionButton={false}
+          toolbarMode={toolbarMode}
+          onInsertChemStructure={chemEditor.chemEnabled ? chemEditor.insertNewStructure : undefined}
+        />
       </Box>
       <EditorContent editor={editor} className="tiptap" />
+      {chemEditor.dialog.open && (
+        <ChemStructureDialog
+          open
+          mode={chemEditor.dialog.mode}
+          initialSourceValue={chemEditor.dialog.initialSourceValue}
+          onClose={chemEditor.closeDialog}
+          onSave={chemEditor.handleDialogSave}
+        />
+      )}
     </>
   );
 };

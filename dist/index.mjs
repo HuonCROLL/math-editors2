@@ -1,3 +1,55 @@
+import {
+  CHEM_STRUCTURE_ALLOWED_ATTR,
+  CHEM_STRUCTURE_ALLOWED_TAGS,
+  GRAPH_DISPLAY_BASE_WIDTH,
+  GRAPH_DISPLAY_MAX_HEIGHT,
+  GRAPH_DISPLAY_MAX_WIDTH,
+  GRAPH_DISPLAY_MIN_HEIGHT,
+  GRAPH_DISPLAY_MIN_WIDTH,
+  GraphAnswerInput_default,
+  GraphPreview_default,
+  GraphRenderer_default,
+  MathPreview_default,
+  RichTextWithMath,
+  chemAwareSanitizeConfig,
+  collectChemStructureIds,
+  collectGraphEmbedIds,
+  computeGraphDisplaySize,
+  formatGraphOriginLabelLatex,
+  getChemStructureEmbed,
+  getGraphEmbed,
+  graphHasSliders,
+  graphModeLabel,
+  graphPreviewKey,
+  hydrateChemStructuresInHtml,
+  hydrateGraphsInHtml,
+  isDisplayInteractive,
+  mountGraphPreviewsInElement,
+  namespaceChemPreviewSvg,
+  normalizeGraphMode,
+  normalizeViewport,
+  parseViewportField,
+  prepareChemAwareHtml,
+  pruneUnusedChemStructures,
+  pruneUnusedGraphs,
+  removeChemStructure,
+  removeGraphEmbed,
+  resolveGraphDisplaySize,
+  unmountGraphPreviewsInElement,
+  upsertChemStructure,
+  upsertGraphEmbed,
+  viewportFieldsFromEmbed,
+  viewportFromFields,
+  withAutoDisplaySize
+} from "./chunk-CGZIIVYR.mjs";
+import {
+  denormalizeTeachingDiagramKetForEditing,
+  normalizeChemStructureSource,
+  normalizeStructurePreviewKet,
+  normalizeTeachingDiagramKet,
+  renderTeachingDiagramSvg
+} from "./chunk-UWJMDGIS.mjs";
+
 // src/editors/MathLiveEditor.tsx
 import { useEffect as useEffect2, useRef, useState as useState2 } from "react";
 import { Box, Tooltip } from "@mui/material";
@@ -412,8 +464,8 @@ var MathLiveEditor = ({
 var MathLiveEditor_default = MathLiveEditor;
 
 // src/editors/ExplanationEditor.tsx
-import { useEffect as useEffect4, useState as useState4 } from "react";
-import { Box as Box3 } from "@mui/material";
+import React5, { useEffect as useEffect4, useMemo as useMemo2, useState as useState5 } from "react";
+import { Box as Box4 } from "@mui/material";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -4104,6 +4156,115 @@ var MathematicsWithInlineEdit = Extension2.create({
   }
 });
 
+// src/extensions/ChemStructure.ts
+import { Node as Node2, mergeAttributes } from "@tiptap/core";
+var ChemStructure = Node2.create({
+  name: "chemStructure",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addOptions() {
+    return {
+      getEmbeds: () => void 0,
+      onOpenEditor: () => {
+      }
+    };
+  },
+  addAttributes() {
+    return {
+      structureId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-structure-id"),
+        renderHTML: (attributes) => {
+          if (!attributes.structureId) return {};
+          return { "data-structure-id": attributes.structureId };
+        }
+      }
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'span[data-type="chem-structure"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-structure-id");
+          return id ? { structureId: id } : false;
+        }
+      }
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "chem-structure",
+        class: "chem-structure-node"
+      })
+    ];
+  },
+  addCommands() {
+    return {
+      insertChemStructure: (structureId) => ({ commands }) => commands.insertContent({
+        type: this.name,
+        attrs: { structureId }
+      })
+    };
+  },
+  addNodeView() {
+    const { getEmbeds, onOpenEditor } = this.options;
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement("span");
+      dom.className = "chem-structure-node";
+      dom.dataset.type = "chem-structure";
+      dom.contentEditable = "false";
+      const renderPreview = () => {
+        const structureId = node.attrs.structureId;
+        dom.dataset.structureId = structureId;
+        const embed = getChemStructureEmbed(getEmbeds(), structureId);
+        dom.innerHTML = "";
+        dom.classList.remove("chem-structure-node--missing");
+        const previewSvg = embed?.previewSvg ?? embed?.preview_svg;
+        if (previewSvg) {
+          const wrap = document.createElement("span");
+          wrap.className = "chem-structure-preview";
+          wrap.innerHTML = namespaceChemPreviewSvg(previewSvg, structureId);
+          dom.appendChild(wrap);
+        } else {
+          dom.classList.add("chem-structure-node--missing");
+          dom.textContent = "Chemical structure";
+        }
+      };
+      renderPreview();
+      if (editor.isEditable) {
+        dom.style.cursor = "pointer";
+        dom.title = "Click to edit structure";
+        dom.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const pos = getPos();
+          if (typeof pos !== "number") return;
+          onOpenEditor({
+            mode: "edit",
+            structureId: node.attrs.structureId,
+            pos
+          });
+        });
+      }
+      return {
+        dom,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "chemStructure") return false;
+          node = updatedNode;
+          renderPreview();
+          return true;
+        }
+      };
+    };
+  }
+});
+
 // src/editors/ExplanationEditor.tsx
 import TextAlign from "@tiptap/extension-text-align";
 import { Table } from "@tiptap/extension-table";
@@ -4185,11 +4346,15 @@ import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
 import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
 import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
 import FunctionsIcon from "@mui/icons-material/Functions";
+import ScienceIcon from "@mui/icons-material/Science";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
 var MenuBar = ({
   editor,
   showQuestionButton = false,
   onInsertEquation,
+  onInsertChemStructure,
+  onInsertGraph,
   toolbarMode = "tutorFull"
 }) => {
   const [, forceRerender] = useState3(0);
@@ -4279,6 +4444,26 @@ var MenuBar = ({
               children: /* @__PURE__ */ jsx3(FunctionsIcon, {})
             }
           ) }) }, "Equation"),
+          onInsertChemStructure && /* @__PURE__ */ jsx3(Tooltip2, { title: "Chemical structure", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+            IconButton,
+            {
+              size: "small",
+              onClick: onInsertChemStructure,
+              color: "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ jsx3(ScienceIcon, {})
+            }
+          ) }) }, "ChemStructure"),
+          onInsertGraph && /* @__PURE__ */ jsx3(Tooltip2, { title: "Graph", arrow: true, children: /* @__PURE__ */ jsx3("span", { children: /* @__PURE__ */ jsx3(
+            IconButton,
+            {
+              size: "small",
+              onClick: onInsertGraph,
+              color: "default",
+              sx: { borderRadius: 1 },
+              children: /* @__PURE__ */ jsx3(ShowChartIcon, {})
+            }
+          ) }) }, "GraphEmbed"),
           /* @__PURE__ */ jsx3(Divider, { orientation: "vertical", flexItem: true }),
           /* @__PURE__ */ jsxs3(
             TextField,
@@ -4370,6 +4555,104 @@ var MenuBar = ({
 };
 var MenuBar_default = MenuBar;
 
+// src/components/ChemStructureDialogLazy.tsx
+import React4, { Suspense } from "react";
+import Box3 from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import { jsx as jsx4 } from "react/jsx-runtime";
+var LazyChemStructureDialog = React4.lazy(() => import("./ChemStructureDialog-YV7FSRIA.mjs"));
+var ChemStructureDialogLazy = (props) => {
+  if (!props.open) return null;
+  return /* @__PURE__ */ jsx4(
+    Suspense,
+    {
+      fallback: /* @__PURE__ */ jsx4(Box3, { sx: { display: "flex", justifyContent: "center", p: 4 }, children: /* @__PURE__ */ jsx4(CircularProgress, {}) }),
+      children: /* @__PURE__ */ jsx4(LazyChemStructureDialog, { ...props })
+    }
+  );
+};
+var ChemStructureDialogLazy_default = ChemStructureDialogLazy;
+
+// src/hooks/useChemStructureEditor.ts
+import { useCallback, useRef as useRef2, useState as useState4 } from "react";
+
+// src/utils/chemStructureIds.ts
+function createChemStructureId() {
+  const suffix = Math.random().toString(36).slice(2, 10);
+  return `mol_${Date.now().toString(36)}_${suffix}`;
+}
+
+// src/hooks/useChemStructureEditor.ts
+function useChemStructureEditor({
+  editor,
+  embeds,
+  onEmbedsChange,
+  enabled = true
+}) {
+  const embedsRef = useRef2(embeds);
+  embedsRef.current = embeds;
+  const [dialog, setDialog] = useState4({ open: false });
+  const getEmbeds = useCallback(() => embedsRef.current, []);
+  const patchEmbeds = useCallback(
+    (structureId, embed) => {
+      const next = upsertChemStructure(embedsRef.current ?? {}, structureId, embed);
+      onEmbedsChange?.(next);
+      return next;
+    },
+    [onEmbedsChange]
+  );
+  const openChemEditor = useCallback(
+    (request) => {
+      if (!enabled || !onEmbedsChange) return;
+      if (request.mode === "insert") {
+        setDialog({
+          open: true,
+          mode: "insert",
+          structureId: createChemStructureId(),
+          initialSourceValue: ""
+        });
+        return;
+      }
+      const existing = getChemStructureEmbed(embedsRef.current, request.structureId);
+      setDialog({
+        open: true,
+        mode: "edit",
+        structureId: request.structureId,
+        initialSourceValue: existing?.sourceValue ?? "",
+        editPos: request.pos
+      });
+    },
+    [enabled, onEmbedsChange]
+  );
+  const closeDialog = useCallback(() => setDialog({ open: false }), []);
+  const handleDialogSave = useCallback(
+    async (embed) => {
+      if (!dialog.open || !editor) return;
+      const structureId = dialog.structureId;
+      patchEmbeds(structureId, embed);
+      if (dialog.mode === "insert") {
+        editor.chain().focus().insertChemStructure(structureId).run();
+      } else if (typeof dialog.editPos === "number") {
+        editor.chain().focus().setNodeSelection(dialog.editPos).run();
+      }
+      editor.view.dispatch(editor.state.tr);
+    },
+    [dialog, editor, patchEmbeds]
+  );
+  const insertNewStructure = useCallback(() => {
+    openChemEditor({ mode: "insert" });
+  }, [openChemEditor]);
+  return {
+    chemEnabled: enabled && !!onEmbedsChange,
+    getEmbeds,
+    openChemEditor,
+    insertNewStructure,
+    dialog,
+    closeDialog,
+    handleDialogSave
+  };
+}
+
 // src/utils/mathBackspace.ts
 function handleMathBackspaceKeyDown(view, event) {
   if (event.key !== "Backspace") return false;
@@ -4408,7 +4691,7 @@ function handleMathBackspaceKeyDown(view, event) {
 }
 
 // src/editors/ExplanationEditor.tsx
-import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
+import { jsx as jsx5, jsxs as jsxs4 } from "react/jsx-runtime";
 var PLACEHOLDER_LATEX = "\\text{Enter Equation here}";
 function ExplanationEditor({
   value,
@@ -4416,9 +4699,19 @@ function ExplanationEditor({
   placeholder,
   toolbarMode = "tutorFull",
   minHeightPx = 120,
-  maxHeightPx = 320
+  maxHeightPx = 320,
+  embeds,
+  onEmbedsChange
 }) {
-  const [, forceUpdate] = useState4({});
+  const [, forceUpdate] = useState5({});
+  const chemEditorRef = React5.useRef(null);
+  const chemExtension = useMemo2(
+    () => ChemStructure.configure({
+      getEmbeds: () => chemEditorRef.current?.getEmbeds(),
+      onOpenEditor: (request) => chemEditorRef.current?.openChemEditor(request)
+    }),
+    []
+  );
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -4437,7 +4730,8 @@ function ExplanationEditor({
       }),
       TableRow,
       TableHeader,
-      TableCell
+      TableCell,
+      chemExtension
     ],
     content: value || "",
     editorProps: {
@@ -4456,6 +4750,17 @@ function ExplanationEditor({
       forceUpdate({});
     }
   });
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange
+  });
+  chemEditorRef.current = chemEditor;
+  useEffect4(() => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
   useEffect4(() => {
     if (!editor) return;
     const current = editor.getHTML();
@@ -4470,8 +4775,8 @@ function ExplanationEditor({
       attrs: { latex }
     }).run();
   };
-  return /* @__PURE__ */ jsxs4(Box3, { sx: { width: "100%" }, children: [
-    /* @__PURE__ */ jsx4("style", { children: `
+  return /* @__PURE__ */ jsxs4(Box4, { sx: { width: "100%" }, children: [
+    /* @__PURE__ */ jsx5("style", { children: `
         .tiptap-editor table {
           border-collapse: collapse;
           margin: 0;
@@ -4527,21 +4832,47 @@ function ExplanationEditor({
         .tiptap-math-placeholder .katex {
           color: #999 !important;
         }
+        .chem-structure-node {
+          display: inline-block;
+          vertical-align: middle;
+          margin: 0 2px;
+        }
+        .chem-structure-preview svg {
+          max-height: 120px;
+          width: auto;
+          vertical-align: middle;
+        }
+        .chem-structure-node--missing {
+          color: #999;
+          font-style: italic;
+          font-size: 0.9em;
+        }
       ` }),
-    editor && /* @__PURE__ */ jsx4(
+    editor && /* @__PURE__ */ jsx5(
       MenuBar_default,
       {
         editor,
         toolbarMode,
-        onInsertEquation: () => insertInlineMath()
+        onInsertEquation: () => insertInlineMath(),
+        onInsertChemStructure: chemEditor.chemEnabled ? chemEditor.insertNewStructure : void 0
       }
     ),
-    /* @__PURE__ */ jsx4(EditorContent, { editor })
+    /* @__PURE__ */ jsx5(EditorContent, { editor }),
+    chemEditor.dialog.open && /* @__PURE__ */ jsx5(
+      ChemStructureDialogLazy_default,
+      {
+        open: true,
+        mode: chemEditor.dialog.mode,
+        initialSourceValue: chemEditor.dialog.initialSourceValue,
+        onClose: chemEditor.closeDialog,
+        onSave: chemEditor.handleDialogSave
+      }
+    )
   ] });
 }
 
 // src/editors/TiptapEditor.tsx
-import { useEffect as useEffect5 } from "react";
+import React6, { useEffect as useEffect5, useMemo as useMemo3 } from "react";
 import { useEditor as useEditor2, EditorContent as EditorContent2 } from "@tiptap/react";
 import StarterKit2 from "@tiptap/starter-kit";
 import ImageResize from "tiptap-extension-resize-image";
@@ -4597,17 +4928,27 @@ function tabularToHTML(tex) {
 
 // src/editors/TiptapEditor.tsx
 import TextAlign2 from "@tiptap/extension-text-align";
-import Box4 from "@mui/material/Box";
+import Box5 from "@mui/material/Box";
 import "katex/dist/katex.min.css";
-import { Fragment as Fragment3, jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
+import { Fragment as Fragment3, jsx as jsx6, jsxs as jsxs5 } from "react/jsx-runtime";
 var TiptapEditor = ({
   value,
   onChange,
   readOnly,
   questions = false,
+  embeds,
+  onEmbedsChange,
   menuBarWrapperSx,
   toolbarMode = "tutorFull"
 }) => {
+  const chemEditorRef = React6.useRef(null);
+  const chemExtension = useMemo3(
+    () => ChemStructure.configure({
+      getEmbeds: () => chemEditorRef.current?.getEmbeds(),
+      onOpenEditor: (request) => chemEditorRef.current?.openChemEditor(request)
+    }),
+    []
+  );
   const editor = useEditor2({
     content: value || "<p></p>",
     editable: !readOnly,
@@ -4632,9 +4973,22 @@ var TiptapEditor = ({
       }),
       TableRow2,
       TableCell2,
-      TableHeader2
+      TableHeader2,
+      chemExtension
     ]
   });
+  const chemEditor = useChemStructureEditor({
+    editor,
+    embeds,
+    onEmbedsChange,
+    enabled: !readOnly
+  });
+  chemEditorRef.current = chemEditor;
+  useEffect5(() => {
+    if (editor) {
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [editor, embeds]);
   useEffect5(() => {
     if (!editor) return;
     const handler = () => onChange(editor.getHTML());
@@ -4650,23 +5004,2079 @@ var TiptapEditor = ({
   }, [editor, value]);
   if (!editor) return null;
   return /* @__PURE__ */ jsxs5(Fragment3, { children: [
-    /* @__PURE__ */ jsx5(Box4, { sx: menuBarWrapperSx, children: /* @__PURE__ */ jsx5(MenuBar_default, { editor, showQuestionButton: false, toolbarMode }) }),
-    /* @__PURE__ */ jsx5(EditorContent2, { editor, className: "tiptap" })
+    /* @__PURE__ */ jsx6(Box5, { sx: menuBarWrapperSx, children: /* @__PURE__ */ jsx6(
+      MenuBar_default,
+      {
+        editor,
+        showQuestionButton: false,
+        toolbarMode,
+        onInsertChemStructure: chemEditor.chemEnabled ? chemEditor.insertNewStructure : void 0
+      }
+    ) }),
+    /* @__PURE__ */ jsx6(EditorContent2, { editor, className: "tiptap" }),
+    chemEditor.dialog.open && /* @__PURE__ */ jsx6(
+      ChemStructureDialogLazy_default,
+      {
+        open: true,
+        mode: chemEditor.dialog.mode,
+        initialSourceValue: chemEditor.dialog.initialSourceValue,
+        onClose: chemEditor.closeDialog,
+        onSave: chemEditor.handleDialogSave
+      }
+    )
   ] });
 };
 var TiptapEditor_default = TiptapEditor;
+
+// src/components/GraphEmbedDialog.tsx
+import { useEffect as useEffect6, useMemo as useMemo4, useRef as useRef3, useState as useState6 } from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button2 from "@mui/material/Button";
+import TextField2 from "@mui/material/TextField";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Stack2 from "@mui/material/Stack";
+import Box6 from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import IconButton2 from "@mui/material/IconButton";
+import ButtonBase from "@mui/material/ButtonBase";
+import Popover2 from "@mui/material/Popover";
+import Paper from "@mui/material/Paper";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+
+// src/utils/graphEquationVariables.ts
+var IDENTIFIER_RE = /^[A-Za-z][A-Za-z0-9_]*$/;
+function isValidGraphVariableName(name) {
+  return IDENTIFIER_RE.test(name.trim());
+}
+var RESERVED = /* @__PURE__ */ new Set([
+  "x",
+  "y",
+  "e",
+  "pi",
+  "sin",
+  "cos",
+  "tan",
+  "sec",
+  "csc",
+  "cot",
+  "log",
+  "ln",
+  "exp",
+  "sqrt",
+  "abs",
+  "asin",
+  "acos",
+  "atan",
+  "sinh",
+  "cosh",
+  "tanh",
+  "operatorname"
+]);
+var LATEX_FN = /\\(sin|cos|tan|sec|csc|cot|ln|log|exp|sqrt|abs|arcsin|arccos|arctan|sinh|cosh|tanh|frac|cdot|times|left|right|mathrm|operatorname)\b/gi;
+var ALWAYS_EXCLUDED_AXES = /* @__PURE__ */ new Set(["x", "y"]);
+function expandImplicitAxisOperands(tokens, independentAxis) {
+  const axis = independentAxis.trim();
+  if (!axis || !isValidGraphVariableName(axis)) return tokens;
+  const out = [];
+  for (const id of tokens) {
+    if (id.length > axis.length && id.endsWith(axis) && id !== axis) {
+      const prefix = id.slice(0, -axis.length);
+      if (prefix && isValidGraphVariableName(prefix) && !RESERVED.has(prefix.toLowerCase())) {
+        out.push(prefix);
+      }
+      continue;
+    }
+    out.push(id);
+  }
+  return out;
+}
+function extractGraphVariableNamesFromLatex(latex, options) {
+  if (!latex.trim()) return [];
+  const independentAxis = options?.independentAxis?.trim() || "x";
+  const dependentAxis = options?.dependentAxis?.trim() || "y";
+  let s = latex.replace(/\s+/g, "");
+  s = s.replace(LATEX_FN, " ");
+  s = s.replace(/\\[a-zA-Z]+/g, " ");
+  s = s.replace(/[{}()[\],;=+\-^]/g, " ");
+  const raw = [];
+  const re = /[A-Za-z][A-Za-z0-9_]*/g;
+  let m = re.exec(s);
+  while (m) {
+    raw.push(m[0]);
+    m = re.exec(s);
+  }
+  const expanded = expandImplicitAxisOperands(raw, independentAxis);
+  const found2 = /* @__PURE__ */ new Set();
+  for (const id of expanded) {
+    const lower = id.toLowerCase();
+    if (RESERVED.has(lower)) continue;
+    if (ALWAYS_EXCLUDED_AXES.has(lower)) continue;
+    if (id === independentAxis || id === dependentAxis) continue;
+    if (isValidGraphVariableName(id)) {
+      found2.add(id);
+    }
+  }
+  return [...found2];
+}
+function findUndefinedGraphVariables(latex, definedNames, axisLabels) {
+  const defined = new Set(definedNames.map((n) => n.trim()).filter(Boolean));
+  const xAxis = axisLabels.x?.trim() || "x";
+  const yAxis = axisLabels.y?.trim() || "y";
+  defined.add(xAxis);
+  defined.add(yAxis);
+  for (const axis of ALWAYS_EXCLUDED_AXES) {
+    defined.add(axis);
+  }
+  return extractGraphVariableNamesFromLatex(latex, {
+    independentAxis: xAxis,
+    dependentAxis: yAxis
+  }).filter((name) => !defined.has(name));
+}
+
+// src/components/GraphEmbedDialog.tsx
+import { jsx as jsx7, jsxs as jsxs6 } from "react/jsx-runtime";
+var MARKER_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "filled", label: "Filled dot" },
+  { value: "hollow", label: "Hollow dot" },
+  { value: "arrow", label: "Arrow" }
+];
+function exprDomainKey(expr, index) {
+  return expr.id ?? `expr-${index}`;
+}
+function parseDomainFieldCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : void 0;
+}
+function parseGraphPixelCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? Math.round(n) : void 0;
+}
+function parseCoordinateCommit(raw) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return void 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : void 0;
+}
+function parsePositiveDecimalCommit(raw, previous) {
+  const t = raw.trim();
+  if (t === "" || t === "-" || t === "." || t === "-.") return previous;
+  const n = Number(t);
+  return Number.isFinite(n) && n > 0 ? n : previous;
+}
+function sanitizeGraphVariableName(raw) {
+  const stripped = raw.replace(/[^A-Za-z0-9_]/g, "");
+  return stripped.replace(/^[^A-Za-z]+/, "");
+}
+function collectPaths(objects) {
+  if (!objects?.length) return [];
+  const out = [];
+  objects.forEach((o, i) => {
+    if (o.type === "line") out.push({ objectIndex: i, variant: "line", obj: o });
+    else if (o.type === "curve") out.push({ objectIndex: i, variant: "curve", obj: o });
+  });
+  return out;
+}
+function pathPoints(p) {
+  if (p.variant === "line") return [p.obj.start, p.obj.end];
+  return p.obj.controlPoints.map((q) => [...q]);
+}
+function pathInterpolation(p) {
+  if (p.variant === "line") return "linear";
+  return p.obj.interpolation ?? "smooth";
+}
+function pathToObject(points, interpolation, id, color) {
+  if (points.length < 2) {
+    return { type: "line", id, start: [0, 0], end: [1, 0], color };
+  }
+  if (points.length === 2 && interpolation === "linear") {
+    return { type: "line", id, start: points[0], end: points[1], color };
+  }
+  return {
+    type: "curve",
+    id,
+    controlPoints: points,
+    interpolation,
+    color
+  };
+}
+function normalizeEmbedMode(embed) {
+  const normalized = withAutoDisplaySize({ ...embed, mode: "display", tools: void 0 });
+  return {
+    ...normalized,
+    autoDisplaySize: false,
+    options: {
+      ...normalized.options,
+      stretchToFit: false,
+      showGrid: normalized.options?.showGrid ?? true,
+      gridStep: normalized.options?.gridStep ?? 1
+    }
+  };
+}
+var GraphEmbedDialog = ({
+  open,
+  initialEmbed,
+  onClose,
+  onSave
+}) => {
+  const [embed, setEmbed] = useState6(() => normalizeEmbedMode(initialEmbed));
+  const [viewportText, setViewportText] = useState6(
+    () => viewportFieldsFromEmbed(normalizeViewport(initialEmbed.viewport))
+  );
+  const [previewViewport, setPreviewViewport] = useState6(
+    () => normalizeViewport(initialEmbed.viewport)
+  );
+  const [objectsTab, setObjectsTab] = useState6(0);
+  const [axisPopover, setAxisPopover] = useState6(null);
+  const [axisDraft, setAxisDraft] = useState6("");
+  const [expressionDomainTexts, setExpressionDomainTexts] = useState6({});
+  const [graphWText, setGraphWText] = useState6(null);
+  const [graphHText, setGraphHText] = useState6(null);
+  const [pointCoordDrafts, setPointCoordDrafts] = useState6(
+    {}
+  );
+  const [pathCoordDrafts, setPathCoordDrafts] = useState6({});
+  const [gridStepText, setGridStepText] = useState6(null);
+  const [scaleRatioXText, setScaleRatioXText] = useState6(null);
+  const [scaleRatioYText, setScaleRatioYText] = useState6(null);
+  const [variablePrompt, setVariablePrompt] = useState6(null);
+  const declinedVariableKeys = useRef3(/* @__PURE__ */ new Set());
+  useEffect6(() => {
+    if (!axisPopover) return;
+    setAxisDraft(
+      axisPopover.axis === "x" ? embed.options?.xAxisLabel?.trim() || "x" : embed.options?.yAxisLabel?.trim() || "y"
+    );
+  }, [axisPopover, embed.options?.xAxisLabel, embed.options?.yAxisLabel]);
+  useEffect6(() => {
+    if (!open) return;
+    const normalized = normalizeEmbedMode({
+      ...initialEmbed,
+      viewport: normalizeViewport(initialEmbed.viewport)
+    });
+    setEmbed(normalized);
+    setViewportText(viewportFieldsFromEmbed(normalized.viewport));
+    setPreviewViewport(normalized.viewport);
+    setObjectsTab((t) => t > 3 ? 0 : t);
+    const exs = normalized.expressions ?? [];
+    const domainMap = {};
+    exs.forEach((ex, i) => {
+      const id = exprDomainKey(ex, i);
+      domainMap[id] = {
+        min: ex.domainMin !== void 0 ? String(ex.domainMin) : "",
+        max: ex.domainMax !== void 0 ? String(ex.domainMax) : ""
+      };
+    });
+    setExpressionDomainTexts(domainMap);
+    setGraphWText(null);
+    setGraphHText(null);
+    setPointCoordDrafts({});
+    setPathCoordDrafts({});
+  }, [open, initialEmbed]);
+  const previewEmbed = useMemo4(
+    () => normalizeEmbedMode({ ...embed, viewport: previewViewport }),
+    [embed, previewViewport]
+  );
+  const previewDisplaySize = useMemo4(
+    () => resolveGraphDisplaySize(previewEmbed),
+    [previewEmbed]
+  );
+  const previewAspect = useMemo4(() => {
+    const h = previewDisplaySize.height || 1;
+    return previewDisplaySize.width / h;
+  }, [previewDisplaySize.width, previewDisplaySize.height]);
+  const paths = useMemo4(() => collectPaths(embed.objects), [embed.objects]);
+  useEffect6(() => {
+    if (embed.autoDisplaySize !== false) {
+      setGraphWText(null);
+      setGraphHText(null);
+    }
+  }, [embed.autoDisplaySize]);
+  const applyViewportToPreview = () => {
+    const next = viewportFromFields(viewportText, previewViewport);
+    setPreviewViewport(next);
+    setEmbed((prev) => withAutoDisplaySize({ ...prev, viewport: next }, next));
+  };
+  const sliders = (embed.objects ?? []).filter(
+    (o) => o.type === "slider"
+  );
+  const expressions = embed.expressions ?? [];
+  const textLabels = (embed.objects ?? []).filter(
+    (o) => o.type === "label"
+  );
+  const points = (embed.objects ?? []).filter(
+    (o) => o.type === "point"
+  );
+  useEffect6(() => {
+    setExpressionDomainTexts((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      const valid = new Set(expressions.map((ex, i) => exprDomainKey(ex, i)));
+      for (const k of Object.keys(next)) {
+        if (!valid.has(k)) {
+          delete next[k];
+          changed = true;
+        }
+      }
+      for (let i = 0; i < expressions.length; i += 1) {
+        const ex = expressions[i];
+        const id = exprDomainKey(ex, i);
+        if (!next[id]) {
+          next[id] = {
+            min: ex.domainMin !== void 0 ? String(ex.domainMin) : "",
+            max: ex.domainMax !== void 0 ? String(ex.domainMax) : ""
+          };
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [expressions]);
+  const updateSlider = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const sliderIndices = objects.map((o, i) => o.type === "slider" ? i : -1).filter((i) => i >= 0);
+      const objIndex = sliderIndices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addSliderWithName = (name) => {
+    const varName = sanitizeGraphVariableName(name);
+    if (!varName) return;
+    const exists = sliders.some(
+      (s) => (s.bindsTo?.trim() || s.name?.trim()) === varName
+    );
+    if (exists) return;
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ...prev.objects ?? [],
+        {
+          type: "slider",
+          id: `slider_${Date.now()}`,
+          name: varName,
+          min: -5,
+          max: 5,
+          step: 0.1,
+          initial: 1,
+          integer: false,
+          bindsTo: varName
+        }
+      ]
+    }));
+  };
+  const addSlider = () => addSliderWithName("a");
+  const definedVariableNames = useMemo4(
+    () => sliders.flatMap((s) => [s.bindsTo?.trim(), s.name?.trim()]).filter((n) => !!n),
+    [sliders]
+  );
+  const checkEquationForMissingVariables = (exprIndex, latex) => {
+    const missing = findUndefinedGraphVariables(latex, definedVariableNames, {
+      x: embed.options?.xAxisLabel,
+      y: embed.options?.yAxisLabel
+    });
+    if (!missing.length) {
+      setVariablePrompt((p) => p?.exprIndex === exprIndex ? null : p);
+      return;
+    }
+    const name = missing[0];
+    const key = `${exprIndex}:${name}`;
+    if (declinedVariableKeys.current.has(key)) return;
+    setVariablePrompt({ exprIndex, name });
+  };
+  const dismissVariablePrompt = (exprIndex, name) => {
+    declinedVariableKeys.current.add(`${exprIndex}:${name}`);
+    setVariablePrompt(null);
+  };
+  const confirmCreateVariable = (exprIndex, name) => {
+    addSliderWithName(name);
+    declinedVariableKeys.current.delete(`${exprIndex}:${name}`);
+    setVariablePrompt(null);
+    setObjectsTab(1);
+  };
+  const removeSlider = (index) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const sliderIndices = objects.map((o, i) => o.type === "slider" ? i : -1).filter((i) => i >= 0);
+      const objIndex = sliderIndices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const updateExpression = (index, patch) => {
+    setEmbed((prev) => {
+      const next = [...prev.expressions ?? []];
+      next[index] = { ...next[index], ...patch };
+      return { ...prev, expressions: next };
+    });
+  };
+  const addExpression = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      expressions: [
+        ...prev.expressions ?? [],
+        {
+          id: `expr_${Date.now()}`,
+          latex: "y = x^2",
+          visible: true,
+          startMarker: "none",
+          endMarker: "none"
+        }
+      ]
+    }));
+  };
+  const removeExpression = (index) => {
+    setEmbed((prev) => ({
+      ...prev,
+      expressions: (prev.expressions ?? []).filter((_, i) => i !== index)
+    }));
+  };
+  const updateTextLabel = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const labelIndices = objects.map((o, i) => o.type === "label" ? i : -1).filter((i) => i >= 0);
+      const objIndex = labelIndices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addTextLabel = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ...prev.objects ?? [],
+        { type: "label", id: `label_${Date.now()}`, x: 0, y: 0, text: "Label" }
+      ]
+    }));
+  };
+  const removeTextLabel = (index) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const labelIndices = objects.map((o, i) => o.type === "label" ? i : -1).filter((i) => i >= 0);
+      const objIndex = labelIndices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const updatePoint = (index, patch) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const indices = objects.map((o, i) => o.type === "point" ? i : -1).filter((i) => i >= 0);
+      const objIndex = indices[index];
+      if (objIndex === void 0) return prev;
+      objects[objIndex] = { ...objects[objIndex], ...patch };
+      return { ...prev, objects };
+    });
+  };
+  const addPoint = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ...prev.objects ?? [],
+        { type: "point", id: `point_${Date.now()}`, x: 0, y: 0, label: "" }
+      ]
+    }));
+  };
+  const removePoint = (index) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const indices = objects.map((o, i) => o.type === "point" ? i : -1).filter((i) => i >= 0);
+      const objIndex = indices[index];
+      if (objIndex === void 0) return prev;
+      objects.splice(objIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const addPath = () => {
+    setEmbed((prev) => ({
+      ...prev,
+      objects: [
+        ...prev.objects ?? [],
+        {
+          type: "line",
+          id: `path_${Date.now()}`,
+          start: [-2, 0],
+          end: [2, 0]
+        }
+      ]
+    }));
+  };
+  const removePath = (objectIndex) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const o = objects[objectIndex];
+      if (!o || o.type !== "line" && o.type !== "curve") return prev;
+      objects.splice(objectIndex, 1);
+      return { ...prev, objects };
+    });
+  };
+  const replacePath = (objectIndex, points2, interpolation) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const old = objects[objectIndex];
+      const id = old?.type === "line" || old?.type === "curve" ? old.id : `path_${Date.now()}`;
+      const color = old?.type === "line" || old?.type === "curve" ? old.color : void 0;
+      objects[objectIndex] = pathToObject(points2, interpolation, id, color);
+      return { ...prev, objects };
+    });
+  };
+  const updatePathPoint = (objectIndex, pointIndex, coord, raw) => {
+    const p = paths.find((x) => x.objectIndex === objectIndex);
+    if (!p) return;
+    const pts = pathPoints(p);
+    const prevPt = pts[pointIndex] ?? [0, 0];
+    pts[pointIndex] = [
+      coord === "x" ? parseViewportField(raw, prevPt[0]) : prevPt[0],
+      coord === "y" ? parseViewportField(raw, prevPt[1]) : prevPt[1]
+    ];
+    replacePath(objectIndex, pts, pathInterpolation(p));
+  };
+  const setPathInterpolation = (objectIndex, interpolation) => {
+    const p = paths.find((x) => x.objectIndex === objectIndex);
+    if (!p) return;
+    let pts = pathPoints(p);
+    if (interpolation === "smooth" && pts.length === 2) {
+      pts = [pts[0], [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2], pts[1]];
+    }
+    replacePath(objectIndex, pts, interpolation);
+  };
+  const addPathControlPoint = (objectIndex) => {
+    setEmbed((prev) => {
+      const objects = [...prev.objects ?? []];
+      const o = objects[objectIndex];
+      if (!o || o.type !== "line" && o.type !== "curve") return prev;
+      const id = o.id;
+      if (o.type === "line") {
+        const pts = [o.start, o.end, [o.end[0] + 1, o.end[1]]];
+        objects[objectIndex] = {
+          type: "curve",
+          id,
+          controlPoints: pts,
+          interpolation: "linear"
+        };
+        return { ...prev, objects };
+      }
+      const last = o.controlPoints[o.controlPoints.length - 1] ?? [0, 0];
+      objects[objectIndex] = {
+        ...o,
+        controlPoints: [...o.controlPoints, [last[0] + 1, last[1]]]
+      };
+      return { ...prev, objects };
+    });
+  };
+  const handleSave = () => {
+    const viewport = viewportFromFields(viewportText, previewViewport);
+    onSave(
+      normalizeEmbedMode({
+        ...embed,
+        viewport,
+        type: "graph",
+        renderer: "jsxgraph"
+      })
+    );
+    onClose();
+  };
+  const sectionTitle = (t) => /* @__PURE__ */ jsx7(Typography, { variant: "overline", color: "text.secondary", sx: { letterSpacing: 0.08 }, children: t });
+  const viewSection = /* @__PURE__ */ jsxs6(Stack2, { spacing: 1.5, children: [
+    sectionTitle("View"),
+    /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, flexWrap: "wrap", children: [
+      /* @__PURE__ */ jsx7(
+        TextField2,
+        {
+          label: "x-min",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.xMin,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, xMin: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ jsx7(
+        TextField2,
+        {
+          label: "x-max",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.xMax,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, xMax: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ jsx7(
+        TextField2,
+        {
+          label: "y-min",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.yMin,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, yMin: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      ),
+      /* @__PURE__ */ jsx7(
+        TextField2,
+        {
+          label: "y-max",
+          type: "text",
+          inputMode: "decimal",
+          size: "small",
+          value: viewportText.yMax,
+          onChange: (e) => setViewportText((prev) => ({ ...prev, yMax: e.target.value })),
+          onBlur: applyViewportToPreview,
+          onKeyDown: (e) => e.key === "Enter" && applyViewportToPreview(),
+          sx: { width: 110 }
+        }
+      )
+    ] })
+  ] });
+  const equationsPanel = /* @__PURE__ */ jsxs6(Stack2, { spacing: 2, children: [
+    /* @__PURE__ */ jsxs6(Stack2, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", children: "Equations" }),
+      /* @__PURE__ */ jsx7(Button2, { size: "small", startIcon: /* @__PURE__ */ jsx7(AddIcon, {}), onClick: addExpression, children: "Add equation" })
+    ] }),
+    expressions.map((expr, index) => /* @__PURE__ */ jsxs6(
+      Stack2,
+      {
+        spacing: 1,
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        onBlur: (e) => {
+          const next = e.relatedTarget;
+          if (next && e.currentTarget.contains(next)) return;
+          checkEquationForMissingVariables(index, expr.latex);
+        },
+        children: [
+          /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, alignItems: "flex-start", children: [
+            /* @__PURE__ */ jsx7(Box6, { sx: { flex: 1, minWidth: 0 }, children: /* @__PURE__ */ jsx7(
+              MathLiveEditor_default,
+              {
+                value: expr.latex,
+                onChange: (latex) => {
+                  updateExpression(index, { latex });
+                  if (variablePrompt?.exprIndex === index) {
+                    setVariablePrompt(null);
+                  }
+                },
+                minWidthPx: 200,
+                minWidthPercent: 100,
+                minHeightPx: 44,
+                maxHeightPx: 88
+              }
+            ) }),
+            /* @__PURE__ */ jsx7(IconButton2, { size: "small", onClick: () => removeExpression(index), "aria-label": "Remove", children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" }) })
+          ] }),
+          variablePrompt?.exprIndex === index && /* @__PURE__ */ jsxs6(Paper, { variant: "outlined", sx: { p: 1.25, bgcolor: "action.hover" }, children: [
+            /* @__PURE__ */ jsxs6(Typography, { variant: "body2", sx: { mb: 1 }, children: [
+              'Variable "',
+              variablePrompt.name,
+              '" is not defined. Create it?'
+            ] }),
+            /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, children: [
+              /* @__PURE__ */ jsx7(
+                Button2,
+                {
+                  size: "small",
+                  variant: "contained",
+                  onClick: () => confirmCreateVariable(index, variablePrompt.name),
+                  children: "Yes"
+                }
+              ),
+              /* @__PURE__ */ jsx7(
+                Button2,
+                {
+                  size: "small",
+                  onClick: () => dismissVariablePrompt(index, variablePrompt.name),
+                  children: "No"
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Graph label (at origin)",
+              size: "small",
+              fullWidth: true,
+              value: expr.label ?? "",
+              placeholder: "Optional \u2014 only shown when set",
+              onChange: (e) => updateExpression(index, {
+                label: e.target.value.trim() === "" ? void 0 : e.target.value
+              })
+            }
+          ),
+          /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, flexWrap: "wrap", alignItems: "center", children: [
+            /* @__PURE__ */ jsx7(
+              TextField2,
+              {
+                label: "Domain x min",
+                size: "small",
+                type: "text",
+                inputMode: "decimal",
+                value: expressionDomainTexts[exprDomainKey(expr, index)]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
+                placeholder: "auto",
+                onChange: (e) => {
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: e.target.value,
+                      max: p[id]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : "")
+                    }
+                  }));
+                },
+                onBlur: (e) => {
+                  const v = parseDomainFieldCommit(e.target.value);
+                  updateExpression(index, { domainMin: v });
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: v !== void 0 ? String(v) : "",
+                      max: p[id]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : "")
+                    }
+                  }));
+                },
+                onKeyDown: (e) => {
+                  if (e.key !== "Enter") return;
+                  e.target.blur();
+                },
+                sx: { width: 100 }
+              }
+            ),
+            /* @__PURE__ */ jsx7(
+              TextField2,
+              {
+                label: "Domain x max",
+                size: "small",
+                type: "text",
+                inputMode: "decimal",
+                value: expressionDomainTexts[exprDomainKey(expr, index)]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : ""),
+                placeholder: "auto",
+                onChange: (e) => {
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: p[id]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
+                      max: e.target.value
+                    }
+                  }));
+                },
+                onBlur: (e) => {
+                  const v = parseDomainFieldCommit(e.target.value);
+                  updateExpression(index, { domainMax: v });
+                  const id = exprDomainKey(expr, index);
+                  setExpressionDomainTexts((p) => ({
+                    ...p,
+                    [id]: {
+                      min: p[id]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
+                      max: v !== void 0 ? String(v) : ""
+                    }
+                  }));
+                },
+                onKeyDown: (e) => {
+                  if (e.key !== "Enter") return;
+                  e.target.blur();
+                },
+                sx: { width: 100 }
+              }
+            ),
+            /* @__PURE__ */ jsxs6(FormControl, { size: "small", sx: { minWidth: 100 }, children: [
+              /* @__PURE__ */ jsx7(InputLabel, { id: `es-${exprDomainKey(expr, index)}`, children: "Start" }),
+              /* @__PURE__ */ jsx7(
+                Select,
+                {
+                  labelId: `es-${exprDomainKey(expr, index)}`,
+                  label: "Start",
+                  value: expr.startMarker ?? "none",
+                  onChange: (e) => updateExpression(index, { startMarker: e.target.value }),
+                  children: MARKER_OPTIONS.map((opt) => /* @__PURE__ */ jsx7(MenuItem, { value: opt.value, children: opt.label }, opt.value))
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs6(FormControl, { size: "small", sx: { minWidth: 100 }, children: [
+              /* @__PURE__ */ jsx7(InputLabel, { id: `ee-${exprDomainKey(expr, index)}`, children: "End" }),
+              /* @__PURE__ */ jsx7(
+                Select,
+                {
+                  labelId: `ee-${exprDomainKey(expr, index)}`,
+                  label: "End",
+                  value: expr.endMarker ?? "none",
+                  onChange: (e) => updateExpression(index, { endMarker: e.target.value }),
+                  children: MARKER_OPTIONS.map((opt) => /* @__PURE__ */ jsx7(MenuItem, { value: opt.value, children: opt.label }, opt.value))
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Domain / markers apply to function plots." })
+        ]
+      },
+      exprDomainKey(expr, index)
+    ))
+  ] });
+  const slidersPanel = /* @__PURE__ */ jsxs6(Stack2, { spacing: 2, children: [
+    /* @__PURE__ */ jsxs6(Stack2, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", children: "Variables" }),
+      /* @__PURE__ */ jsx7(Button2, { size: "small", startIcon: /* @__PURE__ */ jsx7(AddIcon, {}), onClick: addSlider, children: "Add variable" })
+    ] }),
+    /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "Variables appear on the graph; students can adjust them when the graph is interactive." }),
+    sliders.map((slider, index) => /* @__PURE__ */ jsx7(
+      Stack2,
+      {
+        spacing: 1,
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        children: /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, flexWrap: "wrap", alignItems: "center", children: [
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Variable",
+              size: "small",
+              value: slider.name,
+              onChange: (e) => {
+                const name = sanitizeGraphVariableName(e.target.value);
+                updateSlider(index, { name, bindsTo: name });
+              },
+              inputProps: { title: "Letters, numbers, underscore" },
+              sx: { width: 92 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Min",
+              size: "small",
+              value: String(slider.min),
+              onChange: (e) => updateSlider(index, { min: parseViewportField(e.target.value, slider.min) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Max",
+              size: "small",
+              value: String(slider.max),
+              onChange: (e) => updateSlider(index, { max: parseViewportField(e.target.value, slider.max) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Initial",
+              size: "small",
+              value: String(slider.initial),
+              onChange: (e) => updateSlider(index, {
+                initial: parseViewportField(e.target.value, slider.initial)
+              }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            FormControlLabel,
+            {
+              control: /* @__PURE__ */ jsx7(
+                Checkbox,
+                {
+                  checked: !!slider.integer,
+                  onChange: (e) => {
+                    const integer = e.target.checked;
+                    updateSlider(index, {
+                      integer,
+                      step: integer ? 1 : 0.1,
+                      min: integer ? Math.round(slider.min) : slider.min,
+                      max: integer ? Math.round(slider.max) : slider.max,
+                      initial: integer ? Math.round(slider.initial) : slider.initial
+                    });
+                  }
+                }
+              ),
+              label: "Integer",
+              sx: { m: 0, ml: 0.25 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(IconButton2, { size: "small", onClick: () => removeSlider(index), "aria-label": "Remove", children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" }) })
+        ] })
+      },
+      slider.id ?? index
+    ))
+  ] });
+  const geometryPanel = /* @__PURE__ */ jsxs6(Stack2, { spacing: 2, children: [
+    /* @__PURE__ */ jsx7(
+      FormControlLabel,
+      {
+        control: /* @__PURE__ */ jsx7(
+          Checkbox,
+          {
+            checked: !!embed.options?.snapToGrid,
+            onChange: (e) => setEmbed((prev) => ({
+              ...prev,
+              options: { ...prev.options, snapToGrid: e.target.checked }
+            }))
+          }
+        ),
+        label: "Snap to grid"
+      }
+    ),
+    /* @__PURE__ */ jsxs6(Stack2, { direction: { xs: "column", md: "row" }, spacing: 2, alignItems: "stretch", children: [
+      /* @__PURE__ */ jsxs6(
+        Box6,
+        {
+          sx: {
+            flex: 1,
+            minWidth: 0,
+            pr: { md: 2 },
+            borderRight: { md: "1px solid" },
+            borderColor: { md: "divider" }
+          },
+          children: [
+            /* @__PURE__ */ jsxs6(Stack2, { direction: "row", alignItems: "center", justifyContent: "space-between", sx: { mb: 1 }, children: [
+              /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", children: "Points" }),
+              /* @__PURE__ */ jsx7(Button2, { size: "small", startIcon: /* @__PURE__ */ jsx7(AddIcon, {}), onClick: addPoint, children: "Add point" })
+            ] }),
+            /* @__PURE__ */ jsx7(Stack2, { spacing: 1.5, children: points.map((point, index) => /* @__PURE__ */ jsxs6(
+              Stack2,
+              {
+                direction: "row",
+                spacing: 1,
+                alignItems: "center",
+                flexWrap: "wrap",
+                sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+                children: [
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "x",
+                      size: "small",
+                      value: pointCoordDrafts[point.id ?? `point-${index}`]?.x ?? String(point.x),
+                      onChange: (e) => {
+                        const key = point.id ?? `point-${index}`;
+                        setPointCoordDrafts((prev) => ({
+                          ...prev,
+                          [key]: { x: e.target.value, y: prev[key]?.y ?? String(point.y) }
+                        }));
+                      },
+                      onBlur: (e) => {
+                        const key = point.id ?? `point-${index}`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) updatePoint(index, { x: next });
+                        setPointCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "y",
+                      size: "small",
+                      value: pointCoordDrafts[point.id ?? `point-${index}`]?.y ?? String(point.y),
+                      onChange: (e) => {
+                        const key = point.id ?? `point-${index}`;
+                        setPointCoordDrafts((prev) => ({
+                          ...prev,
+                          [key]: { x: prev[key]?.x ?? String(point.x), y: e.target.value }
+                        }));
+                      },
+                      onBlur: (e) => {
+                        const key = point.id ?? `point-${index}`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) updatePoint(index, { y: next });
+                        setPointCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "Label",
+                      size: "small",
+                      value: point.label ?? "",
+                      onChange: (e) => updatePoint(index, { label: e.target.value }),
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(IconButton2, { size: "small", onClick: () => removePoint(index), "aria-label": "Remove", children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" }) })
+                ]
+              },
+              point.id ?? index
+            )) })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxs6(Box6, { sx: { flex: 1, minWidth: 0 }, children: [
+        /* @__PURE__ */ jsxs6(Stack2, { direction: "row", alignItems: "center", justifyContent: "space-between", sx: { mb: 1 }, children: [
+          /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", children: "Lines & curves" }),
+          /* @__PURE__ */ jsx7(Button2, { size: "small", startIcon: /* @__PURE__ */ jsx7(AddIcon, {}), onClick: addPath, children: "Add path" })
+        ] }),
+        /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", display: "block", sx: { mb: 1 }, children: "Two points + linear = segment; more points or smooth = spline." }),
+        /* @__PURE__ */ jsx7(Stack2, { spacing: 1.5, children: paths.map((path, listIndex) => {
+          const pts = pathPoints(path);
+          const interp = pathInterpolation(path);
+          return /* @__PURE__ */ jsxs6(
+            Stack2,
+            {
+              spacing: 1,
+              sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+              children: [
+                /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, alignItems: "center", flexWrap: "wrap", children: [
+                  /* @__PURE__ */ jsxs6(FormControl, { size: "small", sx: { minWidth: 120 }, children: [
+                    /* @__PURE__ */ jsx7(InputLabel, { id: `path-style-${path.objectIndex}`, children: "Style" }),
+                    /* @__PURE__ */ jsxs6(
+                      Select,
+                      {
+                        labelId: `path-style-${path.objectIndex}`,
+                        label: "Style",
+                        value: interp,
+                        onChange: (e) => setPathInterpolation(
+                          path.objectIndex,
+                          e.target.value
+                        ),
+                        children: [
+                          /* @__PURE__ */ jsx7(MenuItem, { value: "linear", children: "Linear" }),
+                          /* @__PURE__ */ jsx7(MenuItem, { value: "smooth", children: "Smooth" })
+                        ]
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsx7(Button2, { size: "small", onClick: () => addPathControlPoint(path.objectIndex), children: "Add point" }),
+                  /* @__PURE__ */ jsx7(Box6, { sx: { flex: 1 } }),
+                  /* @__PURE__ */ jsx7(
+                    IconButton2,
+                    {
+                      size: "small",
+                      onClick: () => removePath(path.objectIndex),
+                      "aria-label": "Remove path",
+                      children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" })
+                    }
+                  )
+                ] }),
+                pts.map((pt, ptIndex) => /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, alignItems: "center", children: [
+                  /* @__PURE__ */ jsxs6(Typography, { variant: "caption", color: "text.secondary", sx: { width: 28 }, children: [
+                    "P",
+                    ptIndex + 1
+                  ] }),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "x",
+                      size: "small",
+                      value: pathCoordDrafts[`path-${path.objectIndex}-${ptIndex}-x`] ?? String(pt[0]),
+                      onChange: (e) => setPathCoordDrafts((prev) => ({
+                        ...prev,
+                        [`path-${path.objectIndex}-${ptIndex}-x`]: e.target.value
+                      })),
+                      onBlur: (e) => {
+                        const key = `path-${path.objectIndex}-${ptIndex}-x`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) {
+                          updatePathPoint(path.objectIndex, ptIndex, "x", String(next));
+                        }
+                        setPathCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "y",
+                      size: "small",
+                      value: pathCoordDrafts[`path-${path.objectIndex}-${ptIndex}-y`] ?? String(pt[1]),
+                      onChange: (e) => setPathCoordDrafts((prev) => ({
+                        ...prev,
+                        [`path-${path.objectIndex}-${ptIndex}-y`]: e.target.value
+                      })),
+                      onBlur: (e) => {
+                        const key = `path-${path.objectIndex}-${ptIndex}-y`;
+                        const next = parseCoordinateCommit(e.target.value);
+                        if (next !== void 0) {
+                          updatePathPoint(path.objectIndex, ptIndex, "y", String(next));
+                        }
+                        setPathCoordDrafts((prev) => {
+                          const out = { ...prev };
+                          delete out[key];
+                          return out;
+                        });
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter") e.target.blur();
+                      },
+                      sx: { width: 72 }
+                    }
+                  )
+                ] }, ptIndex))
+              ]
+            },
+            `${path.objectIndex}-${listIndex}`
+          );
+        }) })
+      ] })
+    ] })
+  ] });
+  const labelsPanel = /* @__PURE__ */ jsxs6(Stack2, { spacing: 2, children: [
+    /* @__PURE__ */ jsxs6(Stack2, { direction: "row", alignItems: "center", justifyContent: "space-between", children: [
+      /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", children: "Text labels" }),
+      /* @__PURE__ */ jsx7(Button2, { size: "small", startIcon: /* @__PURE__ */ jsx7(AddIcon, {}), onClick: addTextLabel, children: "Add label" })
+    ] }),
+    /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "Free text at coordinates. Equation labels use the equation panel." }),
+    textLabels.map((label, index) => /* @__PURE__ */ jsxs6(
+      Stack2,
+      {
+        direction: "row",
+        spacing: 1,
+        alignItems: "center",
+        flexWrap: "wrap",
+        sx: { p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 },
+        children: [
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "Text",
+              size: "small",
+              value: label.text,
+              onChange: (e) => updateTextLabel(index, { text: e.target.value }),
+              sx: { flex: 1, minWidth: 120 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "x",
+              size: "small",
+              value: String(label.x),
+              onChange: (e) => updateTextLabel(index, { x: parseViewportField(e.target.value, label.x) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              label: "y",
+              size: "small",
+              value: String(label.y),
+              onChange: (e) => updateTextLabel(index, { y: parseViewportField(e.target.value, label.y) }),
+              sx: { width: 72 }
+            }
+          ),
+          /* @__PURE__ */ jsx7(IconButton2, { size: "small", onClick: () => removeTextLabel(index), "aria-label": "Remove", children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" }) })
+        ]
+      },
+      label.id ?? index
+    ))
+  ] });
+  return /* @__PURE__ */ jsxs6(Dialog, { open, onClose, maxWidth: "xl", fullWidth: true, scroll: "paper", children: [
+    /* @__PURE__ */ jsx7(DialogTitle, { children: "Graph settings" }),
+    /* @__PURE__ */ jsx7(DialogContent, { dividers: true, sx: { pt: 2 }, children: /* @__PURE__ */ jsxs6(
+      Stack2,
+      {
+        direction: { xs: "column", md: "row" },
+        spacing: 3,
+        alignItems: { xs: "stretch", md: "flex-start" },
+        children: [
+          /* @__PURE__ */ jsxs6(
+            Box6,
+            {
+              sx: {
+                flex: { md: "0 0 auto" },
+                width: { md: Math.min(previewDisplaySize.width + 48, 580) },
+                maxWidth: "100%"
+              },
+              children: [
+                /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", gutterBottom: true, children: "Preview" }),
+                /* @__PURE__ */ jsxs6(
+                  Stack2,
+                  {
+                    direction: "row",
+                    spacing: 2,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    sx: {
+                      mb: 1,
+                      py: 0.75,
+                      px: 1,
+                      bgcolor: "action.hover",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider"
+                    },
+                    children: [
+                      /* @__PURE__ */ jsx7(
+                        FormControlLabel,
+                        {
+                          control: /* @__PURE__ */ jsx7(
+                            Checkbox,
+                            {
+                              size: "small",
+                              checked: embed.options?.showAxes !== false,
+                              onChange: (e) => setEmbed((prev) => ({
+                                ...prev,
+                                options: { ...prev.options, showAxes: e.target.checked }
+                              }))
+                            }
+                          ),
+                          label: "Show axes"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx7(
+                        FormControlLabel,
+                        {
+                          control: /* @__PURE__ */ jsx7(
+                            Checkbox,
+                            {
+                              size: "small",
+                              checked: embed.options?.showGrid === true,
+                              onChange: (e) => setEmbed((prev) => ({
+                                ...prev,
+                                options: { ...prev.options, showGrid: e.target.checked }
+                              }))
+                            }
+                          ),
+                          label: "Show grid"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx7(
+                        TextField2,
+                        {
+                          size: "small",
+                          label: "Step",
+                          type: "text",
+                          inputMode: "decimal",
+                          disabled: embed.options?.showGrid !== true,
+                          value: gridStepText ?? String(embed.options?.gridStep ?? 1),
+                          onFocus: (e) => setGridStepText(e.target.value),
+                          onChange: (e) => setGridStepText(e.target.value),
+                          onBlur: (e) => {
+                            const prev = embed.options?.gridStep ?? 1;
+                            const step = parsePositiveDecimalCommit(e.target.value, prev);
+                            setGridStepText(null);
+                            setEmbed((p) => ({
+                              ...p,
+                              options: { ...p.options, gridStep: step }
+                            }));
+                          },
+                          onKeyDown: (e) => {
+                            if (e.key === "Enter") e.target.blur();
+                          },
+                          sx: { width: 92 }
+                        }
+                      )
+                    ]
+                  }
+                ),
+                open && /* @__PURE__ */ jsxs6(
+                  Box6,
+                  {
+                    sx: {
+                      position: "relative",
+                      width: previewDisplaySize.width,
+                      maxWidth: "100%",
+                      mx: "auto",
+                      height: previewDisplaySize.height,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      overflow: "hidden"
+                    },
+                    children: [
+                      /* @__PURE__ */ jsx7(
+                        GraphPreview_default,
+                        {
+                          embed: previewEmbed,
+                          height: previewDisplaySize.height,
+                          width: `${previewDisplaySize.width}px`
+                        },
+                        graphPreviewKey(previewEmbed)
+                      ),
+                      /* @__PURE__ */ jsx7(
+                        ButtonBase,
+                        {
+                          type: "button",
+                          disableRipple: true,
+                          "aria-label": "Edit horizontal axis label",
+                          onClick: (e) => setAxisPopover({ axis: "y", anchor: e.currentTarget }),
+                          sx: {
+                            position: "absolute",
+                            bottom: 2,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: Math.min(200, previewDisplaySize.width * 0.55),
+                            height: 40,
+                            borderRadius: 1,
+                            zIndex: 2,
+                            opacity: 0,
+                            "&:hover": { opacity: 0.15, bgcolor: "primary.main" }
+                          }
+                        }
+                      ),
+                      /* @__PURE__ */ jsx7(
+                        ButtonBase,
+                        {
+                          type: "button",
+                          disableRipple: true,
+                          "aria-label": "Edit vertical axis label",
+                          onClick: (e) => setAxisPopover({ axis: "x", anchor: e.currentTarget }),
+                          sx: {
+                            position: "absolute",
+                            left: 2,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 44,
+                            height: Math.min(160, previewDisplaySize.height * 0.5),
+                            borderRadius: 1,
+                            zIndex: 2,
+                            opacity: 0,
+                            "&:hover": { opacity: 0.15, bgcolor: "primary.main" }
+                          }
+                        }
+                      ),
+                      /* @__PURE__ */ jsxs6(
+                        Paper,
+                        {
+                          elevation: 2,
+                          sx: {
+                            position: "absolute",
+                            right: 8,
+                            bottom: 8,
+                            p: 1,
+                            zIndex: 2,
+                            bgcolor: "background.paper"
+                          },
+                          children: [
+                            /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", display: "block", gutterBottom: true, children: "Scale ratio" }),
+                            /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 0.5, alignItems: "center", flexWrap: "wrap", children: [
+                              /* @__PURE__ */ jsx7(Typography, { variant: "caption", children: "x" }),
+                              /* @__PURE__ */ jsx7(
+                                TextField2,
+                                {
+                                  size: "small",
+                                  type: "text",
+                                  inputMode: "decimal",
+                                  value: scaleRatioXText ?? String(embed.options?.scaleRatio?.x ?? 1),
+                                  onFocus: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioXText(e.target.value);
+                                  },
+                                  onChange: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioXText(e.target.value);
+                                  },
+                                  onBlur: (e) => {
+                                    e.stopPropagation();
+                                    const prevX = embed.options?.scaleRatio?.x ?? 1;
+                                    const prevY = embed.options?.scaleRatio?.y ?? 1;
+                                    const x = parsePositiveDecimalCommit(e.target.value, prevX);
+                                    setScaleRatioXText(null);
+                                    setEmbed(
+                                      (p) => withAutoDisplaySize(
+                                        {
+                                          ...p,
+                                          options: {
+                                            ...p.options,
+                                            stretchToFit: false,
+                                            scaleRatio: { x, y: prevY }
+                                          }
+                                        },
+                                        previewViewport
+                                      )
+                                    );
+                                  },
+                                  onKeyDown: (e) => {
+                                    if (e.key === "Enter") e.target.blur();
+                                  },
+                                  onClick: (e) => e.stopPropagation(),
+                                  sx: { width: 68 }
+                                }
+                              ),
+                              /* @__PURE__ */ jsx7(Typography, { variant: "caption", children: "y" }),
+                              /* @__PURE__ */ jsx7(
+                                TextField2,
+                                {
+                                  size: "small",
+                                  type: "text",
+                                  inputMode: "decimal",
+                                  value: scaleRatioYText ?? String(embed.options?.scaleRatio?.y ?? 1),
+                                  onFocus: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioYText(e.target.value);
+                                  },
+                                  onChange: (e) => {
+                                    e.stopPropagation();
+                                    setScaleRatioYText(e.target.value);
+                                  },
+                                  onBlur: (e) => {
+                                    e.stopPropagation();
+                                    const prevX = embed.options?.scaleRatio?.x ?? 1;
+                                    const prevY = embed.options?.scaleRatio?.y ?? 1;
+                                    const y = parsePositiveDecimalCommit(e.target.value, prevY);
+                                    setScaleRatioYText(null);
+                                    setEmbed(
+                                      (p) => withAutoDisplaySize(
+                                        {
+                                          ...p,
+                                          options: {
+                                            ...p.options,
+                                            stretchToFit: false,
+                                            scaleRatio: { x: prevX, y }
+                                          }
+                                        },
+                                        previewViewport
+                                      )
+                                    );
+                                  },
+                                  onKeyDown: (e) => {
+                                    if (e.key === "Enter") e.target.blur();
+                                  },
+                                  onClick: (e) => e.stopPropagation(),
+                                  sx: { width: 68 }
+                                }
+                              )
+                            ] })
+                          ]
+                        }
+                      )
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ jsxs6(Stack2, { direction: "row", spacing: 1, alignItems: "center", flexWrap: "wrap", sx: { mt: 1.5 }, children: [
+                  /* @__PURE__ */ jsx7(Typography, { variant: "body2", color: "text.secondary", children: "Graph size" }),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "W",
+                      type: "text",
+                      inputMode: "numeric",
+                      size: "small",
+                      value: graphWText ?? String(previewDisplaySize.width),
+                      disabled: embed.autoDisplaySize !== false,
+                      onFocus: (e) => setGraphWText(e.target.value),
+                      onChange: (e) => setGraphWText(e.target.value),
+                      onBlur: (e) => {
+                        const n = parseGraphPixelCommit(e.target.value);
+                        setGraphWText(null);
+                        if (n === void 0) return;
+                        const w = Math.min(
+                          GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(GRAPH_DISPLAY_MIN_WIDTH, n)
+                        );
+                        const h = Math.min(
+                          GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(GRAPH_DISPLAY_MIN_HEIGHT, Math.round(w / Math.max(1e-4, previewAspect)))
+                        );
+                        setEmbed((prev) => ({
+                          ...prev,
+                          autoDisplaySize: false,
+                          displayWidth: w,
+                          displayHeight: h
+                        }));
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key !== "Enter") return;
+                        e.target.blur();
+                      },
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(Typography, { variant: "body2", color: "text.secondary", children: "\xD7" }),
+                  /* @__PURE__ */ jsx7(
+                    TextField2,
+                    {
+                      label: "H",
+                      type: "text",
+                      inputMode: "numeric",
+                      size: "small",
+                      value: graphHText ?? String(previewDisplaySize.height),
+                      disabled: embed.autoDisplaySize !== false,
+                      onFocus: (e) => setGraphHText(e.target.value),
+                      onChange: (e) => setGraphHText(e.target.value),
+                      onBlur: (e) => {
+                        const n = parseGraphPixelCommit(e.target.value);
+                        setGraphHText(null);
+                        if (n === void 0) return;
+                        const h = Math.min(
+                          GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(GRAPH_DISPLAY_MIN_HEIGHT, n)
+                        );
+                        const w = Math.min(
+                          GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(GRAPH_DISPLAY_MIN_WIDTH, Math.round(h * previewAspect))
+                        );
+                        setEmbed((prev) => ({
+                          ...prev,
+                          autoDisplaySize: false,
+                          displayHeight: h,
+                          displayWidth: w
+                        }));
+                      },
+                      onKeyDown: (e) => {
+                        if (e.key !== "Enter") return;
+                        e.target.blur();
+                      },
+                      sx: { width: 100 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "px" })
+                ] }),
+                /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", display: "block", sx: { mt: 0.5 }, children: "Click the bottom or left edge of the graph to edit axis names." })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs6(Stack2, { spacing: 2.5, sx: { flex: 1, minWidth: 0 }, children: [
+            /* @__PURE__ */ jsx7(Typography, { variant: "h6", component: "h2", children: "Graph settings" }),
+            viewSection,
+            sectionTitle("Objects"),
+            /* @__PURE__ */ jsxs6(
+              Tabs,
+              {
+                value: objectsTab,
+                onChange: (_, v) => setObjectsTab(v),
+                variant: "scrollable",
+                scrollButtons: "auto",
+                sx: { borderBottom: 1, borderColor: "divider" },
+                children: [
+                  /* @__PURE__ */ jsx7(Tab, { label: "Equations" }),
+                  /* @__PURE__ */ jsx7(Tab, { label: "Variables" }),
+                  /* @__PURE__ */ jsx7(Tab, { label: "Points & lines" }),
+                  /* @__PURE__ */ jsx7(Tab, { label: "Labels" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxs6(
+              Box6,
+              {
+                sx: {
+                  minHeight: 240,
+                  maxHeight: "min(55vh, 520px)",
+                  overflow: "auto",
+                  pr: 0.5
+                },
+                children: [
+                  objectsTab === 0 && equationsPanel,
+                  objectsTab === 1 && slidersPanel,
+                  objectsTab === 2 && geometryPanel,
+                  objectsTab === 3 && labelsPanel
+                ]
+              }
+            )
+          ] })
+        ]
+      }
+    ) }),
+    /* @__PURE__ */ jsx7(
+      Popover2,
+      {
+        open: Boolean(axisPopover),
+        anchorEl: axisPopover?.anchor ?? null,
+        onClose: () => setAxisPopover(null),
+        anchorOrigin: { vertical: "top", horizontal: "center" },
+        transformOrigin: { vertical: "bottom", horizontal: "center" },
+        children: /* @__PURE__ */ jsxs6(Paper, { sx: { p: 2, width: 280 }, children: [
+          /* @__PURE__ */ jsx7(Typography, { variant: "subtitle2", gutterBottom: true, children: axisPopover?.axis === "x" ? "Horizontal axis label" : "Vertical axis label" }),
+          /* @__PURE__ */ jsx7(
+            TextField2,
+            {
+              size: "small",
+              fullWidth: true,
+              autoFocus: true,
+              value: axisDraft,
+              onChange: (e) => setAxisDraft(e.target.value),
+              onKeyDown: (e) => {
+                if (e.key !== "Enter") return;
+                if (!axisPopover) return;
+                const def = axisPopover.axis === "x" ? "x" : "y";
+                const v = axisDraft.trim();
+                setEmbed((prev) => ({
+                  ...prev,
+                  options: {
+                    ...prev.options,
+                    [axisPopover.axis === "x" ? "xAxisLabel" : "yAxisLabel"]: v === "" || v === def ? void 0 : v
+                  }
+                }));
+                setAxisPopover(null);
+              }
+            }
+          ),
+          /* @__PURE__ */ jsxs6(Stack2, { direction: "row", justifyContent: "flex-end", spacing: 1, sx: { mt: 1.5 }, children: [
+            /* @__PURE__ */ jsx7(Button2, { size: "small", onClick: () => setAxisPopover(null), children: "Cancel" }),
+            /* @__PURE__ */ jsx7(
+              Button2,
+              {
+                size: "small",
+                variant: "contained",
+                onClick: () => {
+                  if (!axisPopover) return;
+                  const def = axisPopover.axis === "x" ? "x" : "y";
+                  const v = axisDraft.trim();
+                  setEmbed((prev) => ({
+                    ...prev,
+                    options: {
+                      ...prev.options,
+                      [axisPopover.axis === "x" ? "xAxisLabel" : "yAxisLabel"]: v === "" || v === def ? void 0 : v
+                    }
+                  }));
+                  setAxisPopover(null);
+                },
+                children: "OK"
+              }
+            )
+          ] })
+        ] })
+      }
+    ),
+    /* @__PURE__ */ jsxs6(DialogActions, { children: [
+      /* @__PURE__ */ jsx7(Button2, { onClick: onClose, children: "Cancel" }),
+      /* @__PURE__ */ jsx7(Button2, { variant: "contained", onClick: handleSave, children: "Save" })
+    ] })
+  ] });
+};
+var GraphEmbedDialog_default = GraphEmbedDialog;
+
+// src/utils/graphIds.ts
+function createGraphEmbedId() {
+  const suffix = Math.random().toString(36).slice(2, 10);
+  return `graph_${Date.now().toString(36)}_${suffix}`;
+}
+
+// src/hooks/useGraphEmbedEditor.ts
+import { useCallback as useCallback2, useRef as useRef4, useState as useState7 } from "react";
+var defaultGraphEmbed = () => ({
+  type: "graph",
+  renderer: "jsxgraph",
+  mode: "display",
+  viewport: { xMin: -10, xMax: 10, yMin: -10, yMax: 10 },
+  options: {
+    showAxes: true,
+    showGrid: true,
+    gridStep: 1,
+    showLabels: true,
+    scaleRatio: { x: 1, y: 1 },
+    snapToGrid: false
+  },
+  autoDisplaySize: true,
+  expressions: [],
+  objects: []
+});
+function useGraphEmbedEditor({
+  editor,
+  embeds,
+  onEmbedsChange,
+  enabled = true
+}) {
+  const embedsRef = useRef4(embeds);
+  embedsRef.current = embeds;
+  const [dialog, setDialog] = useState7({ open: false });
+  const getEmbeds = useCallback2(() => embedsRef.current, []);
+  const patchEmbeds = useCallback2(
+    (embedId, embed) => {
+      const next = upsertGraphEmbed(embedsRef.current ?? {}, embedId, embed);
+      embedsRef.current = next;
+      onEmbedsChange?.(next);
+      return next;
+    },
+    [onEmbedsChange]
+  );
+  const openGraphEditor = useCallback2(
+    (request) => {
+      if (!enabled || !onEmbedsChange) return;
+      if (request.mode === "insert") {
+        setDialog({
+          open: true,
+          mode: "insert",
+          embedId: createGraphEmbedId(),
+          initialEmbed: withAutoDisplaySize(defaultGraphEmbed())
+        });
+        return;
+      }
+      const existing = getGraphEmbed(embedsRef.current, request.embedId);
+      setDialog({
+        open: true,
+        mode: "edit",
+        embedId: request.embedId,
+        initialEmbed: existing ?? defaultGraphEmbed(),
+        editPos: request.pos
+      });
+    },
+    [enabled, onEmbedsChange]
+  );
+  const closeDialog = useCallback2(() => setDialog({ open: false }), []);
+  const handleDialogSave = useCallback2(
+    (embed) => {
+      if (!dialog.open || !editor) return;
+      const embedId = dialog.embedId;
+      patchEmbeds(embedId, embed);
+      if (dialog.mode === "insert") {
+        editor.chain().focus().insertGraphEmbed(embedId).run();
+      } else if (typeof dialog.editPos === "number") {
+        editor.chain().focus().setNodeSelection(dialog.editPos).run();
+      }
+      editor.view.dispatch(editor.state.tr);
+    },
+    [dialog, editor, patchEmbeds]
+  );
+  const insertNewGraph = useCallback2(() => {
+    openGraphEditor({ mode: "insert" });
+  }, [openGraphEditor]);
+  const resizeGraphEmbed = useCallback2(
+    (embedId, size) => {
+      if (!enabled || !onEmbedsChange) return;
+      const existing = getGraphEmbed(embedsRef.current, embedId);
+      if (!existing) return;
+      patchEmbeds(embedId, {
+        ...existing,
+        autoDisplaySize: false,
+        displayWidth: size.width,
+        displayHeight: size.height
+      });
+    },
+    [enabled, onEmbedsChange, patchEmbeds]
+  );
+  return {
+    graphEnabled: enabled && !!onEmbedsChange,
+    getEmbeds,
+    openGraphEditor,
+    insertNewGraph,
+    resizeGraphEmbed,
+    dialog,
+    closeDialog,
+    handleDialogSave
+  };
+}
+
+// src/extensions/GraphEmbed.ts
+import { Node as Node3, mergeAttributes as mergeAttributes2 } from "@tiptap/core";
+var MIN_GRAPH_WIDTH = 200;
+var MAX_GRAPH_WIDTH = 960;
+var MIN_GRAPH_HEIGHT = 120;
+var MAX_GRAPH_HEIGHT = 800;
+function applyGraphNodeLayout(dom, body, embed) {
+  const { width, height } = embed ? resolveGraphDisplaySize(embed) : { width: 400, height: 400 };
+  dom.style.display = "inline-block";
+  dom.style.verticalAlign = "top";
+  dom.style.maxWidth = "100%";
+  dom.style.width = `${width}px`;
+  body.style.width = "100%";
+  body.style.height = `${height}px`;
+  body.style.boxSizing = "border-box";
+}
+var GraphEmbedNode = Node3.create({
+  name: "graphEmbed",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addOptions() {
+    return {
+      getEmbeds: () => void 0,
+      onOpenEditor: () => {
+      },
+      onResizeEmbed: void 0,
+      allowResize: true
+    };
+  },
+  addAttributes() {
+    return {
+      embedId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-embed-id"),
+        renderHTML: (attributes) => {
+          if (!attributes.embedId) return {};
+          return { "data-embed-id": attributes.embedId };
+        }
+      }
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'motionless[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      },
+      {
+        tag: 'motion[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      },
+      {
+        tag: 'div[data-type="graph"]',
+        getAttrs: (element) => {
+          if (typeof element === "string") return false;
+          const id = element.getAttribute("data-embed-id");
+          return id ? { embedId: id } : false;
+        }
+      }
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes2(HTMLAttributes, {
+        "data-type": "graph",
+        class: "graph-embed-node"
+      })
+    ];
+  },
+  addCommands() {
+    return {
+      insertGraphEmbed: (embedId) => ({ commands }) => commands.insertContent({
+        type: this.name,
+        attrs: { embedId }
+      })
+    };
+  },
+  addNodeView() {
+    const { getEmbeds, onOpenEditor, onResizeEmbed, allowResize } = this.options;
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement("div");
+      dom.className = "graph-embed-node";
+      dom.dataset.type = "graph";
+      dom.contentEditable = "false";
+      const header = document.createElement("div");
+      header.className = "graph-embed-node__header";
+      const label = document.createElement("span");
+      label.className = "graph-embed-node__label";
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "graph-embed-node__edit";
+      editBtn.textContent = "Edit graph";
+      header.appendChild(label);
+      header.appendChild(editBtn);
+      const body = document.createElement("div");
+      body.className = "graph-embed-node__body";
+      const mount = document.createElement("div");
+      mount.className = "graph-embed-node__mount";
+      mount.dataset.graphPreviewMount = "true";
+      body.appendChild(mount);
+      let resizeHandle = null;
+      if (allowResize !== false && onResizeEmbed) {
+        resizeHandle = document.createElement("div");
+        resizeHandle.className = "graph-embed-node__resize-handle";
+        resizeHandle.title = "Drag to resize graph";
+        resizeHandle.setAttribute("aria-label", "Resize graph");
+        body.appendChild(resizeHandle);
+      }
+      dom.appendChild(header);
+      dom.appendChild(body);
+      const openEditor = () => {
+        const embedId = node.attrs.embedId;
+        let pos = getPos();
+        if (typeof pos !== "number") {
+          editor.state.doc.descendants((n, p) => {
+            if (n.type.name === "graphEmbed" && n.attrs.embedId === embedId) {
+              pos = p;
+              return false;
+            }
+          });
+        }
+        onOpenEditor({
+          mode: "edit",
+          embedId,
+          pos: typeof pos === "number" ? pos : void 0
+        });
+      };
+      const syncNode = (updatedNode) => {
+        node = updatedNode;
+        const embedId = node.attrs.embedId;
+        dom.dataset.embedId = embedId;
+        mount.dataset.graphEmbedId = embedId;
+        const embed = getGraphEmbed(getEmbeds(), embedId);
+        dom.classList.toggle("graph-embed-node--missing", !embed);
+        if (embed) {
+          label.textContent = `Graph (${graphModeLabel(embed)})`;
+        } else {
+          label.textContent = "Graph (missing definition)";
+        }
+        applyGraphNodeLayout(dom, body, embed);
+      };
+      syncNode(node);
+      if (resizeHandle && onResizeEmbed) {
+        resizeHandle.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const embedId = node.attrs.embedId;
+          const startX = event.clientX;
+          const startY = event.clientY;
+          const startW = body.offsetWidth;
+          const startH = body.offsetHeight;
+          const onMove = (moveEvent) => {
+            const width = Math.min(
+              MAX_GRAPH_WIDTH,
+              Math.max(MIN_GRAPH_WIDTH, startW + moveEvent.clientX - startX)
+            );
+            const height = Math.min(
+              MAX_GRAPH_HEIGHT,
+              Math.max(MIN_GRAPH_HEIGHT, startH + moveEvent.clientY - startY)
+            );
+            dom.style.width = `${width}px`;
+            body.style.width = "100%";
+            body.style.height = `${height}px`;
+          };
+          const onUp = (upEvent) => {
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+            const width = Math.min(
+              MAX_GRAPH_WIDTH,
+              Math.max(MIN_GRAPH_WIDTH, startW + upEvent.clientX - startX)
+            );
+            const height = Math.min(
+              MAX_GRAPH_HEIGHT,
+              Math.max(MIN_GRAPH_HEIGHT, startH + upEvent.clientY - startY)
+            );
+            onResizeEmbed(embedId, { width, height });
+          };
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+        });
+      }
+      editBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openEditor();
+      });
+      header.addEventListener("click", (event) => {
+        if (event.target === editBtn) return;
+        openEditor();
+      });
+      return {
+        dom,
+        update(updatedNode) {
+          if (updatedNode.type.name !== "graphEmbed") return false;
+          syncNode(updatedNode);
+          return true;
+        },
+        ignoreMutation(mutation) {
+          const target = mutation.target;
+          if (!(target instanceof HTMLElement)) return false;
+          return body.contains(target);
+        }
+      };
+    };
+  }
+});
 export {
+  CHEM_STRUCTURE_ALLOWED_ATTR,
+  CHEM_STRUCTURE_ALLOWED_TAGS,
+  ChemStructure,
+  ChemStructureDialogLazy_default as ChemStructureDialog,
   EquationInsertPanel,
   ExplanationEditor,
+  GRAPH_DISPLAY_BASE_WIDTH,
+  GRAPH_DISPLAY_MAX_HEIGHT,
+  GRAPH_DISPLAY_MAX_WIDTH,
+  GRAPH_DISPLAY_MIN_HEIGHT,
+  GRAPH_DISPLAY_MIN_WIDTH,
+  GraphAnswerInput_default as GraphAnswerInput,
+  GraphEmbedDialog_default as GraphEmbedDialog,
+  GraphEmbedNode,
+  GraphPreview_default as GraphPreview,
+  GraphRenderer_default as GraphRenderer,
   InlineMathWithMathLive,
   InlineMathWithParens,
   MathLiveEditor_default as MathLiveEditor,
+  MathPreview_default as MathPreview,
   MathematicsWithInlineEdit,
   MenuBar_default as MenuBar,
   OverleafPaste,
+  RichTextWithMath,
   SmartMathPaste,
   TextStyleFontSize,
   TiptapEditor_default as TiptapEditor,
-  handleMathBackspaceKeyDown
+  chemAwareSanitizeConfig,
+  collectChemStructureIds,
+  collectGraphEmbedIds,
+  computeGraphDisplaySize,
+  createChemStructureId,
+  createGraphEmbedId,
+  denormalizeTeachingDiagramKetForEditing,
+  extractGraphVariableNamesFromLatex,
+  findUndefinedGraphVariables,
+  formatGraphOriginLabelLatex,
+  getChemStructureEmbed,
+  getGraphEmbed,
+  graphHasSliders,
+  graphModeLabel,
+  graphPreviewKey,
+  handleMathBackspaceKeyDown,
+  hydrateChemStructuresInHtml,
+  hydrateGraphsInHtml,
+  isDisplayInteractive,
+  mountGraphPreviewsInElement,
+  namespaceChemPreviewSvg,
+  normalizeChemStructureSource,
+  normalizeGraphMode,
+  normalizeStructurePreviewKet,
+  normalizeTeachingDiagramKet,
+  normalizeViewport,
+  parseViewportField,
+  prepareChemAwareHtml,
+  pruneUnusedChemStructures,
+  pruneUnusedGraphs,
+  removeChemStructure,
+  removeGraphEmbed,
+  renderTeachingDiagramSvg,
+  resolveGraphDisplaySize,
+  unmountGraphPreviewsInElement,
+  upsertChemStructure,
+  upsertGraphEmbed,
+  useChemStructureEditor,
+  useGraphEmbedEditor,
+  viewportFieldsFromEmbed,
+  viewportFromFields,
+  withAutoDisplaySize
 };
 //# sourceMappingURL=index.mjs.map
