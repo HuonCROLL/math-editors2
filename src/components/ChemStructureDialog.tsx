@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
+import '../utils/ensureRaphaelBrowser';
 import { Editor } from 'ketcher-react';
 import { ChemicalMimeType, type Ketcher } from 'ketcher-core';
 import { StandaloneStructServiceProvider } from 'ketcher-standalone';

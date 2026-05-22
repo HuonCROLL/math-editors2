@@ -4560,7 +4560,7 @@ import React4, { Suspense } from "react";
 import Box3 from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jsx as jsx4 } from "react/jsx-runtime";
-var LazyChemStructureDialog = React4.lazy(() => import("./ChemStructureDialog-YV7FSRIA.mjs"));
+var LazyChemStructureDialog = React4.lazy(() => import("./ChemStructureDialog-ZCH357CT.mjs"));
 var ChemStructureDialogLazy = (props) => {
   if (!props.open) return null;
   return /* @__PURE__ */ jsx4(

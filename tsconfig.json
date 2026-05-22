@@ -9,7 +9,8 @@
     "strict": true,
 
     "moduleResolution": "Bundler",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["**/*.test.ts", "**/*.test.tsx"]

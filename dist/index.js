@@ -4560,7 +4560,7 @@ var MenuBar_default = MenuBar;
 var _Box = require('@mui/material/Box'); var _Box2 = _interopRequireDefault(_Box);
 var _CircularProgress = require('@mui/material/CircularProgress'); var _CircularProgress2 = _interopRequireDefault(_CircularProgress);
 
-var LazyChemStructureDialog = _react2.default.lazy(() => Promise.resolve().then(() => _interopRequireWildcard(require("./ChemStructureDialog-66Z7L7YH.js"))));
+var LazyChemStructureDialog = _react2.default.lazy(() => Promise.resolve().then(() => _interopRequireWildcard(require("./ChemStructureDialog-TV52DTS6.js"))));
 var ChemStructureDialogLazy = (props) => {
   if (!props.open) return null;
   return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
