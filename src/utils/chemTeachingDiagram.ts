@@ -206,6 +206,37 @@ export function renderTeachingDiagramSvg(sourceValue: string): string {
     };
   };
 
+  // Bond rendering: single bonds are one line, double bonds are two parallel
+  // lines, triple bonds are three parallel lines. The perpendicular offset is
+  // computed in screen space so multi-order bonds look correct at any rotation.
+  const renderBond = (
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+    order: number,
+  ): string => {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const ox = (-dy / length) * 4;
+    const oy = (dx / length) * 4;
+    const line = (x1: number, y1: number, x2: number, y2: number): string =>
+      `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="black" stroke-width="2" stroke-linecap="round" />`;
+    if (order === 2) {
+      return [
+        line(p1.x + ox, p1.y + oy, p2.x + ox, p2.y + oy),
+        line(p1.x - ox, p1.y - oy, p2.x - ox, p2.y - oy),
+      ].join('');
+    }
+    if (order === 3) {
+      return [
+        line(p1.x, p1.y, p2.x, p2.y),
+        line(p1.x + ox * 1.6, p1.y + oy * 1.6, p2.x + ox * 1.6, p2.y + oy * 1.6),
+        line(p1.x - ox * 1.6, p1.y - oy * 1.6, p2.x - ox * 1.6, p2.y - oy * 1.6),
+      ].join('');
+    }
+    return line(p1.x, p1.y, p2.x, p2.y);
+  };
+
   const bondElements = fragments.flatMap((fragment) =>
     fragment.bonds.map((bond) => {
       if (!bond.atoms) return '';
@@ -216,7 +247,8 @@ export function renderTeachingDiagramSvg(sourceValue: string): string {
 
       const p1 = pointFor(start);
       const p2 = pointFor(end);
-      return `<line x1="${p1.x.toFixed(2)}" y1="${p1.y.toFixed(2)}" x2="${p2.x.toFixed(2)}" y2="${p2.y.toFixed(2)}" stroke="black" stroke-width="2" stroke-linecap="round" />`;
+      const order = typeof bond.type === 'number' ? (BOND_ORDER_BY_TYPE[bond.type] ?? bond.type ?? 1) : 1;
+      return renderBond(p1, p2, order);
     }),
   );
 
