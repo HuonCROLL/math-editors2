@@ -5,6 +5,7 @@ export function mathToJessie(input: string): string {
   let s = input.trim().replace(/\s+/g, '');
 
 
+  s = s.replace(/\^\\frac\{([^}]*)\}\{([^}]*)\}/g, '^(($1)/($2))');
 
   s = s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1)/($2)');
 
@@ -38,9 +39,15 @@ export function mathToJessie(input: string): string {
 
 
 
-  s = s.replace(/\\log_\{([^}]*)\}\{([^}]*)\}/g, '(log($2)/log($1))');
+  s = s.replace(/\\left\(/g, '(');
 
-  s = s.replace(/\\log_\{([^}]*)\}\(([^)]*)\)/g, '(log($2)/log($1))');
+  s = s.replace(/\\right\)/g, ')');
+
+  s = s.replace(/\\log_([0-9A-Za-z.])/g, '\\log_{$1}');
+
+  s = s.replace(/\\log_\{([^}]*)\}\(([^()]*)\)/g, '(log($2)/log($1))');
+
+  s = s.replace(/\\log_\{([^}]*)\}\{([^}]*)\}/g, '(log($2)/log($1))');
 
   s = s.replace(/\\log_\{([^}]*)\}([a-zA-Z0-9.]+)/g, '(log($2)/log($1))');
 
@@ -88,6 +95,8 @@ export function mathToJessie(input: string): string {
 
   s = s.replace(/\\left|\\right/g, '');
 
+  s = s.replace(/\^\{([^{}]+)\}/g, '^($1)');
+
   s = s.replace(/\\cdot|\\times/g, '*');
 
   s = s.replace(/\\div/g, '/');
@@ -97,6 +106,8 @@ export function mathToJessie(input: string): string {
   s = s.replace(/\{([a-zA-Z])\}/g, '$1');
 
 
+
+  s = s.replace(/\be\^([A-Za-z0-9.])/g, 'exp($1)');
 
   s = s.replace(/\be\^(\{[^}]+\}|\()/g, 'exp(');
 
@@ -119,6 +130,8 @@ export function mathToJessie(input: string): string {
   s = s.replace(/(\d)pi\b/g, '$1*pi');
 
   s = s.replace(/pi([a-zA-Z(])/g, 'pi*$1');
+
+  s = s.replace(/\be\b/g, 'exp(1)');
 
 
 

@@ -225,8 +225,15 @@ function renderGraphExpressions(
       );
       const hasDomain =
         expr.domainMin !== undefined || expr.domainMax !== undefined;
-      const xMin = expr.domainMin;
-      const xMax = expr.domainMax;
+      // A missing bound is treated as an implicit infinity, plotted to the
+      // visible edge of the board (−∞ for min, +∞ for max).
+      let xMin = expr.domainMin;
+      let xMax = expr.domainMax;
+      if (hasDomain) {
+        const bb = board.getBoundingBox();
+        if (xMin === undefined) xMin = bb[0];
+        if (xMax === undefined) xMax = bb[2];
+      }
 
       if (hasSliders) {
         const args: (string | number)[] = [body];

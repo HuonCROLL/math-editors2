@@ -41,7 +41,7 @@ import {
   viewportFieldsFromEmbed,
   viewportFromFields,
   withAutoDisplaySize
-} from "./chunk-CGZIIVYR.mjs";
+} from "./chunk-I3AJF47G.mjs";
 import {
   denormalizeTeachingDiagramKetForEditing,
   normalizeChemStructureSource,
@@ -271,13 +271,16 @@ var MathLiveEditor = ({
   minWidthPx = 220,
   minWidthPercent = 55,
   minHeightPx = 48,
-  maxHeightPx = 120
+  maxHeightPx = 120,
+  defaultPanelOpen = false,
+  inlineInsertPanel = false,
+  openPanelOnFocus = false
 }) => {
   const mathFieldRef = useRef(null);
   const containerRef = useRef(null);
   const panelWrapperRef = useRef(null);
   const insertButtonRef = useRef(null);
-  const [panelOpen, setPanelOpen] = useState2(false);
+  const [panelOpen, setPanelOpen] = useState2(defaultPanelOpen);
   const [mathFieldWidth, setMathFieldWidth] = useState2(null);
   const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (value ?? "").length * 11));
   const resolvedMathFieldWidth = mathFieldWidth ? Math.min(mathFieldWidth, estimatedContentWidth) : estimatedContentWidth;
@@ -329,13 +332,18 @@ var MathLiveEditor = ({
     const handleInput = () => {
       onChange(mathField.value ?? "");
     };
+    const handleFocus = () => {
+      if (openPanelOnFocus) setPanelOpen(true);
+    };
     mathField.addEventListener("keydown", insertMathSpace);
     mathField.addEventListener("input", handleInput);
+    mathField.addEventListener("focus", handleFocus);
     return () => {
       mathField.removeEventListener("keydown", insertMathSpace);
       mathField.removeEventListener("input", handleInput);
+      mathField.removeEventListener("focus", handleFocus);
     };
-  }, [onChange]);
+  }, [onChange, openPanelOnFocus]);
   return /* @__PURE__ */ jsxs2(
     Box,
     {
@@ -343,7 +351,8 @@ var MathLiveEditor = ({
       sx: {
         position: "relative",
         display: "flex",
-        alignItems: "center",
+        flexDirection: inlineInsertPanel ? "column" : "row",
+        alignItems: inlineInsertPanel ? "flex-start" : "center",
         width: "100%",
         maxWidth: "100%"
       },
@@ -437,10 +446,11 @@ var MathLiveEditor = ({
                 {
                   ref: panelWrapperRef,
                   sx: {
-                    position: "absolute",
+                    position: inlineInsertPanel ? "static" : "absolute",
                     zIndex: 1600,
-                    top: "calc(100% + 8px)",
+                    top: inlineInsertPanel ? void 0 : "calc(100% + 8px)",
                     left: 0,
+                    mt: inlineInsertPanel ? 1 : 0,
                     width: "100%",
                     minWidth: 280
                   },
@@ -5448,6 +5458,25 @@ var GraphEmbedDialog = ({
       expressions: (prev.expressions ?? []).filter((_, i) => i !== index)
     }));
   };
+  const expressionDomainText = (expr, index) => {
+    const id = exprDomainKey(expr, index);
+    return {
+      min: expressionDomainTexts[id]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
+      max: expressionDomainTexts[id]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : "")
+    };
+  };
+  const commitExpressionDomainField = (index, expr, field, raw) => {
+    const id = exprDomainKey(expr, index);
+    const value = parseDomainFieldCommit(raw);
+    updateExpression(index, field === "min" ? { domainMin: value } : { domainMax: value });
+    setExpressionDomainTexts((p) => ({
+      ...p,
+      [id]: {
+        min: field === "min" ? value !== void 0 ? String(value) : "" : p[id]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
+        max: field === "max" ? value !== void 0 ? String(value) : "" : p[id]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : "")
+      }
+    }));
+  };
   const updateTextLabel = (index, patch) => {
     setEmbed((prev) => {
       const objects = [...prev.objects ?? []];
@@ -5585,9 +5614,18 @@ var GraphEmbedDialog = ({
   };
   const handleSave = () => {
     const viewport = viewportFromFields(viewportText, previewViewport);
+    const expressionsForSave = (embed.expressions ?? []).map((expr, index) => {
+      const text = expressionDomainText(expr, index);
+      return {
+        ...expr,
+        domainMin: parseDomainFieldCommit(text.min),
+        domainMax: parseDomainFieldCommit(text.max)
+      };
+    });
     onSave(
       normalizeEmbedMode({
         ...embed,
+        expressions: expressionsForSave,
         viewport,
         type: "graph",
         renderer: "jsxgraph"
@@ -5687,7 +5725,9 @@ var GraphEmbedDialog = ({
                 minWidthPx: 200,
                 minWidthPercent: 100,
                 minHeightPx: 44,
-                maxHeightPx: 88
+                maxHeightPx: 88,
+                inlineInsertPanel: true,
+                openPanelOnFocus: true
               }
             ) }),
             /* @__PURE__ */ jsx7(IconButton2, { size: "small", onClick: () => removeExpression(index), "aria-label": "Remove", children: /* @__PURE__ */ jsx7(DeleteIcon, { fontSize: "small" }) })
@@ -5739,8 +5779,8 @@ var GraphEmbedDialog = ({
                 size: "small",
                 type: "text",
                 inputMode: "decimal",
-                value: expressionDomainTexts[exprDomainKey(expr, index)]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
-                placeholder: "auto",
+                value: expressionDomainText(expr, index).min,
+                placeholder: "\u2212\u221E",
                 onChange: (e) => {
                   const id = exprDomainKey(expr, index);
                   setExpressionDomainTexts((p) => ({
@@ -5752,16 +5792,7 @@ var GraphEmbedDialog = ({
                   }));
                 },
                 onBlur: (e) => {
-                  const v = parseDomainFieldCommit(e.target.value);
-                  updateExpression(index, { domainMin: v });
-                  const id = exprDomainKey(expr, index);
-                  setExpressionDomainTexts((p) => ({
-                    ...p,
-                    [id]: {
-                      min: v !== void 0 ? String(v) : "",
-                      max: p[id]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : "")
-                    }
-                  }));
+                  commitExpressionDomainField(index, expr, "min", e.target.value);
                 },
                 onKeyDown: (e) => {
                   if (e.key !== "Enter") return;
@@ -5777,8 +5808,8 @@ var GraphEmbedDialog = ({
                 size: "small",
                 type: "text",
                 inputMode: "decimal",
-                value: expressionDomainTexts[exprDomainKey(expr, index)]?.max ?? (expr.domainMax !== void 0 ? String(expr.domainMax) : ""),
-                placeholder: "auto",
+                value: expressionDomainText(expr, index).max,
+                placeholder: "+\u221E",
                 onChange: (e) => {
                   const id = exprDomainKey(expr, index);
                   setExpressionDomainTexts((p) => ({
@@ -5790,16 +5821,7 @@ var GraphEmbedDialog = ({
                   }));
                 },
                 onBlur: (e) => {
-                  const v = parseDomainFieldCommit(e.target.value);
-                  updateExpression(index, { domainMax: v });
-                  const id = exprDomainKey(expr, index);
-                  setExpressionDomainTexts((p) => ({
-                    ...p,
-                    [id]: {
-                      min: p[id]?.min ?? (expr.domainMin !== void 0 ? String(expr.domainMin) : ""),
-                      max: v !== void 0 ? String(v) : ""
-                    }
-                  }));
+                  commitExpressionDomainField(index, expr, "max", e.target.value);
                 },
                 onKeyDown: (e) => {
                   if (e.key !== "Enter") return;
@@ -5835,7 +5857,7 @@ var GraphEmbedDialog = ({
               )
             ] })
           ] }),
-          /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Domain / markers apply to function plots." })
+          /* @__PURE__ */ jsx7(Typography, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Leave a domain box empty for \u2212\u221E (min) or +\u221E (max); markers apply to function plots." })
         ]
       },
       exprDomainKey(expr, index)

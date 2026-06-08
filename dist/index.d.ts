@@ -20,6 +20,9 @@ interface Props$4 {
     minWidthPercent?: number;
     minHeightPx?: number;
     maxHeightPx?: number;
+    defaultPanelOpen?: boolean;
+    inlineInsertPanel?: boolean;
+    openPanelOnFocus?: boolean;
 }
 declare const MathLiveEditor: React.FC<Props$4>;
 

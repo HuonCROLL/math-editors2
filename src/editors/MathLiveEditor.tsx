@@ -12,6 +12,9 @@ interface Props {
   minWidthPercent?: number;
   minHeightPx?: number;
   maxHeightPx?: number;
+  defaultPanelOpen?: boolean;
+  inlineInsertPanel?: boolean;
+  openPanelOnFocus?: boolean;
 }
 
 const MathLiveEditor: React.FC<Props> = ({
@@ -21,12 +24,15 @@ const MathLiveEditor: React.FC<Props> = ({
   minWidthPercent = 55,
   minHeightPx = 48,
   maxHeightPx = 120,
+  defaultPanelOpen = false,
+  inlineInsertPanel = false,
+  openPanelOnFocus = false,
 }) => {
   const mathFieldRef = useRef<MathfieldElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const panelWrapperRef = useRef<HTMLDivElement | null>(null);
   const insertButtonRef = useRef<HTMLButtonElement | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(defaultPanelOpen);
   const [mathFieldWidth, setMathFieldWidth] = useState<number | null>(null);
   const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (value ?? '').length * 11));
   const resolvedMathFieldWidth = mathFieldWidth
@@ -90,14 +96,19 @@ const MathLiveEditor: React.FC<Props> = ({
     const handleInput = () => {
       onChange(mathField.value ?? '');
     };
+    const handleFocus = () => {
+      if (openPanelOnFocus) setPanelOpen(true);
+    };
 
     mathField.addEventListener('keydown', insertMathSpace);
     mathField.addEventListener('input', handleInput);
+    mathField.addEventListener('focus', handleFocus);
     return () => {
       mathField.removeEventListener('keydown', insertMathSpace);
       mathField.removeEventListener('input', handleInput);
+      mathField.removeEventListener('focus', handleFocus);
     };
-  }, [onChange]);
+  }, [onChange, openPanelOnFocus]);
 
   return (
     <Box
@@ -105,7 +116,8 @@ const MathLiveEditor: React.FC<Props> = ({
       sx={{
         position: 'relative',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: inlineInsertPanel ? 'column' : 'row',
+        alignItems: inlineInsertPanel ? 'flex-start' : 'center',
         width: '100%',
         maxWidth: '100%',
       }}
@@ -196,10 +208,11 @@ const MathLiveEditor: React.FC<Props> = ({
           <Box
             ref={panelWrapperRef}
             sx={{
-              position: 'absolute',
+              position: inlineInsertPanel ? 'static' : 'absolute',
               zIndex: 1600,
-              top: 'calc(100% + 8px)',
+              top: inlineInsertPanel ? undefined : 'calc(100% + 8px)',
               left: 0,
+              mt: inlineInsertPanel ? 1 : 0,
               width: '100%',
               minWidth: 280,
             }}

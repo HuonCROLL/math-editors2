@@ -41,7 +41,7 @@
 
 
 
-var _chunkJJSHIBONjs = require('./chunk-JJSHIBON.js');
+var _chunkQPMS2FGIjs = require('./chunk-QPMS2FGI.js');
 
 
 
@@ -271,13 +271,16 @@ var MathLiveEditor = ({
   minWidthPx = 220,
   minWidthPercent = 55,
   minHeightPx = 48,
-  maxHeightPx = 120
+  maxHeightPx = 120,
+  defaultPanelOpen = false,
+  inlineInsertPanel = false,
+  openPanelOnFocus = false
 }) => {
   const mathFieldRef = _react.useRef.call(void 0, null);
   const containerRef = _react.useRef.call(void 0, null);
   const panelWrapperRef = _react.useRef.call(void 0, null);
   const insertButtonRef = _react.useRef.call(void 0, null);
-  const [panelOpen, setPanelOpen] = _react.useState.call(void 0, false);
+  const [panelOpen, setPanelOpen] = _react.useState.call(void 0, defaultPanelOpen);
   const [mathFieldWidth, setMathFieldWidth] = _react.useState.call(void 0, null);
   const estimatedContentWidth = Math.max(minWidthPx, Math.min(640, 120 + (_nullishCoalesce(value, () => ( ""))).length * 11));
   const resolvedMathFieldWidth = mathFieldWidth ? Math.min(mathFieldWidth, estimatedContentWidth) : estimatedContentWidth;
@@ -329,13 +332,18 @@ var MathLiveEditor = ({
     const handleInput = () => {
       onChange(_nullishCoalesce(mathField.value, () => ( "")));
     };
+    const handleFocus = () => {
+      if (openPanelOnFocus) setPanelOpen(true);
+    };
     mathField.addEventListener("keydown", insertMathSpace);
     mathField.addEventListener("input", handleInput);
+    mathField.addEventListener("focus", handleFocus);
     return () => {
       mathField.removeEventListener("keydown", insertMathSpace);
       mathField.removeEventListener("input", handleInput);
+      mathField.removeEventListener("focus", handleFocus);
     };
-  }, [onChange]);
+  }, [onChange, openPanelOnFocus]);
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     _material.Box,
     {
@@ -343,7 +351,8 @@ var MathLiveEditor = ({
       sx: {
         position: "relative",
         display: "flex",
-        alignItems: "center",
+        flexDirection: inlineInsertPanel ? "column" : "row",
+        alignItems: inlineInsertPanel ? "flex-start" : "center",
         width: "100%",
         maxWidth: "100%"
       },
@@ -437,10 +446,11 @@ var MathLiveEditor = ({
                 {
                   ref: panelWrapperRef,
                   sx: {
-                    position: "absolute",
+                    position: inlineInsertPanel ? "static" : "absolute",
                     zIndex: 1600,
-                    top: "calc(100% + 8px)",
+                    top: inlineInsertPanel ? void 0 : "calc(100% + 8px)",
                     left: 0,
+                    mt: inlineInsertPanel ? 1 : 0,
                     width: "100%",
                     minWidth: 280
                   },
@@ -4222,14 +4232,14 @@ var ChemStructure = _core.Node.create({
       const renderPreview = () => {
         const structureId = node.attrs.structureId;
         dom.dataset.structureId = structureId;
-        const embed = _chunkJJSHIBONjs.getChemStructureEmbed.call(void 0, getEmbeds(), structureId);
+        const embed = _chunkQPMS2FGIjs.getChemStructureEmbed.call(void 0, getEmbeds(), structureId);
         dom.innerHTML = "";
         dom.classList.remove("chem-structure-node--missing");
         const previewSvg = _nullishCoalesce(_optionalChain([embed, 'optionalAccess', _39 => _39.previewSvg]), () => ( _optionalChain([embed, 'optionalAccess', _40 => _40.preview_svg])));
         if (previewSvg) {
           const wrap = document.createElement("span");
           wrap.className = "chem-structure-preview";
-          wrap.innerHTML = _chunkJJSHIBONjs.namespaceChemPreviewSvg.call(void 0, previewSvg, structureId);
+          wrap.innerHTML = _chunkQPMS2FGIjs.namespaceChemPreviewSvg.call(void 0, previewSvg, structureId);
           dom.appendChild(wrap);
         } else {
           dom.classList.add("chem-structure-node--missing");
@@ -4595,7 +4605,7 @@ function useChemStructureEditor({
   const getEmbeds = _react.useCallback.call(void 0, () => embedsRef.current, []);
   const patchEmbeds = _react.useCallback.call(void 0, 
     (structureId, embed) => {
-      const next = _chunkJJSHIBONjs.upsertChemStructure.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), structureId, embed);
+      const next = _chunkQPMS2FGIjs.upsertChemStructure.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), structureId, embed);
       _optionalChain([onEmbedsChange, 'optionalCall', _75 => _75(next)]);
       return next;
     },
@@ -4613,7 +4623,7 @@ function useChemStructureEditor({
         });
         return;
       }
-      const existing = _chunkJJSHIBONjs.getChemStructureEmbed.call(void 0, embedsRef.current, request.structureId);
+      const existing = _chunkQPMS2FGIjs.getChemStructureEmbed.call(void 0, embedsRef.current, request.structureId);
       setDialog({
         open: true,
         mode: "edit",
@@ -5216,7 +5226,7 @@ function pathToObject(points, interpolation, id, color) {
   };
 }
 function normalizeEmbedMode(embed) {
-  const normalized = _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, { ...embed, mode: "display", tools: void 0 });
+  const normalized = _chunkQPMS2FGIjs.withAutoDisplaySize.call(void 0, { ...embed, mode: "display", tools: void 0 });
   return {
     ...normalized,
     autoDisplaySize: false,
@@ -5236,10 +5246,10 @@ var GraphEmbedDialog = ({
 }) => {
   const [embed, setEmbed] = _react.useState.call(void 0, () => normalizeEmbedMode(initialEmbed));
   const [viewportText, setViewportText] = _react.useState.call(void 0, 
-    () => _chunkJJSHIBONjs.viewportFieldsFromEmbed.call(void 0, _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport))
+    () => _chunkQPMS2FGIjs.viewportFieldsFromEmbed.call(void 0, _chunkQPMS2FGIjs.normalizeViewport.call(void 0, initialEmbed.viewport))
   );
   const [previewViewport, setPreviewViewport] = _react.useState.call(void 0, 
-    () => _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport)
+    () => _chunkQPMS2FGIjs.normalizeViewport.call(void 0, initialEmbed.viewport)
   );
   const [objectsTab, setObjectsTab] = _react.useState.call(void 0, 0);
   const [axisPopover, setAxisPopover] = _react.useState.call(void 0, null);
@@ -5266,10 +5276,10 @@ var GraphEmbedDialog = ({
     if (!open) return;
     const normalized = normalizeEmbedMode({
       ...initialEmbed,
-      viewport: _chunkJJSHIBONjs.normalizeViewport.call(void 0, initialEmbed.viewport)
+      viewport: _chunkQPMS2FGIjs.normalizeViewport.call(void 0, initialEmbed.viewport)
     });
     setEmbed(normalized);
-    setViewportText(_chunkJJSHIBONjs.viewportFieldsFromEmbed.call(void 0, normalized.viewport));
+    setViewportText(_chunkQPMS2FGIjs.viewportFieldsFromEmbed.call(void 0, normalized.viewport));
     setPreviewViewport(normalized.viewport);
     setObjectsTab((t) => t > 3 ? 0 : t);
     const exs = _nullishCoalesce(normalized.expressions, () => ( []));
@@ -5292,7 +5302,7 @@ var GraphEmbedDialog = ({
     [embed, previewViewport]
   );
   const previewDisplaySize = _react.useMemo.call(void 0, 
-    () => _chunkJJSHIBONjs.resolveGraphDisplaySize.call(void 0, previewEmbed),
+    () => _chunkQPMS2FGIjs.resolveGraphDisplaySize.call(void 0, previewEmbed),
     [previewEmbed]
   );
   const previewAspect = _react.useMemo.call(void 0, () => {
@@ -5307,9 +5317,9 @@ var GraphEmbedDialog = ({
     }
   }, [embed.autoDisplaySize]);
   const applyViewportToPreview = () => {
-    const next = _chunkJJSHIBONjs.viewportFromFields.call(void 0, viewportText, previewViewport);
+    const next = _chunkQPMS2FGIjs.viewportFromFields.call(void 0, viewportText, previewViewport);
     setPreviewViewport(next);
-    setEmbed((prev) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, { ...prev, viewport: next }, next));
+    setEmbed((prev) => _chunkQPMS2FGIjs.withAutoDisplaySize.call(void 0, { ...prev, viewport: next }, next));
   };
   const sliders = (_nullishCoalesce(embed.objects, () => ( []))).filter(
     (o) => o.type === "slider"
@@ -5448,6 +5458,25 @@ var GraphEmbedDialog = ({
       expressions: (_nullishCoalesce(prev.expressions, () => ( []))).filter((_, i) => i !== index)
     }));
   };
+  const expressionDomainText = (expr, index) => {
+    const id = exprDomainKey(expr, index);
+    return {
+      min: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _142 => _142[id], 'optionalAccess', _143 => _143.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+      max: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _144 => _144[id], 'optionalAccess', _145 => _145.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
+    };
+  };
+  const commitExpressionDomainField = (index, expr, field, raw) => {
+    const id = exprDomainKey(expr, index);
+    const value = parseDomainFieldCommit(raw);
+    updateExpression(index, field === "min" ? { domainMin: value } : { domainMax: value });
+    setExpressionDomainTexts((p) => ({
+      ...p,
+      [id]: {
+        min: field === "min" ? value !== void 0 ? String(value) : "" : _nullishCoalesce(_optionalChain([p, 'access', _146 => _146[id], 'optionalAccess', _147 => _147.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+        max: field === "max" ? value !== void 0 ? String(value) : "" : _nullishCoalesce(_optionalChain([p, 'access', _148 => _148[id], 'optionalAccess', _149 => _149.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
+      }
+    }));
+  };
   const updateTextLabel = (index, patch) => {
     setEmbed((prev) => {
       const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
@@ -5533,8 +5562,8 @@ var GraphEmbedDialog = ({
     setEmbed((prev) => {
       const objects = [..._nullishCoalesce(prev.objects, () => ( []))];
       const old = objects[objectIndex];
-      const id = _optionalChain([old, 'optionalAccess', _142 => _142.type]) === "line" || _optionalChain([old, 'optionalAccess', _143 => _143.type]) === "curve" ? old.id : `path_${Date.now()}`;
-      const color = _optionalChain([old, 'optionalAccess', _144 => _144.type]) === "line" || _optionalChain([old, 'optionalAccess', _145 => _145.type]) === "curve" ? old.color : void 0;
+      const id = _optionalChain([old, 'optionalAccess', _150 => _150.type]) === "line" || _optionalChain([old, 'optionalAccess', _151 => _151.type]) === "curve" ? old.id : `path_${Date.now()}`;
+      const color = _optionalChain([old, 'optionalAccess', _152 => _152.type]) === "line" || _optionalChain([old, 'optionalAccess', _153 => _153.type]) === "curve" ? old.color : void 0;
       objects[objectIndex] = pathToObject(points2, interpolation, id, color);
       return { ...prev, objects };
     });
@@ -5545,8 +5574,8 @@ var GraphEmbedDialog = ({
     const pts = pathPoints(p);
     const prevPt = _nullishCoalesce(pts[pointIndex], () => ( [0, 0]));
     pts[pointIndex] = [
-      coord === "x" ? _chunkJJSHIBONjs.parseViewportField.call(void 0, raw, prevPt[0]) : prevPt[0],
-      coord === "y" ? _chunkJJSHIBONjs.parseViewportField.call(void 0, raw, prevPt[1]) : prevPt[1]
+      coord === "x" ? _chunkQPMS2FGIjs.parseViewportField.call(void 0, raw, prevPt[0]) : prevPt[0],
+      coord === "y" ? _chunkQPMS2FGIjs.parseViewportField.call(void 0, raw, prevPt[1]) : prevPt[1]
     ];
     replacePath(objectIndex, pts, pathInterpolation(p));
   };
@@ -5584,10 +5613,19 @@ var GraphEmbedDialog = ({
     });
   };
   const handleSave = () => {
-    const viewport = _chunkJJSHIBONjs.viewportFromFields.call(void 0, viewportText, previewViewport);
+    const viewport = _chunkQPMS2FGIjs.viewportFromFields.call(void 0, viewportText, previewViewport);
+    const expressionsForSave = (_nullishCoalesce(embed.expressions, () => ( []))).map((expr, index) => {
+      const text = expressionDomainText(expr, index);
+      return {
+        ...expr,
+        domainMin: parseDomainFieldCommit(text.min),
+        domainMax: parseDomainFieldCommit(text.max)
+      };
+    });
     onSave(
       normalizeEmbedMode({
         ...embed,
+        expressions: expressionsForSave,
         viewport,
         type: "graph",
         renderer: "jsxgraph"
@@ -5680,19 +5718,21 @@ var GraphEmbedDialog = ({
                 value: expr.latex,
                 onChange: (latex) => {
                   updateExpression(index, { latex });
-                  if (_optionalChain([variablePrompt, 'optionalAccess', _146 => _146.exprIndex]) === index) {
+                  if (_optionalChain([variablePrompt, 'optionalAccess', _154 => _154.exprIndex]) === index) {
                     setVariablePrompt(null);
                   }
                 },
                 minWidthPx: 200,
                 minWidthPercent: 100,
                 minHeightPx: 44,
-                maxHeightPx: 88
+                maxHeightPx: 88,
+                inlineInsertPanel: true,
+                openPanelOnFocus: true
               }
             ) }),
             /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _IconButton2.default, { size: "small", onClick: () => removeExpression(index), "aria-label": "Remove", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Delete2.default, { fontSize: "small" }) })
           ] }),
-          _optionalChain([variablePrompt, 'optionalAccess', _147 => _147.exprIndex]) === index && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Paper2.default, { variant: "outlined", sx: { p: 1.25, bgcolor: "action.hover" }, children: [
+          _optionalChain([variablePrompt, 'optionalAccess', _155 => _155.exprIndex]) === index && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Paper2.default, { variant: "outlined", sx: { p: 1.25, bgcolor: "action.hover" }, children: [
             /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _Typography2.default, { variant: "body2", sx: { mb: 1 }, children: [
               'Variable "',
               variablePrompt.name,
@@ -5739,29 +5779,20 @@ var GraphEmbedDialog = ({
                 size: "small",
                 type: "text",
                 inputMode: "decimal",
-                value: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _148 => _148[exprDomainKey(expr, index)], 'optionalAccess', _149 => _149.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
-                placeholder: "auto",
+                value: expressionDomainText(expr, index).min,
+                placeholder: "\u2212\u221E",
                 onChange: (e) => {
                   const id = exprDomainKey(expr, index);
                   setExpressionDomainTexts((p) => ({
                     ...p,
                     [id]: {
                       min: e.target.value,
-                      max: _nullishCoalesce(_optionalChain([p, 'access', _150 => _150[id], 'optionalAccess', _151 => _151.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
+                      max: _nullishCoalesce(_optionalChain([p, 'access', _156 => _156[id], 'optionalAccess', _157 => _157.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
                     }
                   }));
                 },
                 onBlur: (e) => {
-                  const v = parseDomainFieldCommit(e.target.value);
-                  updateExpression(index, { domainMin: v });
-                  const id = exprDomainKey(expr, index);
-                  setExpressionDomainTexts((p) => ({
-                    ...p,
-                    [id]: {
-                      min: v !== void 0 ? String(v) : "",
-                      max: _nullishCoalesce(_optionalChain([p, 'access', _152 => _152[id], 'optionalAccess', _153 => _153.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : "")))
-                    }
-                  }));
+                  commitExpressionDomainField(index, expr, "min", e.target.value);
                 },
                 onKeyDown: (e) => {
                   if (e.key !== "Enter") return;
@@ -5777,29 +5808,20 @@ var GraphEmbedDialog = ({
                 size: "small",
                 type: "text",
                 inputMode: "decimal",
-                value: _nullishCoalesce(_optionalChain([expressionDomainTexts, 'access', _154 => _154[exprDomainKey(expr, index)], 'optionalAccess', _155 => _155.max]), () => ( (expr.domainMax !== void 0 ? String(expr.domainMax) : ""))),
-                placeholder: "auto",
+                value: expressionDomainText(expr, index).max,
+                placeholder: "+\u221E",
                 onChange: (e) => {
                   const id = exprDomainKey(expr, index);
                   setExpressionDomainTexts((p) => ({
                     ...p,
                     [id]: {
-                      min: _nullishCoalesce(_optionalChain([p, 'access', _156 => _156[id], 'optionalAccess', _157 => _157.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
+                      min: _nullishCoalesce(_optionalChain([p, 'access', _158 => _158[id], 'optionalAccess', _159 => _159.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
                       max: e.target.value
                     }
                   }));
                 },
                 onBlur: (e) => {
-                  const v = parseDomainFieldCommit(e.target.value);
-                  updateExpression(index, { domainMax: v });
-                  const id = exprDomainKey(expr, index);
-                  setExpressionDomainTexts((p) => ({
-                    ...p,
-                    [id]: {
-                      min: _nullishCoalesce(_optionalChain([p, 'access', _158 => _158[id], 'optionalAccess', _159 => _159.min]), () => ( (expr.domainMin !== void 0 ? String(expr.domainMin) : ""))),
-                      max: v !== void 0 ? String(v) : ""
-                    }
-                  }));
+                  commitExpressionDomainField(index, expr, "max", e.target.value);
                 },
                 onKeyDown: (e) => {
                   if (e.key !== "Enter") return;
@@ -5835,7 +5857,7 @@ var GraphEmbedDialog = ({
               )
             ] })
           ] }),
-          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Domain / markers apply to function plots." })
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _Typography2.default, { variant: "caption", color: "text.secondary", children: "y = f(x), relations, or bare expression. Leave a domain box empty for \u2212\u221E (min) or +\u221E (max); markers apply to function plots." })
         ]
       },
       exprDomainKey(expr, index)
@@ -5873,7 +5895,7 @@ var GraphEmbedDialog = ({
               label: "Min",
               size: "small",
               value: String(slider.min),
-              onChange: (e) => updateSlider(index, { min: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.min) }),
+              onChange: (e) => updateSlider(index, { min: _chunkQPMS2FGIjs.parseViewportField.call(void 0, e.target.value, slider.min) }),
               sx: { width: 72 }
             }
           ),
@@ -5883,7 +5905,7 @@ var GraphEmbedDialog = ({
               label: "Max",
               size: "small",
               value: String(slider.max),
-              onChange: (e) => updateSlider(index, { max: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.max) }),
+              onChange: (e) => updateSlider(index, { max: _chunkQPMS2FGIjs.parseViewportField.call(void 0, e.target.value, slider.max) }),
               sx: { width: 72 }
             }
           ),
@@ -5894,7 +5916,7 @@ var GraphEmbedDialog = ({
               size: "small",
               value: String(slider.initial),
               onChange: (e) => updateSlider(index, {
-                initial: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, slider.initial)
+                initial: _chunkQPMS2FGIjs.parseViewportField.call(void 0, e.target.value, slider.initial)
               }),
               sx: { width: 72 }
             }
@@ -6194,7 +6216,7 @@ var GraphEmbedDialog = ({
               label: "x",
               size: "small",
               value: String(label.x),
-              onChange: (e) => updateTextLabel(index, { x: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, label.x) }),
+              onChange: (e) => updateTextLabel(index, { x: _chunkQPMS2FGIjs.parseViewportField.call(void 0, e.target.value, label.x) }),
               sx: { width: 72 }
             }
           ),
@@ -6204,7 +6226,7 @@ var GraphEmbedDialog = ({
               label: "y",
               size: "small",
               value: String(label.y),
-              onChange: (e) => updateTextLabel(index, { y: _chunkJJSHIBONjs.parseViewportField.call(void 0, e.target.value, label.y) }),
+              onChange: (e) => updateTextLabel(index, { y: _chunkQPMS2FGIjs.parseViewportField.call(void 0, e.target.value, label.y) }),
               sx: { width: 72 }
             }
           ),
@@ -6329,13 +6351,13 @@ var GraphEmbedDialog = ({
                     },
                     children: [
                       /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
-                        _chunkJJSHIBONjs.GraphPreview_default,
+                        _chunkQPMS2FGIjs.GraphPreview_default,
                         {
                           embed: previewEmbed,
                           height: previewDisplaySize.height,
                           width: `${previewDisplaySize.width}px`
                         },
-                        _chunkJJSHIBONjs.graphPreviewKey.call(void 0, previewEmbed)
+                        _chunkQPMS2FGIjs.graphPreviewKey.call(void 0, previewEmbed)
                       ),
                       /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                         _ButtonBase2.default,
@@ -6417,7 +6439,7 @@ var GraphEmbedDialog = ({
                                     const x = parsePositiveDecimalCommit(e.target.value, prevX);
                                     setScaleRatioXText(null);
                                     setEmbed(
-                                      (p) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, 
+                                      (p) => _chunkQPMS2FGIjs.withAutoDisplaySize.call(void 0, 
                                         {
                                           ...p,
                                           options: {
@@ -6460,7 +6482,7 @@ var GraphEmbedDialog = ({
                                     const y = parsePositiveDecimalCommit(e.target.value, prevY);
                                     setScaleRatioYText(null);
                                     setEmbed(
-                                      (p) => _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, 
+                                      (p) => _chunkQPMS2FGIjs.withAutoDisplaySize.call(void 0, 
                                         {
                                           ...p,
                                           options: {
@@ -6505,12 +6527,12 @@ var GraphEmbedDialog = ({
                         setGraphWText(null);
                         if (n === void 0) return;
                         const w = Math.min(
-                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH,
-                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH, n)
+                          _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(_chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_WIDTH, n)
                         );
                         const h = Math.min(
-                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT,
-                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT, Math.round(w / Math.max(1e-4, previewAspect)))
+                          _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(_chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_HEIGHT, Math.round(w / Math.max(1e-4, previewAspect)))
                         );
                         setEmbed((prev) => ({
                           ...prev,
@@ -6543,12 +6565,12 @@ var GraphEmbedDialog = ({
                         setGraphHText(null);
                         if (n === void 0) return;
                         const h = Math.min(
-                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT,
-                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT, n)
+                          _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_HEIGHT,
+                          Math.max(_chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_HEIGHT, n)
                         );
                         const w = Math.min(
-                          _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH,
-                          Math.max(_chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH, Math.round(h * previewAspect))
+                          _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_WIDTH,
+                          Math.max(_chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_WIDTH, Math.round(h * previewAspect))
                         );
                         setEmbed((prev) => ({
                           ...prev,
@@ -6717,7 +6739,7 @@ function useGraphEmbedEditor({
   const getEmbeds = _react.useCallback.call(void 0, () => embedsRef.current, []);
   const patchEmbeds = _react.useCallback.call(void 0, 
     (embedId, embed) => {
-      const next = _chunkJJSHIBONjs.upsertGraphEmbed.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), embedId, embed);
+      const next = _chunkQPMS2FGIjs.upsertGraphEmbed.call(void 0, _nullishCoalesce(embedsRef.current, () => ( {})), embedId, embed);
       embedsRef.current = next;
       _optionalChain([onEmbedsChange, 'optionalCall', _200 => _200(next)]);
       return next;
@@ -6732,11 +6754,11 @@ function useGraphEmbedEditor({
           open: true,
           mode: "insert",
           embedId: createGraphEmbedId(),
-          initialEmbed: _chunkJJSHIBONjs.withAutoDisplaySize.call(void 0, defaultGraphEmbed())
+          initialEmbed: _chunkQPMS2FGIjs.withAutoDisplaySize.call(void 0, defaultGraphEmbed())
         });
         return;
       }
-      const existing = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, embedsRef.current, request.embedId);
+      const existing = _chunkQPMS2FGIjs.getGraphEmbed.call(void 0, embedsRef.current, request.embedId);
       setDialog({
         open: true,
         mode: "edit",
@@ -6768,7 +6790,7 @@ function useGraphEmbedEditor({
   const resizeGraphEmbed = _react.useCallback.call(void 0, 
     (embedId, size) => {
       if (!enabled || !onEmbedsChange) return;
-      const existing = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, embedsRef.current, embedId);
+      const existing = _chunkQPMS2FGIjs.getGraphEmbed.call(void 0, embedsRef.current, embedId);
       if (!existing) return;
       patchEmbeds(embedId, {
         ...existing,
@@ -6798,7 +6820,7 @@ var MAX_GRAPH_WIDTH = 960;
 var MIN_GRAPH_HEIGHT = 120;
 var MAX_GRAPH_HEIGHT = 800;
 function applyGraphNodeLayout(dom, body, embed) {
-  const { width, height } = embed ? _chunkJJSHIBONjs.resolveGraphDisplaySize.call(void 0, embed) : { width: 400, height: 400 };
+  const { width, height } = embed ? _chunkQPMS2FGIjs.resolveGraphDisplaySize.call(void 0, embed) : { width: 400, height: 400 };
   dom.style.display = "inline-block";
   dom.style.verticalAlign = "top";
   dom.style.maxWidth = "100%";
@@ -6934,10 +6956,10 @@ var GraphEmbedNode = _core.Node.create({
         const embedId = node.attrs.embedId;
         dom.dataset.embedId = embedId;
         mount.dataset.graphEmbedId = embedId;
-        const embed = _chunkJJSHIBONjs.getGraphEmbed.call(void 0, getEmbeds(), embedId);
+        const embed = _chunkQPMS2FGIjs.getGraphEmbed.call(void 0, getEmbeds(), embedId);
         dom.classList.toggle("graph-embed-node--missing", !embed);
         if (embed) {
-          label.textContent = `Graph (${_chunkJJSHIBONjs.graphModeLabel.call(void 0, embed)})`;
+          label.textContent = `Graph (${_chunkQPMS2FGIjs.graphModeLabel.call(void 0, embed)})`;
         } else {
           label.textContent = "Graph (missing definition)";
         }
@@ -7078,5 +7100,5 @@ var GraphEmbedNode = _core.Node.create({
 
 
 
-exports.CHEM_STRUCTURE_ALLOWED_ATTR = _chunkJJSHIBONjs.CHEM_STRUCTURE_ALLOWED_ATTR; exports.CHEM_STRUCTURE_ALLOWED_TAGS = _chunkJJSHIBONjs.CHEM_STRUCTURE_ALLOWED_TAGS; exports.ChemStructure = ChemStructure; exports.ChemStructureDialog = ChemStructureDialogLazy_default; exports.EquationInsertPanel = EquationInsertPanel; exports.ExplanationEditor = ExplanationEditor; exports.GRAPH_DISPLAY_BASE_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_BASE_WIDTH; exports.GRAPH_DISPLAY_MAX_HEIGHT = _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_HEIGHT; exports.GRAPH_DISPLAY_MAX_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_MAX_WIDTH; exports.GRAPH_DISPLAY_MIN_HEIGHT = _chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_HEIGHT; exports.GRAPH_DISPLAY_MIN_WIDTH = _chunkJJSHIBONjs.GRAPH_DISPLAY_MIN_WIDTH; exports.GraphAnswerInput = _chunkJJSHIBONjs.GraphAnswerInput_default; exports.GraphEmbedDialog = GraphEmbedDialog_default; exports.GraphEmbedNode = GraphEmbedNode; exports.GraphPreview = _chunkJJSHIBONjs.GraphPreview_default; exports.GraphRenderer = _chunkJJSHIBONjs.GraphRenderer_default; exports.InlineMathWithMathLive = InlineMathWithMathLive; exports.InlineMathWithParens = InlineMathWithParens; exports.MathLiveEditor = MathLiveEditor_default; exports.MathPreview = _chunkJJSHIBONjs.MathPreview_default; exports.MathematicsWithInlineEdit = MathematicsWithInlineEdit; exports.MenuBar = MenuBar_default; exports.OverleafPaste = OverleafPaste; exports.RichTextWithMath = _chunkJJSHIBONjs.RichTextWithMath; exports.SmartMathPaste = SmartMathPaste; exports.TextStyleFontSize = TextStyleFontSize; exports.TiptapEditor = TiptapEditor_default; exports.chemAwareSanitizeConfig = _chunkJJSHIBONjs.chemAwareSanitizeConfig; exports.collectChemStructureIds = _chunkJJSHIBONjs.collectChemStructureIds; exports.collectGraphEmbedIds = _chunkJJSHIBONjs.collectGraphEmbedIds; exports.computeGraphDisplaySize = _chunkJJSHIBONjs.computeGraphDisplaySize; exports.createChemStructureId = createChemStructureId; exports.createGraphEmbedId = createGraphEmbedId; exports.denormalizeTeachingDiagramKetForEditing = _chunkIZE4D3JYjs.denormalizeTeachingDiagramKetForEditing; exports.extractGraphVariableNamesFromLatex = extractGraphVariableNamesFromLatex; exports.findUndefinedGraphVariables = findUndefinedGraphVariables; exports.formatGraphOriginLabelLatex = _chunkJJSHIBONjs.formatGraphOriginLabelLatex; exports.getChemStructureEmbed = _chunkJJSHIBONjs.getChemStructureEmbed; exports.getGraphEmbed = _chunkJJSHIBONjs.getGraphEmbed; exports.graphHasSliders = _chunkJJSHIBONjs.graphHasSliders; exports.graphModeLabel = _chunkJJSHIBONjs.graphModeLabel; exports.graphPreviewKey = _chunkJJSHIBONjs.graphPreviewKey; exports.handleMathBackspaceKeyDown = handleMathBackspaceKeyDown; exports.hydrateChemStructuresInHtml = _chunkJJSHIBONjs.hydrateChemStructuresInHtml; exports.hydrateGraphsInHtml = _chunkJJSHIBONjs.hydrateGraphsInHtml; exports.isDisplayInteractive = _chunkJJSHIBONjs.isDisplayInteractive; exports.mountGraphPreviewsInElement = _chunkJJSHIBONjs.mountGraphPreviewsInElement; exports.namespaceChemPreviewSvg = _chunkJJSHIBONjs.namespaceChemPreviewSvg; exports.normalizeChemStructureSource = _chunkIZE4D3JYjs.normalizeChemStructureSource; exports.normalizeGraphMode = _chunkJJSHIBONjs.normalizeGraphMode; exports.normalizeStructurePreviewKet = _chunkIZE4D3JYjs.normalizeStructurePreviewKet; exports.normalizeTeachingDiagramKet = _chunkIZE4D3JYjs.normalizeTeachingDiagramKet; exports.normalizeViewport = _chunkJJSHIBONjs.normalizeViewport; exports.parseViewportField = _chunkJJSHIBONjs.parseViewportField; exports.prepareChemAwareHtml = _chunkJJSHIBONjs.prepareChemAwareHtml; exports.pruneUnusedChemStructures = _chunkJJSHIBONjs.pruneUnusedChemStructures; exports.pruneUnusedGraphs = _chunkJJSHIBONjs.pruneUnusedGraphs; exports.removeChemStructure = _chunkJJSHIBONjs.removeChemStructure; exports.removeGraphEmbed = _chunkJJSHIBONjs.removeGraphEmbed; exports.renderTeachingDiagramSvg = _chunkIZE4D3JYjs.renderTeachingDiagramSvg; exports.resolveGraphDisplaySize = _chunkJJSHIBONjs.resolveGraphDisplaySize; exports.unmountGraphPreviewsInElement = _chunkJJSHIBONjs.unmountGraphPreviewsInElement; exports.upsertChemStructure = _chunkJJSHIBONjs.upsertChemStructure; exports.upsertGraphEmbed = _chunkJJSHIBONjs.upsertGraphEmbed; exports.useChemStructureEditor = useChemStructureEditor; exports.useGraphEmbedEditor = useGraphEmbedEditor; exports.viewportFieldsFromEmbed = _chunkJJSHIBONjs.viewportFieldsFromEmbed; exports.viewportFromFields = _chunkJJSHIBONjs.viewportFromFields; exports.withAutoDisplaySize = _chunkJJSHIBONjs.withAutoDisplaySize;
+exports.CHEM_STRUCTURE_ALLOWED_ATTR = _chunkQPMS2FGIjs.CHEM_STRUCTURE_ALLOWED_ATTR; exports.CHEM_STRUCTURE_ALLOWED_TAGS = _chunkQPMS2FGIjs.CHEM_STRUCTURE_ALLOWED_TAGS; exports.ChemStructure = ChemStructure; exports.ChemStructureDialog = ChemStructureDialogLazy_default; exports.EquationInsertPanel = EquationInsertPanel; exports.ExplanationEditor = ExplanationEditor; exports.GRAPH_DISPLAY_BASE_WIDTH = _chunkQPMS2FGIjs.GRAPH_DISPLAY_BASE_WIDTH; exports.GRAPH_DISPLAY_MAX_HEIGHT = _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_HEIGHT; exports.GRAPH_DISPLAY_MAX_WIDTH = _chunkQPMS2FGIjs.GRAPH_DISPLAY_MAX_WIDTH; exports.GRAPH_DISPLAY_MIN_HEIGHT = _chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_HEIGHT; exports.GRAPH_DISPLAY_MIN_WIDTH = _chunkQPMS2FGIjs.GRAPH_DISPLAY_MIN_WIDTH; exports.GraphAnswerInput = _chunkQPMS2FGIjs.GraphAnswerInput_default; exports.GraphEmbedDialog = GraphEmbedDialog_default; exports.GraphEmbedNode = GraphEmbedNode; exports.GraphPreview = _chunkQPMS2FGIjs.GraphPreview_default; exports.GraphRenderer = _chunkQPMS2FGIjs.GraphRenderer_default; exports.InlineMathWithMathLive = InlineMathWithMathLive; exports.InlineMathWithParens = InlineMathWithParens; exports.MathLiveEditor = MathLiveEditor_default; exports.MathPreview = _chunkQPMS2FGIjs.MathPreview_default; exports.MathematicsWithInlineEdit = MathematicsWithInlineEdit; exports.MenuBar = MenuBar_default; exports.OverleafPaste = OverleafPaste; exports.RichTextWithMath = _chunkQPMS2FGIjs.RichTextWithMath; exports.SmartMathPaste = SmartMathPaste; exports.TextStyleFontSize = TextStyleFontSize; exports.TiptapEditor = TiptapEditor_default; exports.chemAwareSanitizeConfig = _chunkQPMS2FGIjs.chemAwareSanitizeConfig; exports.collectChemStructureIds = _chunkQPMS2FGIjs.collectChemStructureIds; exports.collectGraphEmbedIds = _chunkQPMS2FGIjs.collectGraphEmbedIds; exports.computeGraphDisplaySize = _chunkQPMS2FGIjs.computeGraphDisplaySize; exports.createChemStructureId = createChemStructureId; exports.createGraphEmbedId = createGraphEmbedId; exports.denormalizeTeachingDiagramKetForEditing = _chunkIZE4D3JYjs.denormalizeTeachingDiagramKetForEditing; exports.extractGraphVariableNamesFromLatex = extractGraphVariableNamesFromLatex; exports.findUndefinedGraphVariables = findUndefinedGraphVariables; exports.formatGraphOriginLabelLatex = _chunkQPMS2FGIjs.formatGraphOriginLabelLatex; exports.getChemStructureEmbed = _chunkQPMS2FGIjs.getChemStructureEmbed; exports.getGraphEmbed = _chunkQPMS2FGIjs.getGraphEmbed; exports.graphHasSliders = _chunkQPMS2FGIjs.graphHasSliders; exports.graphModeLabel = _chunkQPMS2FGIjs.graphModeLabel; exports.graphPreviewKey = _chunkQPMS2FGIjs.graphPreviewKey; exports.handleMathBackspaceKeyDown = handleMathBackspaceKeyDown; exports.hydrateChemStructuresInHtml = _chunkQPMS2FGIjs.hydrateChemStructuresInHtml; exports.hydrateGraphsInHtml = _chunkQPMS2FGIjs.hydrateGraphsInHtml; exports.isDisplayInteractive = _chunkQPMS2FGIjs.isDisplayInteractive; exports.mountGraphPreviewsInElement = _chunkQPMS2FGIjs.mountGraphPreviewsInElement; exports.namespaceChemPreviewSvg = _chunkQPMS2FGIjs.namespaceChemPreviewSvg; exports.normalizeChemStructureSource = _chunkIZE4D3JYjs.normalizeChemStructureSource; exports.normalizeGraphMode = _chunkQPMS2FGIjs.normalizeGraphMode; exports.normalizeStructurePreviewKet = _chunkIZE4D3JYjs.normalizeStructurePreviewKet; exports.normalizeTeachingDiagramKet = _chunkIZE4D3JYjs.normalizeTeachingDiagramKet; exports.normalizeViewport = _chunkQPMS2FGIjs.normalizeViewport; exports.parseViewportField = _chunkQPMS2FGIjs.parseViewportField; exports.prepareChemAwareHtml = _chunkQPMS2FGIjs.prepareChemAwareHtml; exports.pruneUnusedChemStructures = _chunkQPMS2FGIjs.pruneUnusedChemStructures; exports.pruneUnusedGraphs = _chunkQPMS2FGIjs.pruneUnusedGraphs; exports.removeChemStructure = _chunkQPMS2FGIjs.removeChemStructure; exports.removeGraphEmbed = _chunkQPMS2FGIjs.removeGraphEmbed; exports.renderTeachingDiagramSvg = _chunkIZE4D3JYjs.renderTeachingDiagramSvg; exports.resolveGraphDisplaySize = _chunkQPMS2FGIjs.resolveGraphDisplaySize; exports.unmountGraphPreviewsInElement = _chunkQPMS2FGIjs.unmountGraphPreviewsInElement; exports.upsertChemStructure = _chunkQPMS2FGIjs.upsertChemStructure; exports.upsertGraphEmbed = _chunkQPMS2FGIjs.upsertGraphEmbed; exports.useChemStructureEditor = useChemStructureEditor; exports.useGraphEmbedEditor = useGraphEmbedEditor; exports.viewportFieldsFromEmbed = _chunkQPMS2FGIjs.viewportFieldsFromEmbed; exports.viewportFromFields = _chunkQPMS2FGIjs.viewportFromFields; exports.withAutoDisplaySize = _chunkQPMS2FGIjs.withAutoDisplaySize;
 //# sourceMappingURL=index.js.map

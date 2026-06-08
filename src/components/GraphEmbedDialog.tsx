@@ -421,6 +421,42 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
     }));
   };
 
+  const expressionDomainText = (expr: GraphExpression, index: number) => {
+    const id = exprDomainKey(expr, index);
+    return {
+      min: expressionDomainTexts[id]?.min ?? (expr.domainMin !== undefined ? String(expr.domainMin) : ''),
+      max: expressionDomainTexts[id]?.max ?? (expr.domainMax !== undefined ? String(expr.domainMax) : ''),
+    };
+  };
+
+  const commitExpressionDomainField = (
+    index: number,
+    expr: GraphExpression,
+    field: 'min' | 'max',
+    raw: string,
+  ) => {
+    const id = exprDomainKey(expr, index);
+    const value = parseDomainFieldCommit(raw);
+    updateExpression(index, field === 'min' ? { domainMin: value } : { domainMax: value });
+    setExpressionDomainTexts((p) => ({
+      ...p,
+      [id]: {
+        min:
+          field === 'min'
+            ? value !== undefined
+              ? String(value)
+              : ''
+            : p[id]?.min ?? (expr.domainMin !== undefined ? String(expr.domainMin) : ''),
+        max:
+          field === 'max'
+            ? value !== undefined
+              ? String(value)
+              : ''
+            : p[id]?.max ?? (expr.domainMax !== undefined ? String(expr.domainMax) : ''),
+      },
+    }));
+  };
+
   const updateTextLabel = (index: number, patch: Partial<GraphLabelObject>) => {
     setEmbed((prev) => {
       const objects = [...(prev.objects ?? [])];
@@ -584,9 +620,18 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
 
   const handleSave = () => {
     const viewport = viewportFromFields(viewportText, previewViewport);
+    const expressionsForSave = (embed.expressions ?? []).map((expr, index) => {
+      const text = expressionDomainText(expr, index);
+      return {
+        ...expr,
+        domainMin: parseDomainFieldCommit(text.min),
+        domainMax: parseDomainFieldCommit(text.max),
+      };
+    });
     onSave(
       normalizeEmbedMode({
         ...embed,
+        expressions: expressionsForSave,
         viewport,
         type: 'graph',
         renderer: 'jsxgraph',
@@ -686,6 +731,8 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
                 minWidthPercent={100}
                 minHeightPx={44}
                 maxHeightPx={88}
+                inlineInsertPanel
+                openPanelOnFocus
               />
             </Box>
             <IconButton size="small" onClick={() => removeExpression(index)} aria-label="Remove">
@@ -732,11 +779,8 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
               size="small"
               type="text"
               inputMode="decimal"
-              value={
-                expressionDomainTexts[exprDomainKey(expr, index)]?.min ??
-                (expr.domainMin !== undefined ? String(expr.domainMin) : '')
-              }
-              placeholder="auto"
+              value={expressionDomainText(expr, index).min}
+              placeholder="−∞"
               onChange={(e) => {
                 const id = exprDomainKey(expr, index);
                 setExpressionDomainTexts((p) => ({
@@ -750,18 +794,7 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
                 }));
               }}
               onBlur={(e) => {
-                const v = parseDomainFieldCommit(e.target.value);
-                updateExpression(index, { domainMin: v });
-                const id = exprDomainKey(expr, index);
-                setExpressionDomainTexts((p) => ({
-                  ...p,
-                  [id]: {
-                    min: v !== undefined ? String(v) : '',
-                    max:
-                      p[id]?.max ??
-                      (expr.domainMax !== undefined ? String(expr.domainMax) : ''),
-                  },
-                }));
+                commitExpressionDomainField(index, expr, 'min', e.target.value);
               }}
               onKeyDown={(e) => {
                 if (e.key !== 'Enter') return;
@@ -774,11 +807,8 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
               size="small"
               type="text"
               inputMode="decimal"
-              value={
-                expressionDomainTexts[exprDomainKey(expr, index)]?.max ??
-                (expr.domainMax !== undefined ? String(expr.domainMax) : '')
-              }
-              placeholder="auto"
+              value={expressionDomainText(expr, index).max}
+              placeholder="+∞"
               onChange={(e) => {
                 const id = exprDomainKey(expr, index);
                 setExpressionDomainTexts((p) => ({
@@ -792,18 +822,7 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
                 }));
               }}
               onBlur={(e) => {
-                const v = parseDomainFieldCommit(e.target.value);
-                updateExpression(index, { domainMax: v });
-                const id = exprDomainKey(expr, index);
-                setExpressionDomainTexts((p) => ({
-                  ...p,
-                  [id]: {
-                    min:
-                      p[id]?.min ??
-                      (expr.domainMin !== undefined ? String(expr.domainMin) : ''),
-                    max: v !== undefined ? String(v) : '',
-                  },
-                }));
+                commitExpressionDomainField(index, expr, 'max', e.target.value);
               }}
               onKeyDown={(e) => {
                 if (e.key !== 'Enter') return;
@@ -847,7 +866,7 @@ const GraphEmbedDialog: React.FC<GraphEmbedDialogProps> = ({
             </FormControl>
           </Stack>
           <Typography variant="caption" color="text.secondary">
-            y = f(x), relations, or bare expression. Domain / markers apply to function plots.
+            y = f(x), relations, or bare expression. Leave a domain box empty for −∞ (min) or +∞ (max); markers apply to function plots.
           </Typography>
         </Stack>
       ))}
