@@ -1,7 +1,7 @@
 {
     "name": "@huoncroll/math-editors",
-    "version": "1.0.39",
-    "description": "MathLiveEditor, ExplanationEditor, and TiptapEditor with inline math - shared across Huons repos",
+    "version": "1.0.45",
+    "description": "MathLiveEditor, ExplanationEditor, TiptapEditor, and criterion-row marking engine - shared across Huons repos",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -26,14 +26,26 @@
             "import": "./dist/vite.mjs",
             "require": "./dist/vite.js"
         },
-        "./dist/index.css": "./dist/index.css"
+        "./dist/index.css": "./dist/index.css",
+        "./marking": {
+            "types": "./dist/marking/index.d.ts",
+            "import": "./dist/marking/index.mjs",
+            "require": "./dist/marking/index.js"
+        },
+        "./math-engine": {
+            "types": "./dist/math-engine/index.d.ts",
+            "import": "./dist/math-engine/index.mjs",
+            "require": "./dist/math-engine/index.js"
+        }
     },
     "files": [
         "dist"
     ],
     "scripts": {
         "build": "tsup && node -e \"require('fs').copyFileSync('src/styles/tiptap.css','dist/index.css')\"",
-        "dev": "tsup src/index.tsx --format cjs,esm --dts --watch"
+        "dev": "tsup src/index.tsx --format cjs,esm --dts --watch",
+        "prepublishOnly": "npm run build",
+        "publish:public": "npm publish --access public"
     },
     "peerDependencies": {
         "@emotion/react": "^11.0.0",
@@ -77,5 +89,8 @@
         "ketcher-standalone": "3.12.0",
         "tsup": "^8.0.0",
         "typescript": "^4.9.0 || ^5.0.0"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
