@@ -64,6 +64,12 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
         const pos = getPos();
         if (typeof pos !== 'number') return;
 
+        // Cancel a pending blur teardown so a fast re-click isn't wiped by it.
+        if (pendingFinishTimeout !== null) {
+          window.clearTimeout(pendingFinishTimeout);
+          pendingFinishTimeout = null;
+        }
+
         isEditing = true;
         editModePos = pos;
         const latex = node.attrs.latex || '';
@@ -100,6 +106,7 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           isEditing = false;
           editModePos = null;
           didInitialSelect = false;
+          suppressBlur = false;
 
           if (panelCleanup) {
             panelCleanup();
@@ -107,16 +114,24 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           }
 
           // MathLive performs ResizeObserver cleanup during/just after blur. Keep the
-          // math-field mounted until that cycle has finished, then let ProseMirror's
-          // node update replace it with the KaTeX render.
+          // math-field mounted until that cycle has finished, then swap back to KaTeX.
+          // Always restore KaTeX ourselves: if latex is unchanged, ProseMirror reuses
+          // this node view and update() would otherwise leave a stale math-field that
+          // swallows later clicks (closest('math-field') → never re-enter edit mode).
           pendingFinishTimeout = window.setTimeout(() => {
             pendingFinishTimeout = null;
+            // A fast re-click may have already re-entered edit mode.
+            if (isEditing) return;
             mathField = null;
+            renderKaTeX(newLatex);
 
             if (typeof posToUse !== 'number') return;
             const currentNode = editor.state.doc.nodeAt(posToUse);
-            if (!currentNode || currentNode.type.name !== 'inlineMath') {
-              renderKaTeX(newLatex);
+            if (!currentNode || currentNode.type.name !== 'inlineMath') return;
+
+            const oldLatex = currentNode.attrs.latex || '';
+            if (oldLatex === newLatex) {
+              editor.commands.focus();
               return;
             }
 
@@ -128,16 +143,45 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           }, 50);
         };
 
+        const focusStillInEditorChrome = () => {
+          const active = document.activeElement as Element | null;
+          if (!active) return false;
+          if (active === mf || mf.contains(active)) return true;
+          if (panel.contains(active) || wrapper.contains(active)) return true;
+          // MathLive moves focus into its shadow DOM; composedPath isn't always
+          // available via activeElement, so also treat focus inside any math-field
+          // that still belongs to this wrapper as "still editing".
+          if (wrapper.querySelector('math-field') && active.closest?.('math-field')) {
+            return wrapper.contains(active.closest('math-field') as Node);
+          }
+          return false;
+        };
+
         // Keep pointer events on the math-field from bubbling to the wrapper handler below.
         mf.addEventListener('pointerdown', (e) => {
           e.stopPropagation();
         });
 
         mf.addEventListener('blur', (e: FocusEvent) => {
-          if (suppressBlur) return;
           // Don't close when clicking a panel button (focus moves to panel)
-          if (panel.contains((e.relatedTarget as Node) || null)) return;
-          finishEdit();
+          const related = (e.relatedTarget as Node) || null;
+          if (related && (panel.contains(related) || wrapper.contains(related))) return;
+
+          // TipTap/MathLive often blur+refocus during re-entry (especially the 2nd
+          // click). Defer so we only finish when focus has truly left the chrome —
+          // otherwise the panel is torn down while the math-field stays visible.
+          // If blur lands inside the suppressBlur window, retry after it lifts so a
+          // genuine quick click-away still closes the editor.
+          const attemptFinish = () => {
+            if (!isEditing) return;
+            if (suppressBlur) {
+              requestAnimationFrame(() => requestAnimationFrame(attemptFinish));
+              return;
+            }
+            if (focusStillInEditorChrome()) return;
+            finishEdit();
+          };
+          window.setTimeout(attemptFinish, 0);
         });
         mf.addEventListener('keydown', (e: KeyboardEvent) => {
           if (e.key === 'Escape') {
@@ -405,7 +449,28 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           resizeObserver?.disconnect();
         };
         mathField = mf;
-        (mf as any).focus();
+
+        // Ignore blur storms from MathLive mounting + TipTap reclaiming focus on
+        // re-entry; without this the panel is removed on the 2nd+ click while the
+        // math-field stays on screen.
+        suppressBlur = true;
+        try {
+          (mf as any).focus();
+        } catch (_) {}
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            suppressBlur = false;
+            if (!isEditing) return;
+            // If a deferred blur already stole focus, reclaim it and keep the panel.
+            if (!focusStillInEditorChrome()) {
+              try {
+                (mf as any).focus();
+              } catch (_) {}
+            }
+            positionPanel();
+          });
+        });
+
         // Select all only for placeholder text so the user can type to replace it.
         if (!didInitialSelect) {
           didInitialSelect = true;
@@ -419,7 +484,9 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
 
       function handleWrapperPointerDown(e: PointerEvent) {
         if (!editor.isEditable) return;
-        if ((e.target as HTMLElement).closest('math-field')) return;
+        // Only ignore math-field events while actively editing. A leftover
+        // math-field after blur must not block re-entry.
+        if (isEditing && (e.target as HTMLElement).closest('math-field')) return;
         if (!isEditing) {
           e.preventDefault();
           enterEditMode();
@@ -438,8 +505,10 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
           return true; // We manage our own DOM; prevent ProseMirror from reconciling
         },
         update(updatedNode) {
-          if (node.attrs.latex !== updatedNode.attrs.latex && !isEditing) {
-            node = updatedNode;
+          if (updatedNode.type.name !== 'inlineMath') return false;
+          const latexChanged = node.attrs.latex !== updatedNode.attrs.latex;
+          node = updatedNode;
+          if (!isEditing && (latexChanged || wrapper.querySelector('math-field'))) {
             renderKaTeX(updatedNode.attrs.latex);
           }
           return true;
@@ -447,9 +516,14 @@ export const InlineMathWithMathLive = InlineMathWithParens.extend({
         destroy() {
           if (pendingFinishTimeout !== null) {
             window.clearTimeout(pendingFinishTimeout);
+            pendingFinishTimeout = null;
+          }
+          if (panelCleanup) {
+            panelCleanup();
+            panelCleanup = null;
           }
           wrapper.removeEventListener('pointerdown', handleWrapperPointerDown);
-          mathField?.removeEventListener('blur', () => {});
+          mathField = null;
         },
       };
     };

@@ -1,8 +1,13 @@
 import { Extension, InputRule } from '@tiptap/core';
 import { BlockMath } from '@tiptap/extension-mathematics';
 import type { MathematicsOptions } from '@tiptap/extension-mathematics';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { InlineMathWithMathLive } from './InlineMathWithMathLive';
 import { SmartMathPaste } from './SmartMathPaste';
+import { convertMathDelimiters } from '../utils/mathDelimiterConvert';
+
+const BLOCK_MATH_PATTERN = /\\\[(.+?)\\\]/g;
+const blockDelimiterConvertKey = new PluginKey('blockMathDelimiterConvert');
 
 export const BlockMathWithBrackets = BlockMath.extend({
   addPasteRules() {
@@ -22,6 +27,28 @@ export const BlockMathWithBrackets = BlockMath.extend({
           // the block node. Manually resolving position after replaceWith can produce
           // an invalid offset when the document is restructured to fit the block node,
           // causing the transaction to be silently rolled back.
+        },
+      }),
+    ];
+  },
+
+  addProseMirrorPlugins() {
+    const nodeType = this.type;
+
+    return [
+      new Plugin({
+        key: blockDelimiterConvertKey,
+        appendTransaction(transactions, _oldState, newState) {
+          if (!transactions.some((tr) => tr.docChanged)) return null;
+          if (transactions.some((tr) => tr.getMeta(blockDelimiterConvertKey))) return null;
+
+          const tr = convertMathDelimiters(newState, {
+            pattern: BLOCK_MATH_PATTERN,
+            nodeType,
+          });
+          if (!tr) return null;
+          tr.setMeta(blockDelimiterConvertKey, true);
+          return tr;
         },
       }),
     ];
